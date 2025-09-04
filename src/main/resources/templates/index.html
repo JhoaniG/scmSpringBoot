@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link th:href="@{/css/stylos.css}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <title>Seguimiento y control de mascotas</title>
+</head>
+
+<body>
+
+<!-- MENU -->
+<header class="header">
+    <div class="container-m">
+        <div class="logo">
+            <h1>SCM</h1>
+        </div>
+        <nav class="menu">
+            <a href="#seccion1">Profesionales</a>
+            <a href="#seccion2">Mascotas</a>
+            <a href="#seccion3">Contáctanos</a>
+
+            <!-- Mostrar botones si no hay usuario en sesión -->
+            <button th:if="${session.usuarioLogueado == null}"
+                    type="button" class="btn btn-blanco me-2"
+                    data-bs-toggle="modal" data-bs-target="#modalRegistro">
+                Crear Cuenta
+            </button>
+
+            <a th:if="${session.usuarioLogueado == null}"
+               th:href="@{/login}"
+               class="btn btn-blanco" role="button">Iniciar Sesión</a>
+
+            <!-- Mostrar nombre y logout si está logueado -->
+            <span th:if="${session.usuarioLogueado != null}"
+                  th:text="'Hola, ' + ${session.usuarioLogueado.nombre}"
+                  class="me-3"></span>
+
+            <form th:if="${session.usuarioLogueado != null}"
+                  th:action="@{/logout}" method="get" style="display:inline;">
+                <button type="submit" class="btn btn-danger">Cerrar Sesión</button>
+            </form>
+        </nav>
+    </div>
+</header>
+
+<!-- Carousel -->
+<div class="capa">
+    <div id="carouselExampleSlidesOnly" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img th:src="@{/Imagenes/img1.jpg}" class="d-block w-100" alt="Imagen 1">
+            </div>
+            <div class="carousel-item">
+                <img th:src="@{/Imagenes/img2.jpg}" class="d-block w-100" alt="Imagen 2">
+            </div>
+            <div class="carousel-item">
+                <img th:src="@{/Imagenes/img3.jpg}" class="d-block w-100" alt="Imagen 3">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
+<!-- ACERCA DE -->
+<div class="container-fluid py-5">
+    <div class="container">
+        <div class="section-title text-center">
+            <h4 class="text-primary text-uppercase">Acerca de Nosotros</h4>
+            <h1 class="display-4">Cuidamos a tu mascota con amor</h1>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-lg-5 py-4">
+                <h2 class="mb-4">Nuestra Historia</h2>
+                <p>Fundados con el objetivo de mejorar el acceso a servicios de salud para tus mascotas...</p>
+                <p>Estamos comprometidos con la salud y bienestar de cada mascota...</p>
+            </div>
+            <div class="col-lg-2 py-4 text-center">
+                <img th:src="@{/Imagenes/perrotres.avif}" alt="Imagen de nuestra historia" class="img-fluid rounded" style="max-height: 300px; object-fit: cover; width: 100%;">
+            </div>
+            <div class="col-lg-5 py-4">
+                <h2 class="mb-4">Nuestra Visión</h2>
+                <p>Queremos ser el puente de confianza entre los dueños de mascotas y los mejores veterinarios del país...</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check-circle"></i> Acceso rápido a veterinarios de confianza</li>
+                    <li><i class="fas fa-check-circle"></i> Atención personalizada y de calidad</li>
+                    <li><i class="fas fa-check-circle"></i> Salud y bienestar garantizados</li>
+                </ul>
+                <a href="#" class="btn btn-info font-weight-bold py-2 px-4 mt-2">Saber más</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PROFESIONALES -->
+<div id="seccion1" class="container mt-5">
+    <h2 class="display-1 m-5 text-center d-none d-md-block">¡Nuestros Profesionales!</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card border-0">
+                <img th:src="@{/Imagenes/veterinarian1.jpg}" class="card-img-top" alt="Dr. Lucas Medina">
+                <div class="card-body">
+                    <h5 class="card-title">Dr. Lucas Medina</h5>
+                    <p class="card-text">Especialista en cirugía veterinaria y atención de emergencias...</p>
+                    <a href="#" class="btn btn-primary">Conócele</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0">
+                <img th:src="@{/Imagenes/veterinarian2.jpg}" class="card-img-top" alt="Dra. Valeria Cruz">
+                <div class="card-body">
+                    <h5 class="card-title">Dra. Valeria Cruz</h5>
+                    <p class="card-text">Especialista en cirugía veterinaria y atención de emergencias...</p>
+                    <a href="#" class="btn btn-primary">Conócele</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0">
+                <img th:src="@{/Imagenes/veterinarian3.jpg}" class="card-img-top" alt="Dr. Tomás Ruiz">
+                <div class="card-body">
+                    <h5 class="card-title">Dr. Tomás Ruiz</h5>
+                    <p class="card-text">Con 6 años de experiencia en dermatología y tratamiento de alergias...</p>
+                    <a href="#" class="btn btn-primary">Conócele</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MASCOTAS -->
+<div id="seccion2" class="container mt-5">
+    <!-- Max y Pipo -->
+    <div class="card mb-3 border-0">
+        <div class="row g-0 align-items-center">
+            <div class="col-md-5">
+                <img th:src="@{/Imagenes/mascota2.jpg}" class="img-fluid rounded" alt="Max y Pipo">
+            </div>
+            <div class="col-md-7">
+                <div class="card-body">
+                    <h2 class="card-title">¡Conoce a Max y Pipo!</h2>
+                    <p class="card-text">Max, un perrito curioso, y Pipo, un pollito inquieto...</p>
+                    <a href="#" class="btn btn-info">Registra tu mascota</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Milo -->
+    <div class="card mb-3 border-0">
+        <div class="row g-0 align-items-center">
+            <div class="col-md-7">
+                <div class="card-body">
+                    <h2 class="card-title">¡Conoce a Milo!</h2>
+                    <p class="card-text">Milo, un perrito pequeño de pelaje blanco y manchas negras...</p>
+                    <a href="#" class="btn btn-info">Registra tu mascota</a>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <img th:src="@{/Imagenes/mascota1.jpg}" class="img-fluid rounded" alt="Milo">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONTACTO -->
+<div id="seccion3" class="container mt-5">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h2 class="text-center mb-4">¡Contáctanos!</h2>
+            <form th:action="@{/enviar}" method="post">
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Correo Electrónico</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="mensaje" class="form-label">Mensaje</label>
+                    <textarea class="form-control" id="mensaje" name="mensaje" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-info w-100">Enviar</button>
+            </form>
+        </div>
+        <div class="col-md-6 d-none d-md-block">
+            <img th:src="@{/Imagenes/perro.jpg}" alt="Contáctanos" class="img-fluid rounded shadow">
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer mt-5">
+    <div class="container py-4">
+        <div class="row text-center text-md-start">
+            <div class="col-md-4 mb-3">
+                <h5 class="footer-title">John Alvarado</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-envelope"></i>
+                        <a href="mailto:jhonyse2345@gmail.com" class="footer-link">jhonyse2345@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> <span class="footer-text">321-613-2975</span></li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5 class="footer-title">Leonardo Atencio</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-envelope"></i>
+                        <a href="mailto:leonardoatenciob30@gmail.com" class="footer-link">leonardoatenciob30@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> <span class="footer-text">321-960-9864</span></li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5 class="footer-title">Jhoani Gallo</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-envelope"></i>
+                        <a href="mailto:jhoanigallo@gmail.com" class="footer-link">jhoanigallo@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> <span class="footer-text">312-311-0320</span></li>
+                </ul>
+            </div>
+        </div>
+        <hr class="footer-divider">
+        <div class="text-center mt-3">
+            <p class="footer-copy">&copy; 2024. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Modal de registro -->
+<div th:replace="modal/registerUsuarioModal :: registerModal"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

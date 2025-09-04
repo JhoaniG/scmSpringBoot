@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div th:fragment="barralateralV" class="container-menu">
+    <div class="cont-menu">
+        <label for="btn-menu">✖️</label>
+        <nav>
+            <div class="card text-center">
+                <img th:src="@{/images/perfil.png}" alt="Foto Perfil"/>
+                <h4 th:text="${usuario.nombre} + ' ' + ${usuario.apellido}">Usuario</h4>
+                <p th:text="${usuario.email}">correo@example.com</p>
+                <a th:href="@{/usuario/editar}" class="btn btn-primary">Editar Perfil</a>
+            </div>
+
+            <ul class="nav flex-column mt-3">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/diagnosticos/listar}">Diagnósticos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/citas/listar}">Citas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/actividad/generar}">Actividad</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/dieta/generar}">Dieta</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-danger text-white" th:href="@{/logout}">Cerrar Sesión</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+</body>
+</html>
