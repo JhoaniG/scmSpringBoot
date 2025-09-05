@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -8,6 +8,14 @@
     <title>Document</title>
 </head>
 <body>
-<h1>Perro hpta Usuario</h1>
+<h1>DUENOMASCOTA</h1>
+<form th:action="@{/logout}" method="post" class="mt-3">
+    <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 hover:text-red-800 transition-colors text-sm font-medium">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h6a1 1 0 011 1v2H4v8h7v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM13 7l5 3-5 3V7z" clip-rule="evenodd"/>
+        </svg>
+        Cerrar sesión
+    </button>
+</form>
 </body>
 </html>
