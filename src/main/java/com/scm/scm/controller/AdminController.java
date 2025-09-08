@@ -17,7 +17,7 @@ public class AdminController {
     @GetMapping("/index")
     public String index(Model model, Authentication authentication) {
         String email = authentication.getName();
-        Usuario usuario = usuarioRepositorio.findByEmail(email);
+        Usuario usuario = usuarioRepositorio.findByEmail(email).orElseThrow(() -> new RuntimeException("Usuario en sesión no encontrado"));
 
         model.addAttribute("usuario", usuario);
         return "Admin/index";

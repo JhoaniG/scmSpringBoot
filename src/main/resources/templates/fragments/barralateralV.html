@@ -9,7 +9,9 @@
         <label for="btn-menu">✖️</label>
         <nav>
             <div class="card text-center">
-                <img th:src="@{/images/perfil.png}" alt="Foto Perfil"/>
+                <img th:if="${session.usuario.foto != null}"
+                     th:src="@{'/uploads/' + ${session.usuario.foto}}"
+                     alt="Foto de perfil" class="rounded-circle" style="width:50px;height:50px;">
                 <h4 th:text="${usuario.nombre} + ' ' + ${usuario.apellido}">Usuario</h4>
                 <p th:text="${usuario.email}">correo@example.com</p>
                 <a th:href="@{/usuario/editar}" class="btn btn-primary">Editar Perfil</a>

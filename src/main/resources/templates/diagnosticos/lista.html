@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Diagnósticos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/stilos.css}" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="fragments/menuV :: menuV"></div>
+<input type="checkbox" id="btn-menu">
+
+<!-- Barra lateral -->
+<div th:replace="fragments/barralateralV :: barralateralV"></div>
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-primary">Diagnósticos de Dueños</h2>
+
+    <<div class="table-responsive shadow-sm">
+    <table class="table table-striped table-hover border border-primary">
+        <thead class="table-dark text-center">
+        <tr>
+            <th>ID Diagnóstico</th>
+            <th>Mascota</th>
+            <th>Dueño</th>
+            <th>Fecha</th>
+            <th>Observaciones</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="d : ${listaDiagnosticos}" class="text-center">
+            <td th:text="${d.idDiagnosticoDueno}"></td>
+            <td th:text="${d.nombreM}"></td>
+            <td th:text="${d.nombreDueno}"></td>
+            <td th:text="${d.fechaDiagnostico}"></td>
+            <td th:text="${d.observaciones}"></td>
+            <td>
+                <!-- Botón para abrir modal -->
+                <button class="btn btn-sm btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#citaModal"
+                        th:attr="data-iddiagnostico=${d.idDiagnosticoDueno}, data-idmascota=${d.mascotaId}">
+                    Crear Cita
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+
+    <div class="text-center mt-4">
+        <a th:href="@{/veterinario/panel}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver al Panel
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<div class="modal fade" id="citaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form th:action="@{/citas/crear}" th:object="${citaDTO}" method="post" class="needs-validation" novalidate>
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Crear Cita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Hidden inputs para enviar IDs correctos -->
+                    <input type="hidden" th:field="*{diagnosticoduenoId}" id="modalIdD">
+                    <input type="hidden" th:field="*{mascotaId}" id="modalIdMascota">
+                    <input type="hidden" th:field="*{veterinarioId}" th:value="${session.veterinarioId}">
+
+                    <div class="mb-3">
+                        <label for="FechaCita" class="form-label">Fecha de la Cita</label>
+                        <input type="date" th:field="*{fechaCita}" id="FechaCita" class="form-control" required>
+                        <div class="invalid-feedback">
+                            Por favor, seleccione una fecha de cita válida (hoy o futura).
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="MotivoCita" class="form-label">Motivo</label>
+                        <input type="text" th:field="*{motivoCita}" id="MotivoCita" class="form-control"
+                               required minlength="5" maxlength="255"
+                               title="El motivo de la cita debe tener entre 5 y 255 caracteres.">
+                        <div class="invalid-feedback">
+                            Por favor, ingrese un motivo para la cita (entre 5 y 255 caracteres).
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const citaModal = document.getElementById('citaModal');
+    const fechaCitaInput = document.getElementById('FechaCita');
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const minDate = `${year}-${month}-${day}`;
+    fechaCitaInput.setAttribute('min', minDate);
+
+    // Pasar IDs al modal
+    citaModal.addEventListener('show.bs.modal', function (ev) {
+        const btn = ev.relatedTarget;
+        if (!btn) return;
+
+        const idD = btn.getAttribute('data-iddiagnostico'); // idDiagnosticoDueno
+       const idMascota = btn.getAttribute('data-idmascota'); // mascotaId
+        document.getElementById('modalIdD').value = idD;
+         document.getElementById('modalIdMascota').value = idMascota;
+        // Resetear formulario
+        const form = citaModal.querySelector('.needs-validation');
+        form.classList.remove('was-validated');
+        Array.from(form.elements).forEach(el => {
+            el.classList.remove('is-valid', 'is-invalid');
+            el.setCustomValidity("");
+        });
+
+        // Poner fecha predeterminada a hoy
+        fechaCitaInput.value = minDate;
+    });
+
+    // Validación fecha
+    const form = citaModal.querySelector('.needs-validation');
+    form.addEventListener('submit', function(event) {
+        const selectedDate = new Date(fechaCitaInput.value);
+        const currentDate = new Date();
+        selectedDate.setHours(0,0,0,0);
+        currentDate.setHours(0,0,0,0);
+
+        if (selectedDate < currentDate) {
+            fechaCitaInput.setCustomValidity("La fecha no puede ser pasada.");
+        } else {
+            fechaCitaInput.setCustomValidity("");
+        }
+
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    fechaCitaInput.addEventListener('input', () => fechaCitaInput.setCustomValidity(""));
+});
+</script>
+</body>
+</html>

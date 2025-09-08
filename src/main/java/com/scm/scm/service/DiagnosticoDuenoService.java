@@ -10,4 +10,5 @@ public interface DiagnosticoDuenoService {
     DiagnosticoDuenoDTO actualizarDiagnosticoDueno(Long id, DiagnosticoDuenoDTO diagnosticoDuenoDTO);
     void eliminarDiagnosticoDueno(Long id);
     List<DiagnosticoDuenoDTO>ListartodosDiagnosticosDueno();
+    List<DiagnosticoDuenoDTO> listarDiagnosticosPorVeterinario(Long veterinarioId);
 }

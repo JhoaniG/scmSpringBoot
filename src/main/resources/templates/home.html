@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
     <link th:href="@{/css/stilos.css}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
     <title>Seguimiento y control de mascotas</title>
 </head>
 
@@ -13,40 +16,33 @@
 
 <!-- MENU -->
 <header class="header">
-    <div class="container-m">
+    <div class="container-m d-flex justify-content-between align-items-center">
         <div class="logo">
             <h1>SCM</h1>
         </div>
-        <nav class="menu">
-            <a href="#seccion1">Profesionales</a>
-            <a href="#seccion2">Mascotas</a>
-            <a href="#seccion3">Contáctanos</a>
+        <nav class="menu d-flex align-items-center">
+            <a href="#seccion1" class="me-3">Profesionales</a>
+            <a href="#seccion2" class="me-3">Mascotas</a>
+            <a href="#seccion3" class="me-3">Contáctanos</a>
 
-            <!-- Mostrar botones si no hay usuario en sesión -->
-            <button th:if="${session.usuarioLogueado == null}"
-                    type="button" class="btn btn-blanco me-2"
-                    data-bs-toggle="modal" data-bs-target="#modalRegistro">
-                Crear Cuenta
-            </button>
+            <!-- Botones de sesión -->
+            <button th:if="${session.usuarioLogueado == null}" type="button" class="btn btn-blanco me-2"
+                    data-bs-toggle="modal" data-bs-target="#modalRegistro">Crear Cuenta</button>
 
-            <a th:if="${session.usuarioLogueado == null}"
-               th:href="@{/login}"
-               class="btn btn-blanco" role="button">Iniciar Sesión</a>
+            <a th:if="${session.usuarioLogueado == null}" th:href="@{/login}" class="btn btn-blanco me-2">Iniciar Sesión</a>
 
-            <!-- Mostrar nombre y logout si está logueado -->
-            <span th:if="${session.usuarioLogueado != null}"
-                  th:text="'Hola, ' + ${session.usuarioLogueado.nombre}"
-                  class="me-3"></span>
+            <!-- Usuario logueado -->
+            <span th:if="${session.usuarioLogueado != null}" th:text="'Hola, ' + ${session.usuarioLogueado.nombre}" class="me-3"></span>
 
-            <form th:if="${session.usuarioLogueado != null}"
-                  th:action="@{/logout}" method="get" style="display:inline;">
+            <form th:if="${session.usuarioLogueado != null}" th:action="@{/logout}" method="post" style="display:inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <button type="submit" class="btn btn-danger">Cerrar Sesión</button>
             </form>
         </nav>
     </div>
 </header>
 
-<!-- Carousel -->
+<!-- CAROUSEL -->
 <div class="capa">
     <div id="carouselExampleSlidesOnly" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
@@ -61,17 +57,17 @@
             </div>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="carousel-control-prev-icon"></span>
             <span class="visually-hidden">Previous</span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="carousel-control-next-icon"></span>
             <span class="visually-hidden">Next</span>
         </button>
     </div>
 </div>
 
-<!-- ACERCA DE -->
+<!-- ACERCA DE NOSOTROS -->
 <div class="container-fluid py-5">
     <div class="container">
         <div class="section-title text-center">
@@ -85,7 +81,7 @@
                 <p>Estamos comprometidos con la salud y bienestar de cada mascota...</p>
             </div>
             <div class="col-lg-2 py-4 text-center">
-                <img th:src="@{/Imagenes/perrotres.avif}" alt="Imagen de nuestra historia" class="img-fluid rounded" style="max-height: 300px; object-fit: cover; width: 100%;">
+                <img th:src="@{/Imagenes/perrotres.avif}" alt="Imagen de nuestra historia" class="img-fluid rounded" style="max-height: 300px; object-fit: cover;">
             </div>
             <div class="col-lg-5 py-4">
                 <h2 class="mb-4">Nuestra Visión</h2>
@@ -140,7 +136,6 @@
 
 <!-- MASCOTAS -->
 <div id="seccion2" class="container mt-5">
-    <!-- Max y Pipo -->
     <div class="card mb-3 border-0">
         <div class="row g-0 align-items-center">
             <div class="col-md-5">
@@ -155,8 +150,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Milo -->
     <div class="card mb-3 border-0">
         <div class="row g-0 align-items-center">
             <div class="col-md-7">
@@ -181,11 +174,11 @@
             <form th:action="@{/enviar}" method="post">
                 <div class="mb-3">
                     <label for="nombre" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    <input type="text" class="form-control" id="ROSCON" name="nombre" required>
                 </div>
                 <div class="mb-3">
                     <label for="email" class="form-label">Correo Electrónico</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <input type="email" class="form-control" id="rosco" name="email" required>
                 </div>
                 <div class="mb-3">
                     <label for="mensaje" class="form-label">Mensaje</label>
@@ -207,25 +200,22 @@
             <div class="col-md-4 mb-3">
                 <h5 class="footer-title">John Alvarado</h5>
                 <ul class="list-unstyled">
-                    <li><i class="fas fa-envelope"></i>
-                        <a href="mailto:jhonyse2345@gmail.com" class="footer-link">jhonyse2345@gmail.com</a></li>
-                    <li><i class="fas fa-phone"></i> <span class="footer-text">321-613-2975</span></li>
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:jhonyse2345@gmail.com" class="footer-link">jhonyse2345@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> 321-613-2975</li>
                 </ul>
             </div>
             <div class="col-md-4 mb-3">
                 <h5 class="footer-title">Leonardo Atencio</h5>
                 <ul class="list-unstyled">
-                    <li><i class="fas fa-envelope"></i>
-                        <a href="mailto:leonardoatenciob30@gmail.com" class="footer-link">leonardoatenciob30@gmail.com</a></li>
-                    <li><i class="fas fa-phone"></i> <span class="footer-text">321-960-9864</span></li>
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:leonardoatenciob30@gmail.com" class="footer-link">leonardoatenciob30@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> 321-960-9864</li>
                 </ul>
             </div>
             <div class="col-md-4 mb-3">
                 <h5 class="footer-title">Jhoani Gallo</h5>
                 <ul class="list-unstyled">
-                    <li><i class="fas fa-envelope"></i>
-                        <a href="mailto:jhoanigallo@gmail.com" class="footer-link">jhoanigallo@gmail.com</a></li>
-                    <li><i class="fas fa-phone"></i> <span class="footer-text">312-311-0320</span></li>
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:jhoanigallo@gmail.com" class="footer-link">jhoanigallo@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> 312-311-0320</li>
                 </ul>
             </div>
         </div>
@@ -236,8 +226,106 @@
     </div>
 </footer>
 
-<!-- Modal de registro -->
-<div th:replace="modal/registerUsuarioModal :: registerModal"></div>
+<!-- MODAL DE REGISTRO -->
+<div class="modal fade" id="modalRegistro" tabindex="-1" aria-labelledby="modalRegistroLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalRegistroLabel">Registro de Usuario SCM</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <!-- Añadimos enctype para subir archivos -->
+            <form th:action="@{/usuarios/create}" th:object="${usuarioDTO}" method="post"
+                  class="needs-validation" novalidate enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" th:field="*{nombre}" class="form-control" id="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="apellido" class="form-label">Apellido</label>
+                        <input type="text" th:field="*{apellido}" class="form-control" id="apellido" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Correo Electrónico</label>
+                        <input type="email" th:field="*{email}" class="form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contrasena" class="form-label">Contraseña</label>
+                        <input type="password" th:field="*{contrasena}" class="form-control" id="contrasena" required minlength="8">
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="tel" th:field="*{telefono}" class="form-control" id="telefono" required pattern="[0-9]{7,15}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <input type="text" th:field="*{direccion}" class="form-control" id="direccion" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+                        <input type="date" th:field="*{fechaNacimiento}" class="form-control" id="fechaNacimiento" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rol" class="form-label">Rol</label>
+                        <select th:field="*{rolId}" class="form-select" id="rol" onchange="mostrarEspecialidad()" required>
+                            <option value="">Selecciona un rol</option>
+                            <option value="2">Dueño de mascota</option>
+                            <option value="3">Veterinario</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="campoEspecialidad" style="display:none;">
+                        <label for="especialidadInput" class="form-label">Especialidad</label>
+                        <input type="text" th:field="*{especialidad}" class="form-control" id="especialidadInput">
+                    </div>
+                    <div class="mb-3" id="campoClinica" style="display:none;">
+                        <label for="clinicaInput" class="form-label">Clínica</label>
+                        <input type="text" th:field="*{veterinaria}" class="form-control" id="clinicaInput">
+                    </div>
+                    <div class="mb-3">
+                        <label for="archivoFoto" class="form-label">Foto de perfil</label>
+                        <input type="file" th:field="*{archivoFoto}" class="form-control" id="archivoFoto" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-info">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function mostrarEspecialidad() {
+        const rolSelect = document.getElementById("rol");
+        const campoEspecialidad = document.getElementById("campoEspecialidad");
+        const campoClinica = document.getElementById("campoClinica");
+        if (rolSelect.value === "3") {
+            campoEspecialidad.style.display = "block";
+            campoClinica.style.display = "block";
+        } else {
+            campoEspecialidad.style.display = "none";
+            campoClinica.style.display = "none";
+        }
+    }
+
+    // Validación de Bootstrap
+    (() => {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -1,6 +1,7 @@
 package com.scm.scm.dto;
 
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -37,4 +38,11 @@ public class UsuarioDTO {
 
 
     private Long rolId;
+
+
+    //Solo si es vet
+    private String especialidad;
+    private String veterinaria;
+    private MultipartFile archivoFoto;
+
 }

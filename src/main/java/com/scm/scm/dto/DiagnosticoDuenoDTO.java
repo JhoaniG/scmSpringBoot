@@ -15,6 +15,8 @@ public class DiagnosticoDuenoDTO {
     private Long idDiagnosticoDueno;
 
     private String fechaDiagnostico;
+    private String nombreM;       // Nombre de la mascota
+    private String nombreDueno;
 
 
     private String observaciones;

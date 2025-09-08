@@ -23,7 +23,10 @@ public class VeterinarioServiceImpl implements VeterinarioService {
         this.modelMapper = modelMapper;
         this.usuarioRepositorio = usuarioRepositorio;
     }
-
+    public Veterinario findByUsuarioId(Long idUsuario) {
+        return veterinarioRepositorio.findByUsuarioId(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Veterinario no encontrado"));
+    }
     @Override
     public VeterinarioDTO crearVeterinario(VeterinarioDTO veterinarioDTO) {
         Veterinario veterinario=modelMapper.map( veterinarioDTO, Veterinario.class);

@@ -48,6 +48,7 @@ public class CitaServiceImpl implements CitaService {
             Diagnosticodueno diagnosticodueno=diagnosticoDuenoRepositorio.findById(citaDTO.getDiagnosticoduenoId()).orElseThrow(() -> new RuntimeException("No existe un diagnóstico de dueño con el ID: " + citaDTO.getDiagnosticoduenoId()));
             cita.setDiagnosticodueno(diagnosticodueno);
         }
+        cita.setEstadoCita("Pendiente");
         cita=citaRepositorio.save(cita);
         return modelMapper.map(cita, CitaDTO.class);
     }

@@ -2,6 +2,7 @@ package com.scm.scm.dto;
 
 import com.scm.scm.model.Usuario;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 @Data
@@ -25,4 +26,5 @@ public class MascotaDTO {
     private String raza;
 
     private Long usuarioId;
+    private MultipartFile archivoFoto;
 }

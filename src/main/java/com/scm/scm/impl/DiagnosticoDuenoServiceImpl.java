@@ -32,9 +32,9 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
         Diagnosticodueno diagnosticodueno=modelMapper.map(diagnosticoDuenoDTO, Diagnosticodueno.class);
 
         if (diagnosticoDuenoDTO.getVeterinarioId() != null){
-            Veterinario veterinario=veterinarioRepositorio.findById(diagnosticoDuenoDTO.getVeterinarioId()).orElseThrow(() -> new RuntimeException("No existe un veterinario con el ID: " + diagnosticoDuenoDTO.getVeterinarioId()));
+            Veterinario veterinario = veterinarioRepositorio.findByUsuarioId(diagnosticoDuenoDTO.getVeterinarioId())
+                    .orElseThrow(() -> new RuntimeException("No existe un veterinario con el usuario ID: " + diagnosticoDuenoDTO.getVeterinarioId()));
             diagnosticodueno.setVeterinario(veterinario);
-
         }
         if (diagnosticoDuenoDTO.getMascotaId() != null){
             Mascota mascota=mascotaRepositorio.findById(diagnosticoDuenoDTO.getMascotaId()).orElseThrow(() -> new RuntimeException("No existe una mascota con el ID: " + diagnosticoDuenoDTO.getMascotaId()));
@@ -92,12 +92,25 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
         }
 
     }
-
     @Override
     public List<DiagnosticoDuenoDTO> ListartodosDiagnosticosDueno() {
-        List<Diagnosticodueno> diagnosticoduenos=diagnosticoDuenoRepositorio.findAll();
-        return diagnosticoduenos.stream()
-                .map(diagnosticodueno -> modelMapper.map(diagnosticodueno, DiagnosticoDuenoDTO.class))
-                .toList();
+        return List.of();
     }
+
+    @Override
+    public List<DiagnosticoDuenoDTO> listarDiagnosticosPorVeterinario(Long veterinarioId) {
+        List<Diagnosticodueno> diagnosticos = diagnosticoDuenoRepositorio.findByVeterinario_IdVeterinario(veterinarioId);
+
+        return diagnosticos.stream().map(d -> {
+            DiagnosticoDuenoDTO dto = modelMapper.map(d, DiagnosticoDuenoDTO.class);
+
+            // Setear nombres
+            dto.setNombreM(d.getMascota().getNombre());
+            dto.setNombreDueno(d.getMascota().getUsuario().getNombre());
+
+            return dto;
+        }).toList();
+    }
+
+
 }
