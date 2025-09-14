@@ -23,4 +23,10 @@ public class VeterinarioDTO {
 
 
     private Long usuarioId;
+
+    // Campos del usuario asociado para mostrar en la vista
+
+    private String nombreUsuario;
+    private String emailUsuario;
+    private String fotoUsuario;
 }

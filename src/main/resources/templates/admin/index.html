@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+    <title>Panel de Administrador - SCM</title>
+    <style>
+        .dashboard-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            border-radius: 1rem;
+            border: none;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--bs-card-bg) 0%, var(--bs-light) 100%);
+            color: #fff;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .dashboard-card .card-body {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .dashboard-card .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .dashboard-card .card-text {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+        .bg-primary { background: linear-gradient(45deg, #007bff, #0056b3) !important; }
+        .bg-success { background: linear-gradient(45deg, #28a745, #1e7e34) !important; }
+        .bg-info { background: linear-gradient(45deg, #17a2b8, #117a8b) !important; }
+        .bg-warning { background: linear-gradient(45deg, #ffc107, #d39e00) !important; }
+        .bg-danger { background: linear-gradient(45deg, #dc3545, #bd2130) !important; }
+        .dashboard-header {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #343a40;
+            border-bottom: 3px solid #dee2e6;
+            padding-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="fragments/menuA :: menuA"></div>
+<input type="checkbox" id="btn-menu">
+
+<div th:replace="fragments/barralateralA :: barralateralA"></div>
+
+<div class="capa">
+
+    <div id="carouselExampleSlidesOnly" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img th:src="@{/Imagenes/img1.jpg}" class="d-block w-100" alt="...">
+            </div>
+            <div class="carousel-item">
+                <img th:src="@{/Imagenes/img2.jpg}" class="d-block w-100" alt="...">
+            </div>
+            <div class="carousel-item">
+                <img th:src="@{/Imagenes/img3.jpg}" class="d-block w-100" alt="...">
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <h2 class="dashboard-header text-center mb-5">Reportes Generales</h2>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4 col-lg-3">
+                <div class="card dashboard-card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Usuarios</h5>
+                        <p class="card-text" th:text="${totalUsuarios}">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <div class="card dashboard-card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Mascotas</h5>
+                        <p class="card-text" th:text="${totalMascotas}">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <div class="card dashboard-card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Veterinarios</h5>
+                        <p class="card-text" th:text="${totalVeterinarios}">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <div class="card dashboard-card bg-warning text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Dietas</h5>
+                        <p class="card-text" th:text="${totalDietas}">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <div class="card dashboard-card bg-danger text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Actividades</h5>
+                        <p class="card-text" th:text="${totalActividades}">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid py-5">
+        <div class="container">
+        </div>
+    </div>
+
+    <footer class="footer mt-5">
+        <div class="container py-4">
+        </div>
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+</body>
+</html>

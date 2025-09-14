@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Mascotas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body style="background: #fff; color: #000;">
+
+<div th:replace="fragments/menuV :: menuV"></div>
+<input type="checkbox" id="btn-menu">
+
+<!-- Barra lateral -->
+<div th:replace="fragments/barralateralV :: barralateralV"></div>
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4" style="color: #333;">🐶 Mis Mascotas</h2>
+
+
+    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <p th:text="${mensajeExito}"></p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <p th:text="${mensajeError}"></p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+
+    <div class="mb-4 text-center">
+        <a th:href="@{/veterinario/index}" class="btn btn-light border">
+            <span class="text-dark">← Volver al Inicio</span>
+        </a>
+    </div>
+
+    <div class="row">
+        <div th:if="${mascotas.isEmpty()}" class="col-12">
+            <div class="alert alert-info text-center">No tienes mascotas registradas aún.</div>
+        </div>
+
+        <div class="col-md-4 mb-4" th:each="m : ${mascotas}">
+            <div class="card h-100 shadow-sm">
+                <img th:src="@{'/uploads/mascotas/' + ${m.foto}}" class="card-img-top" alt="Mascota">
+                <div class="card-body" style="color: #000;">
+                    <h5 class="card-title fw-bold" th:text="${m.nombre}">Nombre</h5>
+                    <p class="card-text" style="color: #000;">
+                        <strong>Raza:</strong> <span th:text="${m.raza}">Raza</span><br>
+                        <strong>Género:</strong> <span th:text="${m.genero}">Genero</span><br>
+                        <strong>Nacimiento:</strong> <span th:text="${m.fechaNacimiento}">Fecha</span>
+                    </p>
+                    <a th:href="@{'/mascotas/editar/' + ${m.idMascota}}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <a th:href="@{'/mascotas/eliminarvet/' + ${m.idMascota}}" class="btn btn-danger btn-sm"
+                       onclick="return confirm('¿Deseas eliminar esta mascota?');">
+                        <i class="fas fa-trash-alt"></i> Eliminar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a th:href="@{/mascotas/crearvet}" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Agregar nueva mascota
+        </a>
+    </div>
+</div>
+
+<!-- Fragment barra lateral -->
+
+
+<footer class="footer mt-5 bg-dark text-white">
+    <div class="container text-center py-3">
+        <p class="mb-0">&copy; 2024 SCM - Sistema de Control de Mascotas</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

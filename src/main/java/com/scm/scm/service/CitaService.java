@@ -1,6 +1,8 @@
 package com.scm.scm.service;
 
 import com.scm.scm.dto.CitaDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -10,4 +12,7 @@ public interface CitaService {
     CitaDTO actualizarCita(Long id, CitaDTO citaDTO);
     void eliminarCita(Long id);
     List<CitaDTO>listarCitas();
+    List<CitaDTO> listarCitasPorDueno(Long idUsuario);
+    List<CitaDTO> obtenerCitasPorVeterinario(Long idVeterinario);
+    Page<CitaDTO> getAllCitasPaginadas(Pageable pageable);
 }

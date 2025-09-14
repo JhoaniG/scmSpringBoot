@@ -12,8 +12,6 @@
 
 <div th:replace="fragments/menuV :: menuV"></div>
 <input type="checkbox" id="btn-menu">
-<!-- Barra lateral -->
-<!-- Barra lateral + Modal -->
 <div th:replace="~{fragments/barralateralD :: barralateralD(${diagnosticoDTO}, ${mascotas}, ${veterinarios}, ${usuario})}"></div>
 <div th:replace="~{fragments/barralateralD :: modalDiagnostico(${diagnosticoDTO}, ${mascotas}, ${veterinarios})}"></div>
 
@@ -25,8 +23,13 @@
                     <h4><i class="fas fa-dog"></i> Registrar Nueva Mascota</h4>
                 </div>
                 <div class="card-body">
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <span th:text="${error}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
                     <form th:action="@{/mascotas/crear}" th:object="${mascotaDTO}" method="post"
-                          enctype="multipart/form-data" class="needs-validation" novalidate>
+                          enctype="multipart/form-data" class="needs-validation">
 
                         <div class="form-group mb-4">
                             <label for="nombre" class="form-label fw-bold text-primary">🐶 Nombre</label>
@@ -92,8 +95,6 @@
     </div>
 </div>
 
-
-
 <footer class="footer mt-5" id="footer">
     <div class="container py-4">
         <div class="row text-center text-md-start">
@@ -139,25 +140,32 @@
         fechaNacimientoInput.setAttribute('max', maxDate);
 
         form.addEventListener('submit', function (event) {
+            // Este es el único lugar donde necesitas la validación de la fecha
             const selectedDate = new Date(fechaNacimientoInput.value);
             const currentDate = new Date();
-            currentDate.setHours(0,0,0,0);
-            if(selectedDate >= currentDate){
+            currentDate.setHours(0, 0, 0, 0);
+
+            if (fechaNacimientoInput.value && selectedDate >= currentDate) {
                 fechaNacimientoInput.setCustomValidity("La fecha de nacimiento no puede ser hoy ni futura.");
             } else {
                 fechaNacimientoInput.setCustomValidity("");
             }
-            if(!form.checkValidity()){
+
+            // El navegador se encarga de todo lo demás. Si algo no está bien,
+            // detendrá el envío del formulario.
+            if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();
             }
+
             form.classList.add('was-validated');
         });
 
-        fechaNacimientoInput.addEventListener('input', function(){
-            fechaNacimientoInput.setCustomValidity("");
+        fechaNacimientoInput.addEventListener('input', function() {
+            this.setCustomValidity("");
         });
     });
 </script>
+
 </body>
 </html>

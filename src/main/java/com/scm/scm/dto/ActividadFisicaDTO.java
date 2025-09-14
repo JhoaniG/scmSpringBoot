@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
@@ -25,4 +26,11 @@ public class ActividadFisicaDTO {
     private Long mascotaId;
 
     private Long veterinarioId;
+
+
+
+    private MultipartFile archivoFoto;
+    // --- Campos extras para la vista ---
+    private String nombreMascota;
+    private String nombreVeterinario;
 }

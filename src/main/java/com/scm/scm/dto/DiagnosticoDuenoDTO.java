@@ -24,4 +24,11 @@ public class DiagnosticoDuenoDTO {
     private Long mascotaId;
 
     private Long veterinarioId;
+    // --- Campos extras para la vista ---
+    private String nombreMascota;
+
+    private String nombreVeterinario;
+
+
+
 }

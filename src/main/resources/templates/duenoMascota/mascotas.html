@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Mascotas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+</head>
+<body>
+<div th:replace="fragments/menuV :: menuV"></div>
+<input type="checkbox" id="btn-menu">
+<!-- Barra lateral -->
+<!-- Barra lateral + Modal -->
+<div th:replace="~{fragments/barralateralD :: barralateralD(${diagnosticoDTO}, ${mascotas}, ${veterinarios}, ${usuario})}"></div>
+<div th:replace="~{fragments/barralateralD :: modalDiagnostico(${diagnosticoDTO}, ${mascotas}, ${veterinarios})}"></div>
+
+
+
+<main style="margin-top: 90px; margin-left: 250px; padding: 20px;">
+    <div class="container">
+        <h2 class="mb-4 text-primary">🐾 Mis Mascotas</h2>
+        <div class="mb-4">
+            <a th:href="@{/dueno/index}" class="btn btn-light border">
+                <span class="text-dark">← Volver al Inicio</span>
+            </a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(listaMascotas)}" class="alert alert-warning">
+            No tienes mascotas registradas.
+        </div>
+
+        <div th:unless="${#lists.isEmpty(listaMascotas)}" class="row">
+            <div class="col-md-4 mb-4" th:each="m : ${listaMascotas}">
+                <div class="card shadow border-0">
+                    <div class="card-body">
+                        <h5 class="card-title text-dark">🐶 <span th:text="${m.nombre}"></span></h5>
+                        <p class="card-text text-dark"><strong>Género:</strong> <span th:text="${m.genero}"></span></p>
+                        <a th:href="@{/duenoMascota/dietas(idMascota=${m.idMascota})}" class="btn btn-primary">
+                            📋 Consultar Dietas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

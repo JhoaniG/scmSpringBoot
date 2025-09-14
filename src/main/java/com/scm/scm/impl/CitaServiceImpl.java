@@ -11,7 +11,11 @@ import com.scm.scm.repository.MascotaRepositorio;
 import com.scm.scm.repository.VeterinarioRepositorio;
 import com.scm.scm.service.CitaService;
 import org.modelmapper.ModelMapper;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.IllegalFormatCodePointException;
 import java.util.List;
@@ -20,6 +24,54 @@ import java.util.List;
 
 public class CitaServiceImpl implements CitaService {
     private final CitaRepositorio citaRepositorio;
+
+    @Override
+    public List<CitaDTO> listarCitasPorDueno(Long idUsuario) {
+        List<Cita> citas = citaRepositorio.findByDuenoId(idUsuario);
+        return citas.stream()
+                .map(cita -> {
+                    CitaDTO dto = modelMapper.map(cita, CitaDTO.class);
+                    dto.setNombreMascota(cita.getMascota().getNombre());
+                    dto.setNombreVeterinario(cita.getVeterinario().getUsuario().getNombre() + " " + cita.getVeterinario().getUsuario().getApellido());
+                    return dto;
+                })
+                .toList();
+    }
+
+    public List<CitaDTO> obtenerCitasPorVeterinario(Long idVeterinario) {
+        List<Cita> citas = citaRepositorio.findByVeterinario_IdVeterinario(idVeterinario);
+
+        // Mapear entidad -> DTO
+        return citas.stream().map(c -> {
+            CitaDTO dto = new CitaDTO();
+            dto.setNombreMascota(c.getMascota().getNombre());
+            dto.setNombreDueno(c.getMascota().getUsuario().getNombre());
+            dto.setFechaCita(c.getFechaCita());
+            dto.setMotivoCita(c.getMotivoCita());
+            dto.setEstadoCita(c.getEstadoCita());
+            return dto;
+        }).toList();
+    }
+
+    private CitaDTO convertirADTO(Cita cita) {
+        CitaDTO dto = modelMapper.map(cita, CitaDTO.class);
+        if (cita.getMascota() != null) {
+            dto.setNombreMascota(cita.getMascota().getNombre());
+            if (cita.getMascota().getUsuario() != null) {
+                dto.setNombreDueno(cita.getMascota().getUsuario().getNombre());
+            }
+        }
+        if (cita.getVeterinario() != null && cita.getVeterinario().getUsuario() != null) {
+            dto.setNombreVeterinario(cita.getVeterinario().getUsuario().getNombre());
+        }
+        return dto;
+    }
+    @Override
+    public Page<CitaDTO> getAllCitasPaginadas(Pageable pageable) {
+        return citaRepositorio.findAll(pageable).map(this::convertirADTO);
+    }
+
+
     private  final ModelMapper modelMapper;
     private final MascotaRepositorio mascotaRepositorio;
     private  final VeterinarioRepositorio veterinarioRepositorio;
@@ -91,14 +143,16 @@ public class CitaServiceImpl implements CitaService {
     }
 
     @Override
+    @Transactional
     public void eliminarCita(Long id) {
-            if (citaRepositorio.existsById(id)){
-                citaRepositorio.deleteById(id);
-
-            }else {
-                throw new RuntimeException("No existe una cita con el ID: " + id);
-            }
-
+        if (!citaRepositorio.existsById(id)) {
+            throw new RuntimeException("Cita no encontrada con ID: " + id);
+        }
+        try {
+            citaRepositorio.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("No se puede eliminar esta cita, puede que esté asociada a un diagnóstico u otros registros.");
+        }
     }
 
     @Override

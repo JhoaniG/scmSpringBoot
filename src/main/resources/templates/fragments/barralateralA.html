@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="barralateralA" class="container-menu">
+    <div class="cont-menu">
+        <label for="btn-menu">✖️</label>
+        <nav>
+            <div class="card text-center">
+                <img th:if="${usuario != null and usuario.foto != null}"
+                     th:src="@{'/uploads/' + ${usuario.foto}}"
+                     alt="Foto de perfil" class="rounded-circle" style="width:50px;height:50px;">
+                <h4 th:text="${usuario.nombre} + ' ' + ${usuario.apellido}">Admin</h4>
+                <p th:text="${usuario.email}">admin@scm.com</p>
+                <a th:href="@{/usuario/editar}" class="btn btn-primary">Editar Perfil</a>
+            </div>
+
+            <ul class="nav flex-column mt-3">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/usuarios/listar}">Gestión de Usuarios</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/veterinarios/listar}">Gestión de Veterinarios</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/mascotas/listar}">Gestión de Mascotas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/dietas/listar}">Gestión de Dietas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/actividades/listar}">Gestión de Actividades</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/citas/listar}">Gestión de Citas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/diagnosticos/listar}">Gestión de Diagnósticos</a>
+
+                <div class="text-end mb-3">
+                    <a th:href="@{/admin/usuarios/cargar}" class="btn btn-success me-2">Carga Masiva</a>
+                    <a th:href="@{/admin/usuarios/crear}" class="btn btn-primary">Crear Nuevo Usuario</a>
+                </div>
+
+                <li class="nav-item mt-3">
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="btn btn-danger w-100">Cerrar sesión</button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+</div>
+</body>
+</html>

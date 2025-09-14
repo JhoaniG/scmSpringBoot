@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Dietas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+</head>
+<body>
+<div th:replace="~{fragments/menuA :: menuA}"></div>
+<input type="checkbox" id="btn-menu">
+<div th:replace="~{fragments/barralateralA :: barralateralA}"></div>
+
+<div class="capa">
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Gestión de Dietas</h2>
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert" th:text="${mensajeExito}"></div>
+        <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert" th:text="${mensajeError}"></div>
+
+        <div class="text-end mb-3"><a th:href="@{/admin/dietas/crear}" class="btn btn-primary">Asignar Dieta</a></div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="col" th:each="dieta : ${dietas}">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <img th:src="@{'/uploads/dietas/' + ${dieta.foto}}" class="user-card-img mb-3" alt="Foto de la dieta">
+                        <h5 class="card-title fw-bold" th:text="${dieta.tipoDieta}">Tipo de Dieta</h5>
+                        <p class="card-text"><strong>Mascota:</strong> <span th:text="${dieta.nombreMascota}"></span></p>
+                        <p class="card-text text-muted"><strong>Asignada por:</strong> <span th:text="${dieta.nombreVeterinario}"></span></p>
+                        <div class="mt-auto">
+                            <a th:href="@{/admin/dietas/editar/{id}(id=${dieta.idDieta})}" class="btn btn-warning btn-sm me-2">Editar</a>
+                            <a th:href="@{/admin/dietas/eliminar/{id}(id=${dieta.idDieta})}" class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que quieres eliminar esta dieta?');">Eliminar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav th:if="${totalPages > 1}" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'"><a class="page-link" th:href="@{/admin/dietas/listar(page=${currentPage - 1})}">Anterior</a></li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'"><a class="page-link" th:href="@{/admin/dietas/listar(page=${i})}" th:text="${i + 1}"></a></li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"><a class="page-link" th:href="@{/admin/dietas/listar(page=${currentPage + 1})}">Siguiente</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

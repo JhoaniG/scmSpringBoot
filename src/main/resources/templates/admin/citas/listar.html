@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Citas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+</head>
+<body>
+<div th:replace="~{fragments/menuA :: menuA}"></div>
+<input type="checkbox" id="btn-menu">
+<div th:replace="~{fragments/barralateralA :: barralateralA}"></div>
+
+<div class="capa">
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Gestión de Citas</h2>
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert" th:text="${mensajeExito}"></div>
+        <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert" th:text="${mensajeError}"></div>
+        <div class="text-end mb-3"><a th:href="@{/admin/citas/crear}" class="btn btn-primary">Agendar Cita</a></div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Mascota (Dueño)</th>
+                    <th>Veterinario</th>
+                    <th>Motivo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cita : ${citas}">
+                    <td th:text="${#temporals.format(cita.fechaCita, 'dd-MM-yyyy')}"></td>
+                    <td th:text="${cita.nombreMascota} + ' (' + ${cita.nombreDueno} + ')'"></td>
+                    <td th:text="${cita.nombreVeterinario}"></td>
+                    <td th:text="${cita.motivoCita}"></td>
+                    <td>
+                            <span th:text="${cita.estadoCita}"
+                                  th:classappend="${cita.estadoCita == 'Pendiente'} ? 'badge bg-warning' :
+                                                 (${cita.estadoCita == 'Confirmada'} ? 'badge bg-info' :
+                                                 (${cita.estadoCita == 'Completada'} ? 'badge bg-success' :
+                                                 'badge bg-danger'))"></span>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/citas/editar/{id}(id=${cita.idCita})}" class="btn btn-warning btn-sm">Editar</a>
+                        <a th:href="@{/admin/citas/eliminar/{id}(id=${cita.idCita})}" class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que quieres eliminar esta cita?');">Eliminar</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <nav th:if="${totalPages > 1}" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'"><a class="page-link" th:href="@{/admin/citas/listar(page=${currentPage - 1})}">Anterior</a></li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'"><a class="page-link" th:href="@{/admin/citas/listar(page=${i})}" th:text="${i + 1}"></a></li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"><a class="page-link" th:href="@{/admin/citas/listar(page=${currentPage + 1})}">Siguiente</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

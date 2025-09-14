@@ -27,4 +27,7 @@ public class MascotaDTO {
 
     private Long usuarioId;
     private MultipartFile archivoFoto;
+    private String nombreDueno;
+
+
 }

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Citas Asignadas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+
+<!-- Menú superior -->
+<div th:replace="fragments/menuV :: menuV"></div>
+<input type="checkbox" id="btn-menu">
+
+<!-- Barra lateral -->
+<div th:replace="fragments/barralateralV :: barralateralV"></div>
+
+<div class="capa container mt-5">
+    <h2 class="text-center mb-4 text-primary">Citas Asignadas</h2>
+
+    <div class="table-responsive shadow-sm">
+        <table class="table table-striped table-hover border border-primary">
+            <thead class="table-dark text-center">
+            <tr>
+                <th>#</th>
+                <th>Mascota</th>
+                <th>Dueño</th>
+                <th>Fecha</th>
+                <th>Motivo</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="cita, status : ${listaCitas}" class="text-center">
+                <td th:text="${status.index + 1}"></td>
+                <td th:text="${cita.nombreMascota}"></td>
+                <td th:text="${cita.nombreDueno}"></td>
+                <td th:text="${cita.fechaCita}"></td>
+                <td th:text="${cita.motivoCita}"></td>
+                <td>
+  <span class="badge bg-warning" th:if="${cita.estadoCita == 'Pendiente'}"
+        th:text="${cita.estadoCita}"></span>
+                    <span class="badge bg-success" th:if="${cita.estadoCita == 'Confirmada'}"
+                          th:text="${cita.estadoCita}"></span>
+                    <span class="badge bg-secondary" th:if="${cita.estadoCita != 'Pendiente' and cita.estadoCita != 'Confirmada'}"
+                          th:text="${cita.estadoCita}"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-center mt-4">
+        <a th:href="@{/veterinario/index}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver al Panel
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

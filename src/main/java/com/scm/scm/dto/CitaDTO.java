@@ -25,4 +25,11 @@ public class CitaDTO {
 
 
     private Long diagnosticoduenoId;
+
+
+
+    private String nombreMascota;
+    private String nombreVeterinario;
+    private  String nombreDueno;
+
 }

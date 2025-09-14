@@ -21,8 +21,20 @@
 <div class="container mt-5">
     <h2 class="text-center mb-4" style="color: #333;">🐶 Mis Mascotas</h2>
 
+
+    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <p th:text="${mensajeExito}"></p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <p th:text="${mensajeError}"></p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+
     <div class="mb-4 text-center">
-        <a th:href="@{/}" class="btn btn-light border">
+        <a th:href="@{/dueno/index}" class="btn btn-light border">
             <span class="text-dark">← Volver al Inicio</span>
         </a>
     </div>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Mascota - SCM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+</head>
+<body>
+
+<div th:replace="fragments/menuV :: menuV"></div>
+<input type="checkbox" id="btn-menu">
+
+<!-- Barra lateral -->
+<div th:replace="fragments/barralateralV :: barralateralV"></div>
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-info text-white text-center">
+                    <h4><i class="fas fa-dog"></i> Registrar Nueva Mascota</h4>
+                </div>
+                <div class="card-body">
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <span th:text="${error}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <form th:action="@{/mascotas/crearvet}" th:object="${mascotaDTO}" method="post"
+                          enctype="multipart/form-data" class="needs-validation">
+
+                        <div class="form-group mb-4">
+                            <label for="nombre" class="form-label fw-bold text-primary">🐶 Nombre</label>
+                            <input type="text" th:field="*{nombre}" id="nombre" class="form-control form-control-lg rounded-pill"
+                                   placeholder="Ej: Max" required minlength="2" maxlength="50"
+                                   pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+">
+                            <div class="invalid-feedback">
+                                Por favor, ingresa un nombre válido (solo letras y espacios, 2-50 caracteres).
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="genero" class="form-label fw-bold text-primary">⚧ Género</label>
+                            <select th:field="*{genero}" id="genero" class="form-select form-select-lg rounded-pill" required>
+                                <option value="" disabled selected>Selecciona</option>
+                                <option value="Macho">Macho</option>
+                                <option value="Hembra">Hembra</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Por favor, selecciona el género de la mascota.
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="fechaNacimiento" class="form-label fw-bold text-primary">📅 Fecha de Nacimiento</label>
+                            <input type="date" th:field="*{fechaNacimiento}" id="fechaNacimiento"
+                                   class="form-control form-control-lg rounded-pill" required>
+                            <div class="invalid-feedback">
+                                Por favor, selecciona una fecha de nacimiento válida.
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="raza" class="form-label fw-bold text-primary">🐾 Raza</label>
+                            <input type="text" th:field="*{raza}" id="raza" class="form-control form-control-lg rounded-pill"
+                                   placeholder="Ej: Labrador" required minlength="3" maxlength="50"
+                                   pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+">
+                            <div class="invalid-feedback">
+                                Por favor, ingresa la raza de la mascota (solo letras y espacios, 3-50 caracteres).
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="archivoFoto" class="form-label fw-bold text-primary">📸 Foto de la Mascota</label>
+                            <input type="file" th:field="*{archivoFoto}" id="archivoFoto" class="form-control" accept="image/*" required>
+                            <div class="invalid-feedback">
+                                Por favor, selecciona una foto para la mascota.
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-info btn-lg me-2 rounded-pill">
+                                <i class="fas fa-plus"></i> Registrar Mascota
+                            </button>
+                            <a th:href="@{/mascotas/listarvet}" class="btn btn-secondary btn-lg rounded-pill">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer mt-5" id="footer">
+    <div class="container py-4">
+        <div class="row text-center text-md-start">
+            <div class="col-md-4 mb-3">
+                <h5 class="footer-title">John Alvarado</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:jhonyse2345@gmail.com" class="footer-link">jhonyse2345@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> <span class="footer-text">321-613-2975</span></li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5 class="footer-title">Leonardo Atencio</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:leonardoatenciob30@gmail.com" class="footer-link">leonardoatenciob30@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> <span class="footer-text">321-960-9864</span></li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5 class="footer-title">Jhoani Gallo</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:jhoanigallo@gmail.com" class="footer-link">jhoanigallo@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> <span class="footer-text">312-311-0320</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <p class="footer-copy">&copy; 2024. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('.needs-validation');
+        const fechaNacimientoInput = document.getElementById('fechaNacimiento');
+
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        const day = today.getDate().toString().padStart(2, '0');
+        const maxDate = `${year}-${month}-${day}`;
+        fechaNacimientoInput.setAttribute('max', maxDate);
+
+        form.addEventListener('submit', function (event) {
+            // Este es el único lugar donde necesitas la validación de la fecha
+            const selectedDate = new Date(fechaNacimientoInput.value);
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+
+            if (fechaNacimientoInput.value && selectedDate >= currentDate) {
+                fechaNacimientoInput.setCustomValidity("La fecha de nacimiento no puede ser hoy ni futura.");
+            } else {
+                fechaNacimientoInput.setCustomValidity("");
+            }
+
+            // El navegador se encarga de todo lo demás. Si algo no está bien,
+            // detendrá el envío del formulario.
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            form.classList.add('was-validated');
+        });
+
+        fechaNacimientoInput.addEventListener('input', function() {
+            this.setCustomValidity("");
+        });
+    });
+</script>
+
+</body>
+</html>
