@@ -10,6 +10,7 @@ import com.scm.scm.repository.UsuarioRepositorio;
 import com.scm.scm.repository.VeterinarioRepositorio;
 import com.scm.scm.service.EmailService;
 import com.scm.scm.service.UsuarioService;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -64,58 +66,48 @@ private final VeterinarioRepositorio veterinarioRepositorio;
     }
 
 
+    // --- MÉTODO PARA EL FORMULARIO DE REGISTRO (RESTAURADO Y LIMPIO) ---
     @Override
     @Transactional
     public UsuarioDTO createUser(UsuarioDTO usuarioDTO) {
-        // Verificar si ya existe el email
         if (usuarioRepositorio.findByEmail(usuarioDTO.getEmail()).isPresent()) {
             throw new CustomExeception("Ya existe un usuario con ese email");
         }
 
-        Usuario usuario = modelMapper.map(usuarioDTO, Usuario.class);
+        Usuario usuario = new Usuario();
+        usuario.setNombre(usuarioDTO.getNombre());
+        usuario.setApellido(usuarioDTO.getApellido());
+        usuario.setEmail(usuarioDTO.getEmail());
+        usuario.setTelefono(usuarioDTO.getTelefono());
+        usuario.setDireccion(usuarioDTO.getDireccion());
+        usuario.setFechaNacimiento(usuarioDTO.getFechaNacimiento());
+        usuario.setContrasena(passwordEncoder.encode(usuarioDTO.getContrasena()));
 
-        // Encriptar contraseña
-        if (usuarioDTO.getContrasena() != null && !usuarioDTO.getContrasena().isBlank()) {
-            usuario.setContrasena(passwordEncoder.encode(usuarioDTO.getContrasena()));
-        } else {
-            throw new CustomExeception("La contraseña no puede estar vacía");
-        }
+        Rol rol = rolRepositorio.findById(usuarioDTO.getRolId())
+                .orElseThrow(() -> new CustomExeception("Rol no encontrado con ID: " + usuarioDTO.getRolId()));
+        usuario.setRol(rol);
 
-        // Procesar foto
+        // Procesar foto si existe
         MultipartFile archivo = usuarioDTO.getArchivoFoto();
         if (archivo != null && !archivo.isEmpty()) {
             try {
-                // Ruta absoluta dentro del proyecto
                 Path rutaUploads = Paths.get(System.getProperty("user.dir"), "uploads");
-                Files.createDirectories(rutaUploads); // crea carpeta si no existe
-
-                // Nombre único para la foto
+                Files.createDirectories(rutaUploads);
                 String nombreArchivo = System.currentTimeMillis() + "_" + archivo.getOriginalFilename();
-
-                // Guardar archivo en disco
                 Path rutaArchivo = rutaUploads.resolve(nombreArchivo);
                 archivo.transferTo(rutaArchivo.toFile());
-
-                // Guardar el nombre de la foto en la entidad
                 usuario.setFoto(nombreArchivo);
             } catch (IOException e) {
                 throw new CustomExeception("Error al guardar la foto: " + e.getMessage());
             }
         }
 
-        // Asignar rol
-        Rol rol = rolRepositorio.findById(usuarioDTO.getRolId())
-                .orElseThrow(() -> new CustomExeception("Rol no encontrado con ID: " + usuarioDTO.getRolId()));
-        usuario.setRol(rol);
-
-        // Guardar usuario en DB
         usuario = usuarioRepositorio.save(usuario);
 
-        // Si es veterinario → crear registro en veterinarios
-        if ("Veterinario".equalsIgnoreCase(rol.getRol()) && usuarioDTO.getEspecialidad() != null && !usuarioDTO.getEspecialidad().isBlank()) {
-            // La lógica de adentro no cambia
-            if (usuarioDTO.getVeterinaria() == null || usuarioDTO.getVeterinaria().isBlank()) {
-                throw new CustomExeception("Debe especificar la clínica para el veterinario");
+        // Si es veterinario, crear el perfil de veterinario
+        if ("Veterinario".equalsIgnoreCase(rol.getRol())) {
+            if (usuarioDTO.getEspecialidad() == null || usuarioDTO.getEspecialidad().isBlank() || usuarioDTO.getVeterinaria() == null || usuarioDTO.getVeterinaria().isBlank()) {
+                throw new CustomExeception("Debe especificar especialidad y clínica para el veterinario");
             }
             Veterinario veterinario = new Veterinario();
             veterinario.setEspecialidad(usuarioDTO.getEspecialidad());
@@ -124,13 +116,8 @@ private final VeterinarioRepositorio veterinarioRepositorio;
             veterinarioRepositorio.save(veterinario);
         }
 
-
-        // Preparar respuesta DTO
-        UsuarioDTO response = modelMapper.map(usuario, UsuarioDTO.class);
-        response.setContrasena(null); // No enviar contraseña
-        return response;
+        return modelMapper.map(usuario, UsuarioDTO.class);
     }
-
 
 
 
@@ -225,29 +212,50 @@ private final VeterinarioRepositorio veterinarioRepositorio;
                 .map(usuario -> modelMapper.map(usuario, UsuarioDTO.class))
                 .collect(Collectors.toList());
     }
+    // --- RESTO DE MÉTODOS (sin cambios) ---
     @Override
     public Page<UsuarioDTO> findAllUsersPaginated(String nombre, Long rolId, Pageable pageable) {
         Page<Usuario> paginaUsuarios = usuarioRepositorio.findByNombreAndRol(nombre, rolId, pageable);
         return paginaUsuarios.map(usuario -> modelMapper.map(usuario, UsuarioDTO.class));
     }
 
+    // Este método sí debe ser público y estar en la interfaz
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void crearUsuarioIndividual(UsuarioDTO usuarioDTO) {
-        // Este método reintenta la lógica de createUser, pero ahora en su propia transacción.
-        // Si falla, solo esta transacción se deshace, no la carga completa.
-        createUser(usuarioDTO);
+        crearUsuarioDesdeCargaMasiva(usuarioDTO);
     }
+    @Transactional // <-- 2. Añade esta anotación
+    private void crearUsuarioDesdeCargaMasiva(UsuarioDTO usuarioDTO) { // <-- 1. Cámbialo a private
+        if (usuarioRepositorio.findByEmail(usuarioDTO.getEmail()).isPresent()) {
+            throw new CustomExeception("El email '" + usuarioDTO.getEmail() + "' ya existe.");
+        }
+        Usuario usuario = new Usuario();
+        usuario.setNombre(usuarioDTO.getNombre());
+        usuario.setApellido(usuarioDTO.getApellido());
+        usuario.setEmail(usuarioDTO.getEmail());
+        usuario.setContrasena(passwordEncoder.encode(usuarioDTO.getContrasena()));
+        usuario.setTelefono(usuarioDTO.getTelefono());
+        usuario.setDireccion(usuarioDTO.getDireccion());
+        usuario.setFechaNacimiento(usuarioDTO.getFechaNacimiento());
 
+        Rol rol = rolRepositorio.findById(usuarioDTO.getRolId())
+                .orElseThrow(() -> new CustomExeception("Rol no encontrado con ID: " + usuarioDTO.getRolId()));
+        usuario.setRol(rol);
+
+        usuarioRepositorio.save(usuario);
+    }
     @Override
     public void cargarUsuariosDesdeExcel(MultipartFile archivo) throws IOException {
         List<String> exitosos = new ArrayList<>();
         List<String> errores = new ArrayList<>();
 
+        // Esta herramienta nos ayudará a leer cualquier celda como texto
+        DataFormatter dataFormatter = new DataFormatter();
+
         InputStream inputStream = archivo.getInputStream();
         XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
         XSSFSheet sheet = workbook.getSheetAt(0);
-
         Iterator<Row> rowIterator = sheet.iterator();
         rowIterator.next(); // Saltamos la cabecera
 
@@ -256,30 +264,44 @@ private final VeterinarioRepositorio veterinarioRepositorio;
             UsuarioDTO usuarioDTO = new UsuarioDTO();
             String nombreCompleto = "";
             try {
-                // Leemos los datos de cada celda
-                String nombre = row.getCell(0).getStringCellValue();
-                String apellido = row.getCell(1).getStringCellValue();
+                // Usamos dataFormatter.formatCellValue para leer todo como texto de forma segura
+                String nombre = dataFormatter.formatCellValue(row.getCell(0));
+                String apellido = dataFormatter.formatCellValue(row.getCell(1));
                 nombreCompleto = nombre + " " + apellido;
-                String email = row.getCell(2).getStringCellValue();
-                Long rolId = (long) row.getCell(3).getNumericCellValue();
+                String email = dataFormatter.formatCellValue(row.getCell(2));
+                String telefono = dataFormatter.formatCellValue(row.getCell(3));
+                String direccion = dataFormatter.formatCellValue(row.getCell(4));
+                // Leemos la fecha como texto y la convertimos
+                LocalDate fechaNacimiento = LocalDate.parse(dataFormatter.formatCellValue(row.getCell(5)));
+                // Leemos el Rol ID como texto y lo convertimos a número
+                Long rolId = Long.parseLong(dataFormatter.formatCellValue(row.getCell(6)));
+
+                // Verificamos que los campos obligatorios no estén vacíos después de leer
+                if (nombre.isBlank() || apellido.isBlank() || email.isBlank()) {
+                    throw new Exception("Nombre, Apellido y Email no pueden estar vacíos.");
+                }
 
                 usuarioDTO.setNombre(nombre);
                 usuarioDTO.setApellido(apellido);
                 usuarioDTO.setEmail(email);
+                usuarioDTO.setTelefono(telefono);
+                usuarioDTO.setDireccion(direccion);
+                usuarioDTO.setFechaNacimiento(fechaNacimiento);
                 usuarioDTO.setContrasena("default123");
                 usuarioDTO.setRolId(rolId);
 
-                // Llamamos al nuevo método que manejará su propia transacción
                 crearUsuarioIndividual(usuarioDTO);
                 exitosos.add("Usuario '" + nombreCompleto + "' creado.");
 
             } catch (Exception e) {
                 int numeroFila = row.getRowNum() + 1;
-                errores.add("Error en la fila " + numeroFila + " ("+nombreCompleto+"): " + e.getMessage());
+                String causaError = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+                errores.add("Error en la fila " + numeroFila + ": " + causaError);
             }
         }
         workbook.close();
-// --- Preparamos y enviamos el correo de resumen ---
+
+        // El código para enviar el correo de resumen no cambia...
         StringBuilder resumen = new StringBuilder();
         resumen.append("Proceso de carga masiva de usuarios finalizado.\n\n");
         resumen.append("Total de usuarios procesados: ").append(exitosos.size() + errores.size()).append("\n");
@@ -292,10 +314,7 @@ private final VeterinarioRepositorio veterinarioRepositorio;
                 resumen.append(error).append("\n");
             }
         }
-
-        // Cambia "admin@tuapp.com" por el correo del administrador que debe recibir el reporte
-        emailService.enviarMensajeSimple("thomaspp0105@gmail.com", "Reporte de Carga Masiva de Usuarios", resumen.toString());        // El resto del código para enviar el correo sigue igual...
-        // ...
+        emailService.enviarMensajeSimple("crackpito12@gmail.com", "Reporte de Carga Masiva de Usuarios", resumen.toString());
     }
 
 
