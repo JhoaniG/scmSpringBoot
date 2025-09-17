@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 public interface CitaService {
     CitaDTO crearCita(CitaDTO citaDTO);
@@ -15,4 +16,5 @@ public interface CitaService {
     List<CitaDTO> listarCitasPorDueno(Long idUsuario);
     List<CitaDTO> obtenerCitasPorVeterinario(Long idVeterinario);
     Page<CitaDTO> getAllCitasPaginadas(Pageable pageable);
+    Map<String, Object> obtenerDatosHistorialClinico(Long idMascota);
 }

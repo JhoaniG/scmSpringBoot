@@ -13,8 +13,6 @@
 
 <div th:replace="fragments/menuV :: menuV"></div>
 <input type="checkbox" id="btn-menu">
-<!-- Barra lateral -->
-<!-- Barra lateral + Modal -->
 <div th:replace="~{fragments/barralateralD :: barralateralD(${diagnosticoDTO}, ${mascotas}, ${veterinarios}, ${usuario})}"></div>
 <div th:replace="~{fragments/barralateralD :: modalDiagnostico(${diagnosticoDTO}, ${mascotas}, ${veterinarios})}"></div>
 
@@ -54,6 +52,7 @@
                         <strong>Género:</strong> <span th:text="${m.genero}">Genero</span><br>
                         <strong>Nacimiento:</strong> <span th:text="${m.fechaNacimiento}">Fecha</span>
                     </p>
+
                     <a th:href="@{'/mascotas/editar/' + ${m.idMascota}}" class="btn btn-warning btn-sm">
                         <i class="fas fa-edit"></i> Editar
                     </a>
@@ -61,6 +60,10 @@
                        onclick="return confirm('¿Deseas eliminar esta mascota?');">
                         <i class="fas fa-trash-alt"></i> Eliminar
                     </a>
+                    <a th:href="@{/dueno/mascotas/{id}/ficha/pdf(id=${m.idMascota})}" class="btn btn-info btn-sm" target="_blank">
+                        <i class="fas fa-id-card"></i> Descargar Ficha
+                    </a>
+
                 </div>
             </div>
         </div>
@@ -72,9 +75,6 @@
         </a>
     </div>
 </div>
-
-<!-- Fragment barra lateral -->
-
 
 <footer class="footer mt-5 bg-dark text-white">
     <div class="container text-center py-3">

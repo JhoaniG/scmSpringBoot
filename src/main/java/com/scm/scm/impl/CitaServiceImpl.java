@@ -1,28 +1,30 @@
 package com.scm.scm.impl;
 
 import com.scm.scm.dto.CitaDTO;
-import com.scm.scm.model.Cita;
-import com.scm.scm.model.Diagnosticodueno;
-import com.scm.scm.model.Mascota;
-import com.scm.scm.model.Veterinario;
-import com.scm.scm.repository.CitaRepositorio;
-import com.scm.scm.repository.DiagnosticoDuenoRepositorio;
-import com.scm.scm.repository.MascotaRepositorio;
-import com.scm.scm.repository.VeterinarioRepositorio;
+import com.scm.scm.dto.MascotaDTO;
+import com.scm.scm.model.*;
+import com.scm.scm.repository.*;
 import com.scm.scm.service.CitaService;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.IllegalFormatCodePointException;
 import java.util.List;
+import java.util.Map;
 
 @Service
 
 public class CitaServiceImpl implements CitaService {
+
+    @Autowired private DiagnosticoDuenoRepositorio diagnosticoRepositorio;
+    @Autowired private DietaRepositorio dietaRepositorio;
+    @Autowired private ActividadFisicaRepositorio actividadFisicaRepositorio;
     private final CitaRepositorio citaRepositorio;
 
     @Override
@@ -161,5 +163,34 @@ public class CitaServiceImpl implements CitaService {
         return citas.stream()
                 .map(cita -> modelMapper.map(cita, CitaDTO.class))
                 .toList();
+    }
+    @Override
+    public Map<String, Object> obtenerDatosHistorialClinico(Long idMascota) {
+        Map<String, Object> datos = new HashMap<>();
+
+        // 1. Obtiene la información principal de la mascota
+        Mascota mascota = mascotaRepositorio.findById(idMascota)
+                .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + idMascota));
+
+        // Mapea la mascota a un DTO para pasarlo a la plantilla
+        MascotaDTO mascotaDTO = modelMapper.map(mascota, MascotaDTO.class);
+        if (mascota.getUsuario() != null) {
+            mascotaDTO.setNombreDueno(mascota.getUsuario().getNombre() + " " + mascota.getUsuario().getApellido());
+        }
+
+        // 2. Busca en cada repositorio toda la información relacionada con esa mascota
+        List<Cita> citas = citaRepositorio.findByMascota_IdMascota(idMascota);
+        List<Diagnosticodueno> diagnosticos = diagnosticoDuenoRepositorio.findByMascota_IdMascota(idMascota);
+        List<Dieta> dietas = dietaRepositorio.findByMascota_IdMascota(idMascota);
+        List<ActividadFisica> actividades = actividadFisicaRepositorio.findByMascota_IdMascota(idMascota);
+
+        // 3. Pone toda la información recolectada en la "cesta" (el Map)
+        datos.put("mascota", mascotaDTO);
+        datos.put("citas", citas);
+        datos.put("diagnosticos", diagnosticos);
+        datos.put("dietas", dietas);
+        datos.put("actividades", actividades);
+
+        return datos;
     }
 }

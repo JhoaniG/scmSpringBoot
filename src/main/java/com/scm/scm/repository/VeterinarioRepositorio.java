@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface VeterinarioRepositorio extends JpaRepository<Veterinario, Long> {
     @Query("SELECT v FROM Veterinario v WHERE v.usuario.idUsuario = :idUsuario")
     Optional<Veterinario> findByUsuarioId(@Param("idUsuario") Long idUsuario);
+    Optional<Veterinario> findByUsuario_IdUsuario(Long idUsuario);
 
 
 }

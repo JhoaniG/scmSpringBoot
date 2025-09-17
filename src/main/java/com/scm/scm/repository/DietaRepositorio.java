@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface DietaRepositorio extends JpaRepository<Dieta, Long> {
     List<Dieta> findByMascota_IdMascota(Long idMascota);
+
  }

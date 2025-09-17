@@ -1,12 +1,16 @@
 package com.scm.scm.controller;
 
 import com.scm.scm.dto.UsuarioDTO;
+import com.scm.scm.service.PdfGenerationService;
 import com.scm.scm.service.UsuarioService;
 import com.scm.scm.repository.RolRepositorio;
 import com.scm.scm.exceptions.CustomExeception;
 import com.scm.scm.model.Usuario;
 import com.scm.scm.repository.UsuarioRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +20,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -26,12 +33,14 @@ public class AdminUsuarioController {
     private final UsuarioService usuarioService;
     private final RolRepositorio rolRepositorio;
     private final UsuarioRepositorio usuarioRepositorio;
+    private final PdfGenerationService  pdfGenerationService;
 
     @Autowired
-    public AdminUsuarioController(UsuarioService usuarioService, RolRepositorio rolRepositorio, UsuarioRepositorio usuarioRepositorio) {
+    public AdminUsuarioController(UsuarioService usuarioService, RolRepositorio rolRepositorio, UsuarioRepositorio usuarioRepositorio, PdfGenerationService pdfGenerationService) {
         this.usuarioService = usuarioService;
         this.rolRepositorio = rolRepositorio;
         this.usuarioRepositorio = usuarioRepositorio;
+        this.pdfGenerationService = pdfGenerationService;
     }
 
     // --- LISTAR USUARIOS CON PAGINACIÓN ---
@@ -124,6 +133,29 @@ public class AdminUsuarioController {
             redirectAttributes.addFlashAttribute("mensajeError", "Ocurrió un error al procesar el archivo: " + e.getMessage());
         }
         return "redirect:/admin/usuarios/listar";
+    }
+
+//PEDEF
+    @GetMapping("/exportar/pdf")
+    public ResponseEntity<byte[]> exportarUsuariosPdf() {
+        // 1. Obtenemos la lista de todos los usuarios
+        List<UsuarioDTO> usuarios = usuarioService.findAllUsers();
+
+        // 2. Preparamos los datos para la plantilla
+        Map<String, Object> datos = new HashMap<>();
+        datos.put("usuarios", usuarios);
+
+        // 3. Generamos el PDF usando nuestro servicio reutilizable
+        byte[] pdfBytes = pdfGenerationService.generarPdfDesdeHtml("reports/admin-usuarios-template", datos);
+
+        // 4. Preparamos la respuesta para que se descargue
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "reporte_usuarios.pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
     }
 
 }

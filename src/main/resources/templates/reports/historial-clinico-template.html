@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Historial Clínico</title>
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'Helvetica', sans-serif; color: #333; }
+        h1, h2, h3 { color: #0056b3; }
+        h1 { text-align: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; }
+        .info-mascota { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .info-mascota p { margin: 5px 0; }
+        .seccion { margin-top: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #dee2e6; padding: 8px; text-align: left; }
+        th { background-color: #e9ecef; }
+        .no-data { color: #888; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<h1>Historial Clínico de la Mascota</h1>
+
+<div class="info-mascota">
+    <h3>Datos del Paciente</h3>
+    <p><strong>Nombre:</strong> <span th:text="${mascota.nombre}"></span></p>
+    <p><strong>Raza:</strong> <span th:text="${mascota.raza}"></span></p>
+    <p><strong>Género:</strong> <span th:text="${mascota.genero}"></span></p>
+    <p><strong>Fecha de Nacimiento:</strong> <span th:text="${#temporals.format(mascota.fechaNacimiento, 'dd-MM-yyyy')}"></span></p>
+    <p><strong>Dueño:</strong> <span th:text="${mascota.nombreDueno}"></span></p>
+</div>
+
+<div class="seccion">
+    <h2>Historial de Citas</h2>
+    <table th:if="${not #lists.isEmpty(citas)}">
+        <thead><tr><th>Fecha</th><th>Motivo</th><th>Estado</th></tr></thead>
+        <tbody>
+        <tr th:each="cita : ${citas}">
+            <td th:text="${#temporals.format(cita.fechaCita, 'dd-MM-yyyy')}"></td>
+            <td th:text="${cita.motivoCita}"></td>
+            <td th:text="${cita.estadoCita}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <p class="no-data" th:if="${#lists.isEmpty(citas)}">No hay citas registradas.</p>
+</div>
+
+<div class="seccion">
+    <h2>Diagnósticos Registrados</h2>
+    <table th:if="${not #lists.isEmpty(diagnosticos)}">
+        <thead><tr><th>Fecha</th><th>Observaciones</th><th>Veterinario</th></tr></thead>
+        <tbody>
+        <tr th:each="diag : ${diagnosticos}">
+
+            <td>
+                <th:block th:if="${not #strings.isEmpty(diag.fechaDiagnostico)}"
+                          th:with="parts=${#strings.arraySplit(diag.fechaDiagnostico, '-')}">
+                    <span th:text="${parts[2] + '-' + parts[1] + '-' + parts[0]}"></span>
+                </th:block>
+            </td>
+
+            <td th:text="${diag.observaciones}"></td>
+            <td th:text="${diag.veterinario.usuario.nombre}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <p class="no-data" th:if="${#lists.isEmpty(diagnosticos)}">No hay diagnósticos registrados.</p>
+</div>
+</body>
+</html>

@@ -30,6 +30,12 @@
 		<java.version>24</java.version>
 	</properties>
 	<dependencies>
+        <!-- dependenSIAS para pdfs no olvidar importante  -->
+        <dependency>
+            <groupId>org.xhtmlrenderer</groupId>
+            <artifactId>flying-saucer-pdf</artifactId>
+            <version>9.1.22</version>
+        </dependency>
         <!-- dependencias apra carga masiva de datos excel y correos -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

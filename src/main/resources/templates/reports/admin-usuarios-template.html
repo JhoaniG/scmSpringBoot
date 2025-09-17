@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Reporte de Usuarios</title>
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'Helvetica', sans-serif; color: #333; font-size: 11px; }
+        h1 { color: #0056b3; text-align: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 8px; text-align: left; }
+        th { background-color: #343a40; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .footer { position: fixed; bottom: -20px; left: 0; right: 0; text-align: center; font-size: 10px; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="footer">
+    Reporte generado el <span th:text="${#dates.format(#dates.createNow(), 'dd-MM-yyyy HH:mm')}"></span>
+</div>
+
+<h1>Reporte General de Usuarios</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nombre Completo</th>
+        <th>Email</th>
+        <th>Rol</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="usuario : ${usuarios}">
+        <td th:text="${usuario.idUsuario}"></td>
+        <td th:text="${usuario.nombre} + ' ' + ${usuario.apellido}"></td>
+        <td th:text="${usuario.email}"></td>
+        <td th:text="${usuario.rolId == 1 ? 'Admin' : (usuario.rolId == 2 ? 'Dueño de Mascota' : 'Veterinario')}"></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

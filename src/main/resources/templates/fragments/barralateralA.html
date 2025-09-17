@@ -33,12 +33,20 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/admin/citas/listar}">Gestión de Citas</a>
                 </li>
+                <li>
+                    <a th:href="@{/admin/correos/crear}">
+                        <i class="fas fa-paper-plane"></i> Enviar Correo Masivo
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/admin/diagnosticos/listar}">Gestión de Diagnósticos</a>
 
                 <div class="text-end mb-3">
+                    <a th:href="@{/admin/usuarios/exportar/pdf}" class="btn btn-danger" target="_blank">
+                        <i class="fas fa-file-pdf"></i> Exportar a PDF
+                    </a>
                     <a th:href="@{/admin/usuarios/cargar}" class="btn btn-success me-2">Carga Masiva</a>
-                    <a th:href="@{/admin/usuarios/crear}" class="btn btn-primary">Crear Nuevo Usuario</a>
+
                 </div>
 
                 <li class="nav-item mt-3">

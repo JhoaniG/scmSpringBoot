@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalles de la Mascota</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments/menuV :: menuV}"></div>
+<input type="checkbox" id="btn-menu">
+<div th:replace="~{fragments/barralateralV :: barralateralV}"></div>
+
+<div class="capa">
+    <div class="container mt-5">
+
+        <div class="d-flex align-items-center mb-4 p-3 bg-light rounded shadow-sm">
+            <img th:src="@{'/uploads/mascotas/' + ${mascota.foto}}" class="img-thumbnail"
+                 style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%;">
+            <div class="ms-4">
+                <h1 class="display-4" th:text="${mascota.nombre}">Nombre Mascota</h1>
+                <p class="lead text-muted" th:text="${mascota.raza}"></p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center">
+                <a th:href="@{/veterinario/mascotas/{id}/historial/pdf(id=${mascota.idMascota})}"
+                   class="btn btn-danger mx-2" target="_blank">
+                    <i class="fas fa-file-pdf"></i> Exportar Historial a PDF
+                </a>
+                <a href="#" class="btn btn-primary mx-2"><i class="fas fa-calendar-plus"></i> Agendar Nueva Cita</a>
+                <a href="#" class="btn btn-info mx-2"><i class="fas fa-notes-medical"></i> Registrar Diagnóstico</a>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h4>Información Adicional</h4>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>Dueño:</strong> <span th:text="${mascota.nombreDueno}"></span></li>
+                <li class="list-group-item"><strong>Género:</strong> <span th:text="${mascota.genero}"></span></li>
+                <li class="list-group-item"><strong>Fecha de Nacimiento:</strong> <span th:text="${#temporals.format(mascota.fechaNacimiento, 'dd MMMM yyyy')}"></span></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
