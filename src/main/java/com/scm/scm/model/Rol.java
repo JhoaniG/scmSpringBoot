@@ -23,5 +23,8 @@ public class Rol {
 
     @Column(name = "rol", nullable = false)
     private String rol;
+    public Rol(String rol) {
+        this.rol = rol;
+    }
 
 }

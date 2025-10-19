@@ -29,9 +29,9 @@ public class DataLoader implements CommandLineRunner {
         if (rolRepositorio.count() == 0) {
             System.out.println("No existen roles, creando roles iniciales...");
             // Usando los nombres exactos de tu base de datos
-            rolRepositorio.save(new Rol(1L, "Admin"));
-            rolRepositorio.save(new Rol(2L, "duenoMascota"));
-            rolRepositorio.save(new Rol(3L, "Veterinario"));
+            rolRepositorio.save(new Rol("Admin"));
+            rolRepositorio.save(new Rol("duenoMascota"));
+            rolRepositorio.save(new Rol("Veterinario"));
             System.out.println("Roles creados.");
         }
 
