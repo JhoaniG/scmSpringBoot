@@ -2,9 +2,11 @@ package com.scm.scm.impl;
 
 import com.scm.scm.dto.UsuarioDTO;
 import com.scm.scm.exceptions.CustomExeception;
+import com.scm.scm.model.PasswordResetToken;
 import com.scm.scm.model.Rol;
 import com.scm.scm.model.Usuario;
 import com.scm.scm.model.Veterinario;
+import com.scm.scm.repository.PasswordResetTokenRepository;
 import com.scm.scm.repository.RolRepositorio;
 import com.scm.scm.repository.UsuarioRepositorio;
 import com.scm.scm.repository.VeterinarioRepositorio;
@@ -47,15 +49,17 @@ private  final UsuarioRepositorio usuarioRepositorio;
 private  final RolRepositorio rolRepositorio;
 private final PasswordEncoder passwordEncoder;
 private final VeterinarioRepositorio veterinarioRepositorio;
+private final PasswordResetTokenRepository tokenRepository;
 
     @Autowired
     private EmailService emailService;
     private  final ModelMapper modelMapper;
-    public UsuarioServiceImpl(UsuarioRepositorio usuarioRepositorio, RolRepositorio rolRepositorio, PasswordEncoder passwordEncoder, VeterinarioRepositorio veterinarioRepositorio, ModelMapper modelMapper) {
+    public UsuarioServiceImpl(UsuarioRepositorio usuarioRepositorio, RolRepositorio rolRepositorio, PasswordEncoder passwordEncoder, VeterinarioRepositorio veterinarioRepositorio, PasswordResetTokenRepository tokenRepository, ModelMapper modelMapper) {
         this.usuarioRepositorio = usuarioRepositorio;
         this.rolRepositorio = rolRepositorio;
         this.passwordEncoder = passwordEncoder;
         this.veterinarioRepositorio = veterinarioRepositorio;
+        this.tokenRepository = tokenRepository;
         this.modelMapper = modelMapper;
     }
 
@@ -225,6 +229,35 @@ private final VeterinarioRepositorio veterinarioRepositorio;
     public void crearUsuarioIndividual(UsuarioDTO usuarioDTO) {
         crearUsuarioDesdeCargaMasiva(usuarioDTO);
     }
+
+    @Override
+    public Optional<Usuario> finUserByEmail(String email) {
+        return usuarioRepositorio.findByEmail(email);
+    }
+
+    @Override
+    public void CreatePasswordResetTokenForUser(Usuario usuario, String token) {
+        //Si ya eexiste este toquen lo eliminamos primero
+        tokenRepository.findByUsuario(usuario).ifPresent(tokenRepository::delete);
+
+        PasswordResetToken myToken=new PasswordResetToken(token, usuario);
+        tokenRepository.save(myToken);
+    }
+
+    @Override
+    public PasswordResetToken getPasswordResetToken(String token) {
+        return tokenRepository.findByToken(token).orElse(null);
+    }
+
+    @Override
+    public void ChangeUserPassword(Usuario usuario, String newPassword) {
+        usuario.setContrasena(passwordEncoder.encode(newPassword));
+        usuarioRepositorio.save(usuario);
+        //Eliminar token depues de usuarlo
+        tokenRepository.findByUsuario(usuario).ifPresent(tokenRepository::delete);
+
+    }
+
     @Transactional // <-- 2. Añade esta anotación
     private void crearUsuarioDesdeCargaMasiva(UsuarioDTO usuarioDTO) { // <-- 1. Cámbialo a private
         if (usuarioRepositorio.findByEmail(usuarioDTO.getEmail()).isPresent()) {

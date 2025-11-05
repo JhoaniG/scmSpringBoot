@@ -1,6 +1,7 @@
 package com.scm.scm.service;
 
 import com.scm.scm.dto.UsuarioDTO;
+import com.scm.scm.model.PasswordResetToken;
 import com.scm.scm.model.Usuario;
 import com.scm.scm.repository.UsuarioRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +11,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public interface UsuarioService
 {
@@ -29,6 +32,11 @@ public interface UsuarioService
 
     // Nueva firma de método
     void crearUsuarioIndividual(UsuarioDTO usuarioDTO);
+    Optional<Usuario> finUserByEmail(String email);
+    void CreatePasswordResetTokenForUser(Usuario usuario, String token);
+    PasswordResetToken getPasswordResetToken(String token);
+    void ChangeUserPassword(Usuario usuario, String newPassword);
+
 
 
 }

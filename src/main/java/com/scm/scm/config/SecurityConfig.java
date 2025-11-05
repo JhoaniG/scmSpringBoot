@@ -38,12 +38,15 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/Imagenes/**",
                                 "/uploads/**",
-                                "/public/**"
+                                "/public/**",
+                                "/forgot-password",
+                                "/reset-password"
                         ).permitAll()
 
                         // Registro de usuario
                         .requestMatchers(HttpMethod.GET, "/usuarios/create").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios/create").permitAll()
+                        .requestMatchers("/usuarios/create").permitAll()
 
                         // Login
                         .requestMatchers("/login").permitAll()
