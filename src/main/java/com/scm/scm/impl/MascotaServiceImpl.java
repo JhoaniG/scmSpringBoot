@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,15 +78,33 @@ public class MascotaServiceImpl implements MascotaService {
     @Override
     @Transactional
     public MascotaDTO crearMascota(MascotaDTO mascotaDTO) {
+        // Mapeo básico (incluye la nueva 'especie')
         Mascota mascota = modelMapper.map(mascotaDTO, Mascota.class);
+
+        // Buscar y asignar el usuario
         Usuario usuario = usuarioRepositorio.findById(mascotaDTO.getUsuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + mascotaDTO.getUsuarioId()));
         mascota.setUsuario(usuario);
 
+        // --- Nueva Lógica para Fecha de Nacimiento ---
+        if (mascotaDTO.isEsAdoptado()) {
+            // Si es adoptado, calcula una fecha de nacimiento aproximada
+            LocalDate fechaNacimientoAprox = LocalDate.now().minusYears(mascotaDTO.getEdadEstimadaAnios());
+            mascota.setFechaNacimiento(fechaNacimientoAprox);
+        } else {
+            // Si no es adoptado, usa la fecha exacta del calendario
+            mascota.setFechaNacimiento(mascotaDTO.getFechaNacimiento());
+        }
+        // -------------------------------------------
+
+        // Manejo de la foto
         String nombreFoto = guardarFoto(mascotaDTO.getArchivoFoto());
         mascota.setFoto(nombreFoto);
 
+        // Guardar en la BD
         Mascota mascotaGuardada = mascotaRepositorio.save(mascota);
+
+        // Devolver DTO
         return convertirADTO(mascotaGuardada);
     }
 

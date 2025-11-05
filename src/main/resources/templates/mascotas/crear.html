@@ -7,6 +7,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/stilos.css}">
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 </head>
 <body>
 
@@ -53,25 +56,53 @@
                             </div>
                         </div>
 
-                        <div class="form-group mb-4">
-                            <label for="fechaNacimiento" class="form-label fw-bold text-primary">📅 Fecha de Nacimiento</label>
-                            <input type="date" th:field="*{fechaNacimiento}" id="fechaNacimiento"
-                                   class="form-control form-control-lg rounded-pill" required>
-                            <div class="invalid-feedback">
-                                Por favor, selecciona una fecha de nacimiento válida.
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold">¿Conoces la fecha de nacimiento?</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" th:field="*{esAdoptado}" id="adoptadoNo" value="false" checked>
+                                <label class="form-check-label" for="adoptadoNo">
+                                    Sí, conozco la fecha exacta.
+                                </label>
                             </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" th:field="*{esAdoptado}" id="adoptadoSi" value="true">
+                                <label class="form-check-label" for="adoptadoSi">
+                                    No, es adoptado (sé la edad aproximada).
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" id="campoFechaNacimiento">
+                            <label for="fechaNacimiento" class="form-label fw-bold text-primary">📅 Fecha de Nacimiento</label>
+                            <input type="date" th:field="*{fechaNacimiento}" id="fechaNacimiento" class="form-control form-control-lg rounded-pill"/>
+                        </div>
+
+                        <div class="mb-3" id="campoEdadEstimada" style="display: none;">
+                            <label for="edadEstimadaAnios" class="form-label fw-bold text-primary">📅 Edad Estimada (en años)</label>
+                            <input type="number" th:field="*{edadEstimadaAnios}" id="edadEstimadaAnios" class="form-control form-control-lg rounded-pill" placeholder="Ej: 5" min="0" max="30"/>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="especie" class="form-label fw-bold text-primary">🌎 Especie</label>
+                            <select class="form-control-select2" id="especie" th:field="*{especie}" required>
+                                <option value="" disabled selected>Selecciona una especie...</option>
+                                <option value="Perro">Perro</option>
+                                <option value="Gato">Gato</option>
+                                <option value="Pájaro">Pájaro</option>
+                                <option value="Conejo">Conejo</option>
+                                <option value="Hámster">Hámster</option>
+                                <option value="Pez">Pez</option>
+                                <option value="Reptil">Reptil</option>
+                                <option value="Otro">Otro</option>
+                            </select>
                         </div>
 
                         <div class="form-group mb-4">
                             <label for="raza" class="form-label fw-bold text-primary">🐾 Raza</label>
-                            <input type="text" th:field="*{raza}" id="raza" class="form-control form-control-lg rounded-pill"
-                                   placeholder="Ej: Labrador" required minlength="3" maxlength="50"
-                                   pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+">
-                            <div class="invalid-feedback">
-                                Por favor, ingresa la raza de la mascota (solo letras y espacios, 3-50 caracteres).
-                            </div>
+                            <select class="form-control-select2" id="raza" th:field="*{raza}" required>
+                                <option value="" disabled selected>Primero selecciona una especie...</option>
+                            </select>
                         </div>
-
                         <div class="mb-3">
                             <label for="archivoFoto" class="form-label fw-bold text-primary">📸 Foto de la Mascota</label>
                             <input type="file" th:field="*{archivoFoto}" id="archivoFoto" class="form-control" accept="image/*" required>
@@ -96,37 +127,78 @@
 </div>
 
 <footer class="footer mt-5" id="footer">
-    <div class="container py-4">
-        <div class="row text-center text-md-start">
-            <div class="col-md-4 mb-3">
-                <h5 class="footer-title">John Alvarado</h5>
-                <ul class="list-unstyled">
-                    <li><i class="fas fa-envelope"></i> <a href="mailto:jhonyse2345@gmail.com" class="footer-link">jhonyse2345@gmail.com</a></li>
-                    <li><i class="fas fa-phone"></i> <span class="footer-text">321-613-2975</span></li>
-                </ul>
-            </div>
-            <div class="col-md-4 mb-3">
-                <h5 class="footer-title">Leonardo Atencio</h5>
-                <ul class="list-unstyled">
-                    <li><i class="fas fa-envelope"></i> <a href="mailto:leonardoatenciob30@gmail.com" class="footer-link">leonardoatenciob30@gmail.com</a></li>
-                    <li><i class="fas fa-phone"></i> <span class="footer-text">321-960-9864</span></li>
-                </ul>
-            </div>
-            <div class="col-md-4 mb-3">
-                <h5 class="footer-title">Jhoani Gallo</h5>
-                <ul class="list-unstyled">
-                    <li><i class="fas fa-envelope"></i> <a href="mailto:jhoanigallo@gmail.com" class="footer-link">jhoanigallo@gmail.com</a></li>
-                    <li><i class="fas fa-phone"></i> <span class="footer-text">312-311-0320</span></li>
-                </ul>
-            </div>
-        </div>
-        <div class="text-center mt-4">
-            <p class="footer-copy">&copy; 2024. Todos los derechos reservados.</p>
-        </div>
-    </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    // --- Objeto con las razas por especie ---
+    const razasPorEspecie = {
+        "Perro": ["Labrador Retriever", "Pastor Alemán", "Golden Retriever", "Bulldog", "Poodle (Caniche)", "Beagle", "Boxer", "Dachshund (Salchicha)", "Shih Tzu", "Schnauzer", "Yorkshire Terrier", "Chihuahua", "Pug", "Criollo (Mestizo)"],
+        "Gato": ["Siamés", "Persa", "Maine Coon", "Ragdoll", "Bengalí", "Abisinio", "Birmano", "Esfinge (Sphynx)", "Criollo (Mestizo)"],
+        "Pájaro": ["Canario", "Periquito", "Agapornis", "Ninfa (Carolina)", "Loro", "Cacatúa"],
+        "Conejo": ["Rex", "Belier", "Cabeza de León", "Gigante de Flandes"],
+        "Hámster": ["Sirio (Dorado)", "Ruso (Campbell)", "Roborovski"],
+        "Pez": ["Goldfish", "Betta", "Guppy", "Tetra Neón"],
+        "Reptil": ["Tortuga de orejas rojas", "Gecko Leopardo", "Dragón Barbudo", "Serpiente del maíz"],
+        "Otro": ["No Aplica"]
+    };
+
+    // --- Lógica de JavaScript cuando el documento esté listo ---
+    $(document).ready(function() {
+
+        // --- 1. Inicializar Select2 (desplegables con buscador) ---
+        // Aplicamos estilos a los desplegables de especie y raza
+        $('.form-control-select2').select2({
+            theme: "bootstrap-5",
+            width: '100%'
+        });
+
+        // --- 2. Lógica para el cambio de Especie ---
+        $('#especie').on('change', function() {
+            const especieSeleccionada = $(this).val();
+            const $razaSelect = $('#raza');
+
+            $razaSelect.empty();
+            $razaSelect.append(new Option('No lo sé / Mestizo', 'No lo sé / Mestizo'));
+
+            if (razasPorEspecie[especieSeleccionada]) {
+                razasPorEspecie[especieSeleccionada].forEach(function(raza) {
+                    var option = new Option(raza, raza);
+                    $razaSelect.append(option);
+                });
+            } else {
+                 $razaSelect.append(new Option('No Aplica', 'No Aplica'));
+            }
+
+            $razaSelect.val('No lo sé / Mestizo').trigger('change');
+        });
+
+
+        // --- 3. Lógica para mostrar/ocultar campos de Adopción ---
+        $('input[type=radio][name=esAdoptado]').change(function() {
+            if (this.value === 'true') {
+                $('#campoEdadEstimada').show();
+                $('#campoFechaNacimiento').hide();
+                $('#fechaNacimiento').val('');
+                $('#fechaNacimiento').prop('required', false);
+                $('#edadEstimadaAnios').prop('required', true);
+            } else {
+                $('#campoEdadEstimada').hide();
+                $('#campoFechaNacimiento').show();
+                $('#edadEstimadaAnios').val('');
+                $('#fechaNacimiento').prop('required', true);
+                $('#edadEstimadaAnios').prop('required', false);
+            }
+        });
+
+        // Disparar el evento change al cargar la página para establecer el estado inicial
+        $('input[type=radio][name=esAdoptado]:checked').trigger('change');
+    });
+</script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.querySelector('.needs-validation');
@@ -140,7 +212,6 @@
         fechaNacimientoInput.setAttribute('max', maxDate);
 
         form.addEventListener('submit', function (event) {
-            // Este es el único lugar donde necesitas la validación de la fecha
             const selectedDate = new Date(fechaNacimientoInput.value);
             const currentDate = new Date();
             currentDate.setHours(0, 0, 0, 0);
@@ -151,8 +222,6 @@
                 fechaNacimientoInput.setCustomValidity("");
             }
 
-            // El navegador se encarga de todo lo demás. Si algo no está bien,
-            // detendrá el envío del formulario.
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();

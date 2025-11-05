@@ -34,6 +34,8 @@ public class Mascota {
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
+    @Column(name = "especie", nullable = false)
+    private String especie;
 
 
 

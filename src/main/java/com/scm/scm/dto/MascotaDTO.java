@@ -28,6 +28,9 @@ public class MascotaDTO {
     private Long usuarioId;
     private MultipartFile archivoFoto;
     private String nombreDueno;
+    private String especie;
 
+    private boolean esAdoptado;
+    private Integer edadEstimadaAnios;
 
 }
