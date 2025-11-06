@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class CitaController {
@@ -134,6 +135,19 @@ public class CitaController {
             redirectAttributes.addFlashAttribute("mensajeError", "Error al actualizar la cita.");
         }
         return "redirect:/citas"; // Vuelve a la lista de citas
+    }
+
+    @GetMapping("/api/historial/mascota/{idMascota}")
+    @ResponseBody // <-- ¡Muy importante! Devuelve JSON, no una vista HTML.
+    public ResponseEntity<Map<String, Object>> getHistorialCompletoMascota(@PathVariable Long idMascota) {
+        try {
+            // Reutilizamos el método que ya tenías en tu CitaService
+            Map<String, Object> datos = citaService.obtenerDatosHistorialClinico(idMascota);
+            return ResponseEntity.ok(datos);
+        } catch (Exception e) {
+            // Maneja el caso de que la mascota no se encuentre
+            return ResponseEntity.notFound().build();
+        }
     }
 
 

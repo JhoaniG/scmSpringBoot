@@ -71,6 +71,14 @@
                         </button>
                     </form>
 
+                    <button type="button" class="btn btn-info btn-sm btnVerHistorial"
+                            data-bs-toggle="modal"
+                            data-bs-target="#historialModal"
+                            th:data-mascota-id="${cita.mascotaId}"
+                            title="Ver Historial Completo">
+                        <i class="fas fa-eye"></i>
+                    </button>
+
                     <span th:if="${cita.estadoCita == 'Terminada'}" class="text-success">
                         <i class="fas fa-check-circle"></i> Atendido
                     </span>
@@ -87,6 +95,172 @@
     </div>
 </div>
 
+<div class="modal fade" id="historialModal" tabindex="-1" aria-labelledby="historialModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="historialModalLabel">Historial Clínico Completo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body" id="historialModalBody">
+
+                <div id="historial-loading" class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando historial...</p>
+                </div>
+
+                <div id="historial-content" style="display: none;">
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h4 class="card-title" id="historial-mascota-nombre"></h4>
+                            <p class="card-text mb-1">
+                                <strong>Dueño:</strong> <span id="historial-mascota-dueno"></span>
+                            </p>
+                            <p class="card-text mb-1">
+                                <strong>Raza:</strong> <span id="historial-mascota-raza"></span> |
+                                <strong>Nacimiento:</strong> <span id="historial-mascota-fecha"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <ul class="nav nav-tabs" id="historialTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="citas-tab" data-bs-toggle="tab" data-bs-target="#tab-citas" type="button" role="tab">Citas</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="diagnosticos-tab" data-bs-toggle="tab" data-bs-target="#tab-diagnosticos" type="button" role="tab">Diagnósticos Dueño</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="dietas-tab" data-bs-toggle="tab" data-bs-target="#tab-dietas" type="button" role="tab">Dietas</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="actividades-tab" data-bs-toggle="tab" data-bs-target="#tab-actividades" type="button" role="tab">Actividades</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content p-3 border border-top-0">
+                        <div class="tab-pane fade show active" id="tab-citas" role="tabpanel">
+                            <ul class="list-group" id="historial-lista-citas">
+                            </ul>
+                        </div>
+                        <div class="tab-pane fade" id="tab-diagnosticos" role="tabpanel">
+                            <ul class="list-group" id="historial-lista-diagnosticos">
+                            </ul>
+                        </div>
+                        <div class="tab-pane fade" id="tab-dietas" role="tabpanel">
+                            <ul class="list-group" id="historial-lista-dietas">
+                            </ul>
+                        </div>
+                        <div class="tab-pane fade" id="tab-actividades" role="tabpanel">
+                            <ul class="list-group" id="historial-lista-actividades">
+                            </ul>
+                        </div>
+                    </div>
+                </div> </div> <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+        </div>
+    </div>
+</div>
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // --- (Tu script existente para el modal de 'Agendar Cita' va aquí) ---
+        // ...
+
+        // --- SCRIPT NUEVO PARA EL MODAL DE HISTORIAL ---
+        const historialModal = document.getElementById('historialModal');
+        const loadingSpinner = document.getElementById('historial-loading');
+        const contentDiv = document.getElementById('historial-content');
+
+        // Listener para cuando el modal de historial se esté ABRIENDO
+        historialModal.addEventListener('show.bs.modal', async function (event) {
+            // Muestra el spinner y oculta el contenido viejo
+            loadingSpinner.style.display = 'block';
+            contentDiv.style.display = 'none';
+
+            // Limpia el contenido anterior
+            limpiarModal();
+
+            // Obtén el botón que lo disparó
+            const button = event.relatedTarget;
+            const mascotaId = button.getAttribute('data-mascota-id');
+
+            try {
+                // Llama a nuestra nueva API
+                const response = await fetch(`/api/historial/mascota/${mascotaId}`);
+                if (!response.ok) {
+                    throw new Error('Error al cargar el historial.');
+                }
+                const data = await response.json();
+
+                // Rellena el modal con los nuevos datos
+                poblarModal(data);
+
+                // Oculta el spinner y muestra el contenido
+                loadingSpinner.style.display = 'none';
+                contentDiv.style.display = 'block';
+
+            } catch (error) {
+                console.error(error);
+                loadingSpinner.innerHTML = `<p class="text-danger">${error.message}</p>`;
+            }
+        });
+
+        function poblarModal(data) {
+            // 1. Información de la Mascota
+            document.getElementById('historial-mascota-nombre').textContent = data.mascota.nombre;
+            document.getElementById('historial-mascota-dueno').textContent = data.mascota.nombreDueno;
+            document.getElementById('historial-mascota-raza').textContent = data.mascota.raza;
+            document.getElementById('historial-mascota-fecha').textContent = new Date(data.mascota.fechaNacimiento).toLocaleDateString('es-CO');
+
+            // 2. Llenar Listas (Citas, Diagnósticos, etc.)
+            poblarLista('historial-lista-citas', data.citas, c =>
+                `(${c.fechaCita}) - ${c.motivoCita} [${c.estadoCita}]`
+            );
+
+            poblarLista('historial-lista-diagnosticos', data.diagnosticos, d =>
+                `(${d.fechaDiagnostico}) - ${d.observaciones}`
+            );
+
+            poblarLista('historial-lista-dietas', data.dietas, d =>
+                `(${d.tipoDieta}) - ${d.descripcion}`
+            );
+
+            poblarLista('historial-lista-actividades', data.actividades, a =>
+                `(${a.tipoActividad}) - ${a.descripcion}`
+            );
+        }
+
+        // Función auxiliar para rellenar las listas <ul>
+        function poblarLista(ulId, items, formatter) {
+            const ul = document.getElementById(ulId);
+            if (!items || items.length === 0) {
+                ul.innerHTML = '<li class="list-group-item">No hay registros.</li>';
+                return;
+            }
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = formatter(item);
+                ul.appendChild(li);
+            });
+        }
+
+        // Función auxiliar para limpiar el modal
+        function limpiarModal() {
+            document.getElementById('historial-lista-citas').innerHTML = '';
+            document.getElementById('historial-lista-diagnosticos').innerHTML = '';
+            document.getElementById('historial-lista-dietas').innerHTML = '';
+            document.getElementById('historial-lista-actividades').innerHTML = '';
+        }
+
+    });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
