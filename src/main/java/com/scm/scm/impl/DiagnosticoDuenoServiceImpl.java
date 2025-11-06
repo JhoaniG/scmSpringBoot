@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 @Service
 
@@ -39,14 +40,11 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
 
 
 
-        if (diagnosticoDuenoDTO.getVeterinarioId() != null){
-
-            Veterinario veterinario = veterinarioRepositorio.findByUsuarioId(diagnosticoDuenoDTO.getVeterinarioId())
-
-                    .orElseThrow(() -> new RuntimeException("No existe un veterinario con el usuario ID: " + diagnosticoDuenoDTO.getVeterinarioId()));
-
+        if (diagnosticoDuenoDTO.getVeterinarioId() != null) {
+            // CORRECTO: Busca por el ID de Veterinario
+            Veterinario veterinario = veterinarioRepositorio.findById(diagnosticoDuenoDTO.getVeterinarioId())
+                    .orElseThrow(() -> new RuntimeException("No existe un veterinario con el ID: " + diagnosticoDuenoDTO.getVeterinarioId()));
             diagnosticodueno.setVeterinario(veterinario);
-
         }
 
         if (diagnosticoDuenoDTO.getMascotaId() != null){
@@ -62,7 +60,7 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
 
 
 
-
+        diagnosticodueno.setFechaDiagnostico(LocalDate.now().toString());
         diagnosticodueno=diagnosticoDuenoRepositorio.save(diagnosticodueno);
 
         return modelMapper.map(diagnosticodueno, DiagnosticoDuenoDTO.class);

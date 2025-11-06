@@ -82,19 +82,27 @@ public class CitaController {
 
 
     @PostMapping("/citas/crear")
-    public String crearCita(@ModelAttribute CitaDTO citaDTO, HttpSession session, Model model) {
+    public String crearCita(@ModelAttribute CitaDTO citaDTO,
+                            HttpSession session,
+                            Model model,
+                            RedirectAttributes redirectAttributes) { // <-- 3. AÑADE RedirectAttributes
+
         Veterinario vet = (Veterinario) session.getAttribute("veterinarioSesion");
-        citaDTO.setVeterinarioId(vet.getIdVeterinario());
-
-        model.addAttribute("citaDTO", new CitaDTO());
-
         if (vet == null) {
-            // No hay usuario en sesión, redirigir al login o mostrar error
+            redirectAttributes.addFlashAttribute("mensajeError", "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
             return "redirect:/login?error=sesionVacia";
         }
+        citaDTO.setVeterinarioId(vet.getIdVeterinario());
 
+        try {
+            citaService.crearCita(citaDTO);
+            // 4. MENSAJE DE ÉXITO
+            redirectAttributes.addFlashAttribute("mensajeExito", "¡Cita creada exitosamente!");
+        } catch (Exception e) {
+            // 5. MENSAJE DE ERROR
+            redirectAttributes.addFlashAttribute("mensajeError", "Error al crear la cita: " + e.getMessage());
+        }
 
-        citaService.crearCita(citaDTO);
         return "redirect:/diagnosticos/listar";
     }
 
@@ -111,6 +119,21 @@ public class CitaController {
         model.addAttribute("listaCitas", listaCitas);
 
         return "duenoMascota/citas"; // aquí debe ir tu plantilla Thymeleaf
+    }
+
+
+
+    @PostMapping("/citas/terminar/{id}")
+    public String terminarCita(@PathVariable("id") Long idCita, RedirectAttributes redirectAttributes) {
+        try {
+            CitaDTO citaDTO = citaService.obtenerCitaPorId(idCita);
+            citaDTO.setEstadoCita("Terminada");
+            citaService.actualizarCita(idCita, citaDTO);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Cita marcada como terminada.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensajeError", "Error al actualizar la cita.");
+        }
+        return "redirect:/citas"; // Vuelve a la lista de citas
     }
 
 

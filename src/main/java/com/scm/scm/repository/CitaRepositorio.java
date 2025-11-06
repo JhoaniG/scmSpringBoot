@@ -14,4 +14,7 @@ public interface CitaRepositorio extends JpaRepository<Cita, Long> {
     List<Cita> findByDuenoId(@Param("idUsuario") Long idUsuario);
     List<Cita> findByVeterinario_IdVeterinario(Long idVeterinario);
     List<Cita> findByMascota_IdMascota(Long idMascota);
+    List<Cita> findByVeterinario_IdVeterinarioAndEstadoCita(Long veterinarioId, String estadoCita);
+
+
 }

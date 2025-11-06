@@ -40,12 +40,20 @@ public class CitaServiceImpl implements CitaService {
                 .toList();
     }
 
+    @Override // <-- Asegúrate de que este método esté en la interfaz CitaService
     public List<CitaDTO> obtenerCitasPorVeterinario(Long idVeterinario) {
         List<Cita> citas = citaRepositorio.findByVeterinario_IdVeterinario(idVeterinario);
 
         // Mapear entidad -> DTO
         return citas.stream().map(c -> {
             CitaDTO dto = new CitaDTO();
+
+            // --- ESTAS SON LAS LÍNEAS CLAVE QUE FALTABAN ---
+            dto.setIdCita(c.getIdCita()); //
+            dto.setMascotaId(c.getMascota().getIdMascota()); // <-- Necesario para Dieta
+            dto.setDuenoId(c.getMascota().getUsuario().getIdUsuario()); // <-- Necesario para Dieta
+            // --- FIN DE LÍNEAS AÑADIDAS ---
+
             dto.setNombreMascota(c.getMascota().getNombre());
             dto.setNombreDueno(c.getMascota().getUsuario().getNombre());
             dto.setFechaCita(c.getFechaCita());

@@ -24,6 +24,8 @@ public class Diagnosticodueno {
 
     @Column(name = "observaciones", nullable = false)
     private String observaciones;
+    @Column(name = "tipo_enfermedad", nullable = true) // Lo hacemos opcional por ahora
+    private String tipoEnfermedad;
     // necesita idM y idV
     //relacion de muchos a uno con mastoca
     @ManyToOne

@@ -16,6 +16,14 @@
 
 <div class="container mt-5">
     <h2 class="text-center mb-4 text-primary">Diagnósticos de Dueños</h2>
+    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${mensajeExito}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${mensajeError}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 
     <<div class="table-responsive shadow-sm">
     <table class="table table-striped table-hover border border-primary">
@@ -26,6 +34,7 @@
             <th>Dueño</th>
             <th>Fecha</th>
             <th>Observaciones</th>
+            <th>Tipo de enfermedad</th>
             <th>Acciones</th>
         </tr>
         </thead>
@@ -36,13 +45,15 @@
             <td th:text="${d.nombreDueno}"></td>
             <td th:text="${d.fechaDiagnostico}"></td>
             <td th:text="${d.observaciones}"></td>
+            <td th:text="${d.tipoEnfermedad}"></td>
             <td>
                 <!-- Botón para abrir modal -->
                 <button class="btn btn-sm btn-primary"
                         data-bs-toggle="modal"
                         data-bs-target="#citaModal"
-                        th:attr="data-iddiagnostico=${d.idDiagnosticoDueno}, data-idmascota=${d.mascotaId}">
-                    Crear Cita
+                        th:attr="data-iddiagnostico=${d.idDiagnosticoDueno},
+                     data-idmascota=${d.mascotaId},
+                     data-tipoenfermedad=${d.tipoEnfermedad}"> Agendar Cita
                 </button>
             </td>
         </tr>
@@ -107,60 +118,70 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-    const citaModal = document.getElementById('citaModal');
-    const fechaCitaInput = document.getElementById('FechaCita');
+        const citaModal = document.getElementById('citaModal');
+        const fechaCitaInput = document.getElementById('FechaCita');
+        const motivoCitaInput = document.getElementById('MotivoCita'); // Campo Motivo
 
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const day = today.getDate().toString().padStart(2, '0');
-    const minDate = `${year}-${month}-${day}`;
-    fechaCitaInput.setAttribute('min', minDate);
+        // --- 1. Configuración de Fecha Mínima ---
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        const day = today.getDate().toString().padStart(2, '0');
+        const minDate = `${year}-${month}-${day}`;
+        fechaCitaInput.setAttribute('min', minDate);
 
-    // Pasar IDs al modal
-    citaModal.addEventListener('show.bs.modal', function (ev) {
-        const btn = ev.relatedTarget;
-        if (!btn) return;
+        // --- 2. Evento para poblar el Modal ---
+        citaModal.addEventListener('show.bs.modal', function (ev) {
+            // Obtener el botón que disparó el modal
+            const btn = ev.relatedTarget;
+            if (!btn) return;
 
-        const idD = btn.getAttribute('data-iddiagnostico'); // idDiagnosticoDueno
-       const idMascota = btn.getAttribute('data-idmascota'); // mascotaId
-        document.getElementById('modalIdD').value = idD;
-         document.getElementById('modalIdMascota').value = idMascota;
-        // Resetear formulario
-        const form = citaModal.querySelector('.needs-validation');
-        form.classList.remove('was-validated');
-        Array.from(form.elements).forEach(el => {
-            el.classList.remove('is-valid', 'is-invalid');
-            el.setCustomValidity("");
+            // Leer todos los datos del botón
+            const idD = btn.getAttribute('data-iddiagnostico');
+            const idMascota = btn.getAttribute('data-idmascota');
+            const tipoEnfermedad = btn.getAttribute('data-tipoenfermedad');
+
+            // Asignar los valores a los campos del formulario
+            document.getElementById('modalIdD').value = idD;
+            document.getElementById('modalIdMascota').value = idMascota;
+            motivoCitaInput.value = tipoEnfermedad; // Asigna el motivo
+
+            // Resetear validación y poner fecha por defecto
+            const form = citaModal.querySelector('.needs-validation');
+            form.classList.remove('was-validated');
+            Array.from(form.elements).forEach(el => {
+                el.classList.remove('is-valid', 'is-invalid');
+                el.setCustomValidity("");
+            });
+            fechaCitaInput.value = minDate;
         });
 
-        // Poner fecha predeterminada a hoy
-        fechaCitaInput.value = minDate;
+        // --- 3. Validación de Bootstrap ---
+        const form = citaModal.querySelector('.needs-validation');
+        form.addEventListener('submit', function(event) {
+            // Validación personalizada de la fecha
+            const selectedDate = new Date(fechaCitaInput.value);
+            const currentDate = new Date();
+            selectedDate.setHours(0,0,0,0);
+            currentDate.setHours(0,0,0,0);
+
+            if (selectedDate < currentDate) {
+                fechaCitaInput.setCustomValidity("La fecha no puede ser pasada.");
+            } else {
+                fechaCitaInput.setCustomValidity("");
+            }
+
+            // Validación estándar de Bootstrap
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Limpiar validación personalizada al cambiar la fecha
+        fechaCitaInput.addEventListener('input', () => fechaCitaInput.setCustomValidity(""));
     });
-
-    // Validación fecha
-    const form = citaModal.querySelector('.needs-validation');
-    form.addEventListener('submit', function(event) {
-        const selectedDate = new Date(fechaCitaInput.value);
-        const currentDate = new Date();
-        selectedDate.setHours(0,0,0,0);
-        currentDate.setHours(0,0,0,0);
-
-        if (selectedDate < currentDate) {
-            fechaCitaInput.setCustomValidity("La fecha no puede ser pasada.");
-        } else {
-            fechaCitaInput.setCustomValidity("");
-        }
-
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        form.classList.add('was-validated');
-    });
-
-    fechaCitaInput.addEventListener('input', () => fechaCitaInput.setCustomValidity(""));
-});
 </script>
 </body>
 </html>

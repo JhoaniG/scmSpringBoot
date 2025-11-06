@@ -1,8 +1,6 @@
 package com.scm.scm.controller;
 
-import com.scm.scm.dto.CitaDTO;
-import com.scm.scm.dto.DiagnosticoDuenoDTO;
-import com.scm.scm.dto.DietaDTO;
+import com.scm.scm.dto.*;
 import com.scm.scm.model.Usuario;
 import com.scm.scm.model.Veterinario;
 import com.scm.scm.repository.UsuarioRepositorio;
@@ -16,9 +14,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 public class DiagnosticoDuenoController {
@@ -85,7 +85,7 @@ public class DiagnosticoDuenoController {
                 .toList());
 
         // Pasar todos los veterinarios al modelo
-        List<Usuario> veterinarios = usuarioRepositorio.findByRolIdRol(3L); // Suponiendo que el ID del rol veterinario es 3
+        List<Veterinario> veterinarios = veterinarioRepositorio.findAll(); // Suponiendo que el ID del rol veterinario es 3
         model.addAttribute("veterinarios", veterinarios);
 
         model.addAttribute("usuario", usuario);
@@ -95,11 +95,19 @@ public class DiagnosticoDuenoController {
     }
 
     @PostMapping("/diagnosticos/crear")
-    public String crearDiagnostico(@ModelAttribute DiagnosticoDuenoDTO diagnosticoDTO) {
-        diagnosticoDuenoService.crearDiagnosticoDueno(diagnosticoDTO);
+    public String crearDiagnostico(@ModelAttribute DiagnosticoDuenoDTO diagnosticoDTO, RedirectAttributes redirectAttributes) {
+        try {
+            diagnosticoDuenoService.crearDiagnosticoDueno(diagnosticoDTO);
+            // 3. Añade el mensaje de éxito aquí
+            redirectAttributes.addFlashAttribute("mensajeExito", "Reporte de síntomas registrado exitosamente.");
+        } catch (Exception e) {
+            // 4. (Opcional pero recomendado) Maneja el error
+            redirectAttributes.addFlashAttribute("mensajeError", "Error al guardar el reporte: " + e.getMessage());
+        }
+
+        // La redirección sigue siendo la misma
         return "redirect:/dueno/index";
     }
-
 
     @GetMapping("/diagnosticos/listar")
     public String listarDiagnosticosVeterinario(Model model, Authentication auth) {
@@ -116,4 +124,48 @@ public class DiagnosticoDuenoController {
 
         return "diagnosticos/lista";
     }
-}
+
+
+    @GetMapping("/api/veterinarios-por-tipo-enfermedad")
+    @ResponseBody
+    public List<UsuarioDTO> getVeterinariosPorEspecialidad(@RequestParam String tipoEnfermedad) { // <-- CAMBIO AQUÍ
+
+        String especialidadRequerida;
+
+        // Mapea el tipo de enfermedad a una especialidad
+        switch (tipoEnfermedad) {
+            case "Problemas Digestivos / Nutricionales":
+                especialidadRequerida = "Nutrición Veterinaria";
+                break;
+            case "Problemas Ortopédicos / Movilidad":
+                especialidadRequerida = "Fisioterapia y Rehabilitación";
+                break;
+            case "Problemas de Comportamiento":
+                especialidadRequerida = "Etología (Comportamiento Animal)";
+                break;
+            default:
+                especialidadRequerida = "Medicina General";
+        }
+
+        List<Veterinario> especialistas = veterinarioRepositorio.findByEspecialidad(especialidadRequerida);
+
+        // Siempre incluye a los médicos generales como opción de respaldo
+        if (!especialidadRequerida.equals("Medicina General")) {
+            especialistas.addAll(veterinarioRepositorio.findByEspecialidad("Medicina General"));
+        }
+
+        // Convierte la lista de Entidades a una lista de UsuarioDTOs
+        return especialistas.stream()
+                .map(v -> {
+                    // Mapea a un UsuarioDTO simple para el JSON
+                    UsuarioDTO dto = new UsuarioDTO();
+                    dto.setIdUsuario(v.getIdVeterinario()); // Usamos el ID de Veterinario para el value
+                    dto.setNombre(v.getUsuario().getNombre() + " " + v.getUsuario().getApellido());
+                    dto.setEspecialidad(v.getEspecialidad());
+                    return dto; // <-- Retorna UsuarioDTO
+                })
+                .distinct()
+                .collect(Collectors.toList());
+    }    }
+
+

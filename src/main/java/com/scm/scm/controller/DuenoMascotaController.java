@@ -2,10 +2,12 @@ package com.scm.scm.controller;
 
 import com.scm.scm.dto.*;
 import com.scm.scm.model.Usuario;
+import com.scm.scm.model.Veterinario; // <-- 1. AÑADIR ESTE IMPORT
 import com.scm.scm.repository.UsuarioRepositorio;
+import com.scm.scm.repository.VeterinarioRepositorio; // <-- 2. AÑADIR ESTE IMPORT
 import com.scm.scm.service.*;
 import jakarta.servlet.http.HttpSession;
-import org.modelmapper.ModelMapper; // Importa esta clase
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,38 +20,50 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 @Controller
 public class DuenoMascotaController {
 
+    // --- Tus inyecciones existentes (están bien) ---
     private final MascotaService mascotaService;
     private final DietaService dietaService;
-     private final ActividadFisicaService actividadFisicaService;
-     private final CitaService citaService;
+    private final ActividadFisicaService actividadFisicaService;
+    private final CitaService citaService;
     private final PdfGenerationService pdfService;
 
     @Autowired
     private UsuarioRepositorio usuarioRepositorio;
 
     @Autowired
-    private ModelMapper modelMapper; // Inyecta ModelMapper
+    private ModelMapper modelMapper;
 
-    public DuenoMascotaController(MascotaService mascotaService, DietaService dietaService, ActividadFisicaService actividadFisicaService, CitaService citaService, PdfGenerationService pdfService) {
+    // --- 3. AÑADIR ESTA INYECCIÓN ---
+    @Autowired
+    private VeterinarioRepositorio veterinarioRepositorio;
+
+    // --- 4. AÑADIR EL REPOSITORIO AL CONSTRUCTOR ---
+    public DuenoMascotaController(MascotaService mascotaService, DietaService dietaService, ActividadFisicaService actividadFisicaService, CitaService citaService, PdfGenerationService pdfService, VeterinarioRepositorio veterinarioRepositorio) {
         this.mascotaService = mascotaService;
         this.dietaService = dietaService;
         this.actividadFisicaService = actividadFisicaService;
         this.citaService = citaService;
         this.pdfService = pdfService;
+        this.veterinarioRepositorio = veterinarioRepositorio; // <-- Asignarlo
     }
 
     @ModelAttribute
     public void agregarAtributosGlobales(Model model, Authentication auth) {
-        // Siempre agregamos un objeto vacío para que el fragmento no falle
+
+        DiagnosticoDuenoDTO dto = new DiagnosticoDuenoDTO();
+        // 2. Ponle la fecha actual del servidor (convertida a String)
+        dto.setFechaDiagnostico(LocalDate.now().toString());
+        // 3. Pásalo al modelo
+        model.addAttribute("diagnosticoDTO", dto);
         model.addAttribute("diagnosticoDTO", new DiagnosticoDuenoDTO());
 
-        // Si hay usuario autenticado
         if (auth != null && auth.isAuthenticated()) {
             String email = auth.getName();
             Usuario usuario = usuarioRepositorio.findByEmail(email).orElse(null);
@@ -59,9 +73,13 @@ public class DuenoMascotaController {
             model.addAttribute("logueado", false);
         }
 
-        // Inicializamos listas vacías por defecto
+        // --- 5. CORRECCIÓN EN EL MÉTODO GLOBAL ---
+        // Cargamos la lista correcta de Veterinarios aquí para que esté disponible en todas las vistas
+        List<Veterinario> veterinarios = veterinarioRepositorio.findAll();
+        model.addAttribute("veterinarios", veterinarios);
+
+        // Dejamos que los controladores específicos sobreescriban "mascotas" si es necesario
         model.addAttribute("mascotas", List.of());
-        model.addAttribute("veterinarios", List.of());
     }
 
     @GetMapping("/dueno/index")
@@ -70,27 +88,37 @@ public class DuenoMascotaController {
         Usuario usuario = usuarioRepositorio.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        model.addAttribute("mascotas", mascotaService.getAllMascotas()
+        // --- 6. CORRECCIÓN DE NOMBRES DE VARIABLE ---
+        // La lista para las tarjetas de la página principal se llamará "misMascotas"
+        List<MascotaDTO> misMascotas = mascotaService.getAllMascotas()
                 .stream()
                 .filter(m -> m.getUsuarioId().equals(usuario.getIdUsuario()))
-                .toList());
+                .toList();
+        model.addAttribute("misMascotas", misMascotas);
 
-        List<Usuario> veterinarios = usuarioRepositorio.findByRolIdRol(3L);
-        model.addAttribute("veterinarios", veterinarios);
+        // La lista para la barra lateral se llamará "mascotas" (para el modal)
+        // (La cargamos en @ModelAttribute, pero podemos ser explícitos si el modal la necesita completa)
+        model.addAttribute("mascotas", mascotaService.getAllMascotas());
+
+        // 'veterinarios' ya fue añadido correctamente por agregarAtributosGlobales
+        // No necesitamos esta línea incorrecta:
+        // List<Usuario> veterinarios = usuarioRepositorio.findByRolIdRol(3L);
+        // model.addAttribute("veterinarios", veterinarios);
 
         model.addAttribute("usuario", usuario);
         model.addAttribute("logueado", true);
         model.addAttribute("diagnosticoDTO", new DiagnosticoDuenoDTO());
 
-        // Guardar el objeto Usuario en la sesión, no el DTO
         session.setAttribute("usuarioSesion", usuario);
 
         return "duenoMascota/index";
     }
 
+    // --- EL RESTO DE MÉTODOS NO CAMBIAN ---
+
     @GetMapping("/dueno/mascotas")
     public String listarMascotas(Model model, HttpSession session) {
-        // Recuperar el objeto Usuario y convertirlo a DTO
+        // ... (tu código original)
         Object sessionUser = session.getAttribute("usuarioSesion");
         if (sessionUser == null) {
             return "redirect:/login";
@@ -112,7 +140,7 @@ public class DuenoMascotaController {
 
     @GetMapping("/dueno/mascotas/actividad")
     public String listarMascotasAc(Model model, HttpSession session) {
-        // Recuperar el objeto Usuario y convertirlo a DTO
+        // ... (tu código original)
         Object sessionUser = session.getAttribute("usuarioSesion");
         if (sessionUser == null) {
             return "redirect:/login";
@@ -125,36 +153,24 @@ public class DuenoMascotaController {
         return "duenoMascota/mascotasActividad";
     }
 
-
     @GetMapping("/duenoMascota/actividades")
     public String consultarActividades(@RequestParam("idMascota") Long idMascota, Model model) {
+        // ... (tu código original)
         List<ActividadVistaDTO> actividades = actividadFisicaService.obtenerActividadesPorMascotaId(idMascota);
         model.addAttribute("actividades", actividades);
         return "duenoMascota/actividadesPorMascota";
     }
 
-
     @GetMapping("/dueno/mascotas/{idMascota}/ficha/pdf")
     public ResponseEntity<byte[]> exportarFichaPdf(@PathVariable Long idMascota) {
-        // 1. Obtenemos los datos (esto no cambia)
+        // ... (tu código original)
         Map<String, Object> datos = citaService.obtenerDatosHistorialClinico(idMascota);
-
-        // --- INICIO DE LA CORRECCIÓN ---
-        // 2. Extraemos el objeto del mapa y lo "casteamos" a MascotaDTO
         MascotaDTO mascotaDTO = (MascotaDTO) datos.get("mascota");
-
-        // 3. Ahora sí, usamos el objeto con su tipo correcto para crear el nombre del archivo
         String nombreArchivo = "ficha_" + mascotaDTO.getNombre().toLowerCase().replace(" ", "_") + ".pdf";
-        // --- FIN DE LA CORRECCIÓN ---
-
-        // 4. Generamos el PDF (esto no cambia)
         byte[] pdfBytes = pdfService.generarPdfDesdeHtml("reports/ficha-mascota-template", datos);
-
-        // 5. Preparamos la respuesta para la descarga (esto no cambia)
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData("attachment", nombreArchivo);
-
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(pdfBytes);

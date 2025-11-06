@@ -14,6 +14,7 @@ import java.time.LocalDate;
 @Setter
 @Getter
 public class CitaDTO {
+    private Long duenoId;
     private  Long idCita;
     private LocalDate fechaCita;
     private String motivoCita;

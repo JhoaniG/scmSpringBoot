@@ -79,7 +79,7 @@
             <div class="modal-content shadow-lg border-0 rounded-4">
                 <form th:object="${diagnosticoDTO}" th:action="@{/diagnosticos/crear}" method="post" class="needs-validation" novalidate>
                     <div class="modal-header bg-primary text-white rounded-top-4">
-                        <h5 class="modal-title fw-bold" id="diagnosticoModalLabel">Registrar Diagnóstico</h5>
+                        <h5 class="modal-title fw-bold" id="diagnosticoModalLabel">Registrar Reporte de Síntomas</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
 
@@ -96,20 +96,29 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="veterinarioId" class="form-label">Veterinario</label>
-                            <select th:field="*{veterinarioId}" id="veterinarioId" class="form-select" required>
-                                <option value="" disabled selected>Seleccione un veterinario</option>
-                                <option th:each="v : ${veterinarios}" th:value="${v.idUsuario}" th:text="${v.nombre}"></option>
+                            <label for="tipoEnfermedadSelect" class="form-label fw-semibold">Tipo de Enfermedad</label>
+                            <select th:field="*{tipoEnfermedad}" id="tipoEnfermedadSelect" class="form-select" required>
+                                <option value="" disabled selected>Seleccione el tipo de problema...</option>
+                                <option value="Problemas Digestivos / Nutricionales">Problemas Digestivos / Nutricionales</option>
+                                <option value="Problemas Ortopédicos / Movilidad">Problemas Ortopédicos / Movilidad</option>
+                                <option value="Problemas de Comportamiento">Problemas de Comportamiento</option>
+                                <option value="Condición General / Otro">Condición General / Otro</option>
                             </select>
-                            <div class="invalid-feedback">Seleccione un veterinario.</div>
+                            <div class="invalid-feedback">Seleccione el tipo de problema.</div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="fechaDiagnostico" class="form-label">Fecha del Diagnóstico</label>
-                            <input type="date" th:field="*{fechaDiagnostico}" id="fechaDiagnostico" class="form-control" required>
-                            <div class="invalid-feedback">Seleccione una fecha válida.</div>
+                            <label for="veterinarioSelect" class="form-label">Veterinario</label>
+                            <select th:field="*{veterinarioId}" id="veterinarioSelect" class="form-select" required disabled>
+                                <option value="" disabled selected>Seleccione un tipo de enfermedad primero...</option>
+                            </select>
+                            <div class="invalid-feedback">Seleccione un veterinario.</div>
                         </div>
-
+                        <div class="mb-3">
+                        <label for="fechaDiagnostico" class="form-label">Fecha del Reporte</label>
+                        <input type="date" th:field="*{fechaDiagnostico}" id="fechaDiagnostico" class="form-control" readonly>
+                        <div class="form-text">La fecha se asigna automáticamente.</div>
+                    </div>
                         <div class="mb-3">
                             <label for="observaciones" class="form-label">Observaciones</label>
                             <textarea th:field="*{observaciones}" id="observaciones" class="form-control" rows="3" required minlength="10" maxlength="500" placeholder="Describa síntomas..."></textarea>
@@ -125,4 +134,70 @@
             </div>
         </div>
     </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+
+          const tipoEnfermedadSelect = document.getElementById('tipoEnfermedadSelect');
+          const veterinarioSelect = document.getElementById('veterinarioSelect');
+
+          // Función para cargar veterinarios
+          async function cargarVeterinarios(tipoEnfermedad) {
+            // Limpia y deshabilita el select de veterinarios mientras carga
+            veterinarioSelect.innerHTML = '<option value="" disabled selected>Cargando especialistas...</option>';
+            veterinarioSelect.disabled = true;
+
+            try {
+              // Llama a nuestro nuevo endpoint en el controlador
+              const response = await fetch(`/api/veterinarios-por-tipo-enfermedad?tipoEnfermedad=${encodeURIComponent(tipoEnfermedad)}`);
+              if (!response.ok) {
+                throw new Error('Error al cargar veterinarios');
+              }
+
+              const veterinarios = await response.json();
+
+              // Limpia el select
+              veterinarioSelect.innerHTML = '<option value="" disabled selected>Seleccione un veterinario</option>';
+
+              // Llena el select con las nuevas opciones
+              veterinarios.forEach(v => {
+                const option = document.createElement('option');
+                option.value = v.idUsuario; // Corresponde al ID de veterinario
+                option.textContent = `${v.nombre} (${v.especialidad})`;
+                veterinarioSelect.appendChild(option);
+              });
+
+              // Habilita el select
+              veterinarioSelect.disabled = false;
+
+            } catch (error) {
+              console.error('Error en fetch:', error);
+              veterinarioSelect.innerHTML = '<option value="" disabled selected>Error al cargar</option>';
+            }
+          }
+
+          // Añade el "listener" que detecta cambios
+          tipoEnfermedadSelect.addEventListener('change', function() {
+            const tipoSeleccionado = this.value;
+            if (tipoSeleccionado) {
+              cargarVeterinarios(tipoSeleccionado);
+            } else {
+              veterinarioSelect.innerHTML = '<option value="" disabled selected>Seleccione un tipo de enfermedad primero...</option>';
+              veterinarioSelect.disabled = true;
+            }
+          });
+
+          // Resetea el formulario cuando el modal se cierra
+          const modal = document.getElementById('diagnosticoModal');
+          modal.addEventListener('hidden.bs.modal', function () {
+              tipoEnfermedadSelect.value = "";
+              veterinarioSelect.innerHTML = '<option value="" disabled selected>Seleccione un tipo de enfermedad primero...</option>';
+              veterinarioSelect.disabled = true;
+              // Resetea el resto del formulario si es necesario
+              modal.querySelector('form').classList.remove('was-validated');
+              modal.querySelector('form').reset();
+          });
+
+        });
+    </script>
 </div>

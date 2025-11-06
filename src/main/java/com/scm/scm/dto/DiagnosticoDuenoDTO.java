@@ -30,5 +30,8 @@ public class DiagnosticoDuenoDTO {
     private String nombreVeterinario;
 
 
+    private String tipoEnfermedad;
+
+
 
 }

@@ -40,6 +40,26 @@
 
 <!-- Barra lateral -->
 <div th:replace="fragments/barralateralV :: barralateralV"></div>
+<div class="flex-grow-1 p-4">
+    <div class="container">
+
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${mensajeExito}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${mensajeError}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+
+        <div th:if="${mensajeInfo}" class="alert alert-info" th:text="${mensajeInfo}"></div>
+
+    </div>
+</div>
+
 
     <div class="flex-grow-1 p-4">
         <div class="container">

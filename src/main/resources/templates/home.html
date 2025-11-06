@@ -285,12 +285,19 @@
                             <option value="">Selecciona un rol</option>
                             <option value="2">Dueño de mascota</option>
                             <option value="3">Veterinario</option>
-                            <option value="1">Admin</option>
+
                         </select>
                     </div>
                     <div class="mb-3" id="campoEspecialidad" style="display:none;">
                         <label for="especialidadInput" class="form-label">Especialidad</label>
-                        <input type="text" th:field="*{especialidad}" class="form-control" id="especialidadInput">
+
+                        <select th:field="*{especialidad}" class="form-select" id="especialidadInput">
+                            <option value="" disabled selected>Seleccione una especialidad...</option>
+                            <option value="Medicina General">Medicina General</option>
+                            <option value="Nutrición Veterinaria">Nutrición Veterinaria</option>
+                            <option value="Fisioterapia y Rehabilitación">Fisioterapia y Rehabilitación</option>
+                            <option value="Etología (Comportamiento Animal)">Etología (Comportamiento Animal)</option>
+                        </select>
                     </div>
                     <div class="mb-3" id="campoClinica" style="display:none;">
                         <label for="clinicaInput" class="form-label">Clínica</label>

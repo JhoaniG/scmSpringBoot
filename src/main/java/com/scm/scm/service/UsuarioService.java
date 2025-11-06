@@ -36,6 +36,7 @@ public interface UsuarioService
     void CreatePasswordResetTokenForUser(Usuario usuario, String token);
     PasswordResetToken getPasswordResetToken(String token);
     void ChangeUserPassword(Usuario usuario, String newPassword);
+    List<UsuarioDTO> obtenerDuenosConCitasTerminadas(Long veterinarioId);
 
 
 

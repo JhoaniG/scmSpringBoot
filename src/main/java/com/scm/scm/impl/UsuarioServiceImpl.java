@@ -2,14 +2,8 @@ package com.scm.scm.impl;
 
 import com.scm.scm.dto.UsuarioDTO;
 import com.scm.scm.exceptions.CustomExeception;
-import com.scm.scm.model.PasswordResetToken;
-import com.scm.scm.model.Rol;
-import com.scm.scm.model.Usuario;
-import com.scm.scm.model.Veterinario;
-import com.scm.scm.repository.PasswordResetTokenRepository;
-import com.scm.scm.repository.RolRepositorio;
-import com.scm.scm.repository.UsuarioRepositorio;
-import com.scm.scm.repository.VeterinarioRepositorio;
+import com.scm.scm.model.*;
+import com.scm.scm.repository.*;
 import com.scm.scm.service.EmailService;
 import com.scm.scm.service.UsuarioService;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -50,16 +44,18 @@ private  final RolRepositorio rolRepositorio;
 private final PasswordEncoder passwordEncoder;
 private final VeterinarioRepositorio veterinarioRepositorio;
 private final PasswordResetTokenRepository tokenRepository;
+private final CitaRepositorio citaRepositorio;
 
     @Autowired
     private EmailService emailService;
     private  final ModelMapper modelMapper;
-    public UsuarioServiceImpl(UsuarioRepositorio usuarioRepositorio, RolRepositorio rolRepositorio, PasswordEncoder passwordEncoder, VeterinarioRepositorio veterinarioRepositorio, PasswordResetTokenRepository tokenRepository, ModelMapper modelMapper) {
+    public UsuarioServiceImpl(UsuarioRepositorio usuarioRepositorio, RolRepositorio rolRepositorio, PasswordEncoder passwordEncoder, VeterinarioRepositorio veterinarioRepositorio, PasswordResetTokenRepository tokenRepository, CitaRepositorio citaRepositorio, ModelMapper modelMapper) {
         this.usuarioRepositorio = usuarioRepositorio;
         this.rolRepositorio = rolRepositorio;
         this.passwordEncoder = passwordEncoder;
         this.veterinarioRepositorio = veterinarioRepositorio;
         this.tokenRepository = tokenRepository;
+        this.citaRepositorio = citaRepositorio;
         this.modelMapper = modelMapper;
     }
 
@@ -256,6 +252,19 @@ private final PasswordResetTokenRepository tokenRepository;
         //Eliminar token depues de usuarlo
         tokenRepository.findByUsuario(usuario).ifPresent(tokenRepository::delete);
 
+    }
+
+    @Override
+    public List<UsuarioDTO> obtenerDuenosConCitasTerminadas(Long veterinarioId) {
+        // 1. Obtiene todas las citas "Terminadas" de este veterinario
+        List<Cita> citasTerminadas = citaRepositorio.findByVeterinario_IdVeterinarioAndEstadoCita(veterinarioId, "Terminada");
+
+        // 2. Transforma esa lista de citas en una lista de Dueños (Usuario)
+        return citasTerminadas.stream()
+                .map(cita -> cita.getMascota().getUsuario()) // Obtiene el Dueño (Usuario) de la mascota
+                .distinct() // Asegura que cada dueño aparezca solo una vez
+                .map(usuario -> modelMapper.map(usuario, UsuarioDTO.class)) // Convierte a DTO
+                .collect(Collectors.toList());
     }
 
     @Transactional // <-- 2. Añade esta anotación

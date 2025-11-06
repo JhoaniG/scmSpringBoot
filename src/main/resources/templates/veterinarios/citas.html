@@ -18,6 +18,14 @@
 
 <div class="capa container mt-5">
     <h2 class="text-center mb-4 text-primary">Citas Asignadas</h2>
+    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${mensajeExito}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${mensajeError}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 
     <div class="table-responsive shadow-sm">
         <table class="table table-striped table-hover border border-primary">
@@ -29,22 +37,43 @@
                 <th>Fecha</th>
                 <th>Motivo</th>
                 <th>Estado</th>
-            </tr>
+                <th>Acciones</th> </tr>
             </thead>
             <tbody>
             <tr th:each="cita, status : ${listaCitas}" class="text-center">
                 <td th:text="${status.index + 1}"></td>
                 <td th:text="${cita.nombreMascota}"></td>
-                <td th:text="${cita.nombreDueno}"></td>
+
+                <td>
+                    <span th:if="${cita.estadoCita == 'Pendiente'}" class="text-muted fst-italic">
+                        (Cita Pendiente)
+                    </span>
+                    <span th:unless="${cita.estadoCita == 'Pendiente'}" th:text="${cita.nombreDueno}">
+                        </span>
+                </td>
+
                 <td th:text="${cita.fechaCita}"></td>
                 <td th:text="${cita.motivoCita}"></td>
+
                 <td>
-  <span class="badge bg-warning" th:if="${cita.estadoCita == 'Pendiente'}"
-        th:text="${cita.estadoCita}"></span>
-                    <span class="badge bg-success" th:if="${cita.estadoCita == 'Confirmada'}"
-                          th:text="${cita.estadoCita}"></span>
-                    <span class="badge bg-secondary" th:if="${cita.estadoCita != 'Pendiente' and cita.estadoCita != 'Confirmada'}"
-                          th:text="${cita.estadoCita}"></span>
+                    <span class="badge bg-warning text-dark" th:if="${cita.estadoCita == 'Pendiente'}" th:text="${cita.estadoCita}"></span>
+                    <span class="badge bg-success" th:if="${cita.estadoCita == 'Terminada'}" th:text="${cita.estadoCita}"></span>
+                    <span class="badge bg-info" th:if="${cita.estadoCita == 'Confirmada'}" th:text="${cita.estadoCita}"></span>
+                </td>
+
+                <td>
+                    <form th:if="${cita.estadoCita != 'Terminada'}"
+                          th:action="@{/citas/terminar/{id}(id=${cita.idCita})}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-success btn-sm" title="Marcar como Terminada"
+                                onclick="return confirm('¿Está seguro de que desea marcar esta cita como terminada?');">
+                            <i class="fas fa-check"></i> Terminar
+                        </button>
+                    </form>
+
+                    <span th:if="${cita.estadoCita == 'Terminada'}" class="text-success">
+                        <i class="fas fa-check-circle"></i> Atendido
+                    </span>
                 </td>
             </tr>
             </tbody>
