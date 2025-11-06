@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
 
@@ -33,5 +34,8 @@ public class ActividadFisica {
     @ManyToOne
     @JoinColumn(name = "id_veterinario", nullable = false)
     private Veterinario veterinario;
+    @Column(name = "vista_por_dueno", nullable = false)
+    @ColumnDefault("false") // <-- Importante
+    private boolean vistaPorDueno = false;
 
 }

@@ -12,6 +12,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+// Asegúrate de que esta importación esté presente
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -67,44 +68,60 @@ public class MascotaServiceImpl implements MascotaService {
         }
     }
 
+    // --- ESTE MÉTODO HA SIDO MODIFICADO ---
     private MascotaDTO convertirADTO(Mascota mascota) {
         MascotaDTO dto = modelMapper.map(mascota, MascotaDTO.class);
         if (mascota.getUsuario() != null) {
             dto.setNombreDueno(mascota.getUsuario().getNombre() + " " + mascota.getUsuario().getApellido());
         }
+
+        // --- LÓGICA DE ALERTA AÑADIDA ---
+        // (Esto funciona gracias al @Transactional en los métodos que llaman a convertirADTO)
+
+        // 1. Revisa las Dietas
+        if (mascota.getDietas() != null) {
+            // anyMatch es eficiente, deja de buscar tan pronto encuentra una
+            boolean nuevasDietas = mascota.getDietas().stream()
+                    .anyMatch(dieta -> !dieta.isVistaPorDueno());
+            dto.setTieneNuevasDietas(nuevasDietas);
+        } else {
+            // Si la lista es nula (aún no se ha cargado o no tiene), no hay nuevas dietas
+            dto.setTieneNuevasDietas(false);
+        }
+
+        // 2. Revisa las Actividades Físicas
+        if (mascota.getActividadesFisicas() != null) {
+            boolean nuevasActividades = mascota.getActividadesFisicas().stream()
+                    .anyMatch(actividad -> !actividad.isVistaPorDueno());
+            dto.setTieneNuevasActividades(nuevasActividades);
+        } else {
+            dto.setTieneNuevasActividades(false);
+        }
+        // --- FIN DE LA LÓGICA DE ALERTA ---
+
         return dto;
     }
+    // --- FIN DE LA MODIFICACIÓN ---
 
     @Override
     @Transactional
     public MascotaDTO crearMascota(MascotaDTO mascotaDTO) {
-        // Mapeo básico (incluye la nueva 'especie')
         Mascota mascota = modelMapper.map(mascotaDTO, Mascota.class);
-
-        // Buscar y asignar el usuario
         Usuario usuario = usuarioRepositorio.findById(mascotaDTO.getUsuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + mascotaDTO.getUsuarioId()));
         mascota.setUsuario(usuario);
 
-        // --- Nueva Lógica para Fecha de Nacimiento ---
         if (mascotaDTO.isEsAdoptado()) {
-            // Si es adoptado, calcula una fecha de nacimiento aproximada
             LocalDate fechaNacimientoAprox = LocalDate.now().minusYears(mascotaDTO.getEdadEstimadaAnios());
             mascota.setFechaNacimiento(fechaNacimientoAprox);
         } else {
-            // Si no es adoptado, usa la fecha exacta del calendario
             mascota.setFechaNacimiento(mascotaDTO.getFechaNacimiento());
         }
-        // -------------------------------------------
 
-        // Manejo de la foto
         String nombreFoto = guardarFoto(mascotaDTO.getArchivoFoto());
         mascota.setFoto(nombreFoto);
 
-        // Guardar en la BD
         Mascota mascotaGuardada = mascotaRepositorio.save(mascota);
-
-        // Devolver DTO
         return convertirADTO(mascotaGuardada);
     }
 
@@ -119,17 +136,14 @@ public class MascotaServiceImpl implements MascotaService {
     public MascotaDTO actualizarMascota(Long id, MascotaDTO mascotaDTO) {
         Mascota mascotaExistente = mascotaRepositorio.findById(id)
                 .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + id));
-
-        // Actualizar campos
         mascotaExistente.setNombre(mascotaDTO.getNombre());
         mascotaExistente.setGenero(mascotaDTO.getGenero());
         mascotaExistente.setFechaNacimiento(mascotaDTO.getFechaNacimiento());
         mascotaExistente.setRaza(mascotaDTO.getRaza());
 
-        // Manejar actualización de foto
         if (mascotaDTO.getArchivoFoto() != null && !mascotaDTO.getArchivoFoto().isEmpty()) {
-            eliminarFoto(mascotaExistente.getFoto()); // Eliminar foto antigua
-            String nuevoNombreFoto = guardarFoto(mascotaDTO.getArchivoFoto()); // Guardar nueva
+            eliminarFoto(mascotaExistente.getFoto());
+            String nuevoNombreFoto = guardarFoto(mascotaDTO.getArchivoFoto());
             mascotaExistente.setFoto(nuevoNombreFoto);
         }
 
@@ -144,7 +158,7 @@ public class MascotaServiceImpl implements MascotaService {
                 .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + id));
         try {
             mascotaRepositorio.delete(mascota);
-            eliminarFoto(mascota.getFoto()); // Eliminar la foto asociada
+            eliminarFoto(mascota.getFoto());
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("No se puede eliminar esta mascota porque tiene citas asociadas.");
         }
@@ -155,16 +169,22 @@ public class MascotaServiceImpl implements MascotaService {
         return mascotaRepositorio.findAll(pageable).map(this::convertirADTO);
     }
 
-    // Los demás métodos que ya tenías
+    // --- ESTE MÉTODO HA SIDO MODIFICADO ---
     @Override
+    @Transactional(readOnly = true) // <-- AÑADIDA ANOTACIÓN
     public List<MascotaDTO> getAllMascotas() {
         return mascotaRepositorio.findAll().stream().map(this::convertirADTO).collect(Collectors.toList());
     }
+    // --- FIN DE LA MODIFICACIÓN ---
 
+
+    // --- ESTE MÉTODO HA SIDO MODIFICADO ---
     @Override
+    @Transactional(readOnly = true) // <-- AÑADIDA ANOTACIÓN
     public List<MascotaDTO> obtenerMascotasPorDuenoId(Long duenoId) {
         return mascotaRepositorio.findByUsuario_IdUsuario(duenoId).stream().map(this::convertirADTO).collect(Collectors.toList());
     }
+    // --- FIN DE LA MODIFICACIÓN ---
 
     @Override
     public MascotaDTO obtenerMascotaPorNombre(String nombre) { return null; }

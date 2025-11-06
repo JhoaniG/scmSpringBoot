@@ -37,7 +37,10 @@ public class Mascota {
     @Column(name = "especie", nullable = false)
     private String especie;
 
-
+    @OneToMany(mappedBy = "mascota", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Dieta> dietas;
+    @OneToMany(mappedBy = "mascota", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ActividadFisica> actividadesFisicas;
 
 
 

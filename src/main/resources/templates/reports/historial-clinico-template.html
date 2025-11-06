@@ -49,22 +49,50 @@
     <h2>Diagnósticos Registrados</h2>
     <table th:if="${not #lists.isEmpty(diagnosticos)}">
         <thead><tr><th>Fecha</th><th>Observaciones</th><th>Veterinario</th></tr></thead>
+
         <tbody>
         <tr th:each="diag : ${diagnosticos}">
-
             <td>
                 <th:block th:if="${not #strings.isEmpty(diag.fechaDiagnostico)}"
                           th:with="parts=${#strings.arraySplit(diag.fechaDiagnostico, '-')}">
                     <span th:text="${parts[2] + '-' + parts[1] + '-' + parts[0]}"></span>
                 </th:block>
             </td>
-
             <td th:text="${diag.observaciones}"></td>
-            <td th:text="${diag.veterinario.usuario.nombre}"></td>
-        </tr>
-        </tbody>
+            <td th:text="${diag.nombreVeterinario}"></td>
+        </tr> </tbody>
     </table>
     <p class="no-data" th:if="${#lists.isEmpty(diagnosticos)}">No hay diagnósticos registrados.</p>
 </div>
+
+<div class="seccion">
+    <h2>Planes de Dieta</h2>
+    <table th:if="${not #lists.isEmpty(dietas)}">
+        <thead><tr><th>Tipo de Dieta</th><th>Descripción</th></tr></thead>
+        <tbody>
+        <tr th:each="dieta : ${dietas}">
+            <td th:text="${dieta.tipoDieta}"></td>
+            <td th:text="${dieta.descripcion}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <p class="no-data" th:if="${#lists.isEmpty(dietas)}">No hay dietas registradas.</p>
+</div>
+
+<div class="seccion">
+    <h2>Actividades Físicas</h2>
+    <table th:if="${not #lists.isEmpty(actividades)}">
+        <thead><tr><th>Tipo de Actividad</th><th>Descripción</th></tr></thead>
+        <tbody>
+        <tr th:each="act : ${actividades}">
+            <td th:text="${act.tipoActividad}"></td>
+            <td th:text="${act.descripcion}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <p class="no-data" th:if="${#lists.isEmpty(actividades)}">No hay actividades físicas registradas.</p>
+</div>
+
+
 </body>
 </html>

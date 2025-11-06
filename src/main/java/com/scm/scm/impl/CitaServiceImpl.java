@@ -1,7 +1,6 @@
 package com.scm.scm.impl;
 
-import com.scm.scm.dto.CitaDTO;
-import com.scm.scm.dto.MascotaDTO;
+import com.scm.scm.dto.*;
 import com.scm.scm.model.*;
 import com.scm.scm.repository.*;
 import com.scm.scm.service.CitaService;
@@ -17,6 +16,7 @@ import java.util.HashMap;
 import java.util.IllegalFormatCodePointException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 
@@ -176,28 +176,56 @@ public class CitaServiceImpl implements CitaService {
     public Map<String, Object> obtenerDatosHistorialClinico(Long idMascota) {
         Map<String, Object> datos = new HashMap<>();
 
-        // 1. Obtiene la información principal de la mascota
         Mascota mascota = mascotaRepositorio.findById(idMascota)
                 .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + idMascota));
-
-        // Mapea la mascota a un DTO para pasarlo a la plantilla
         MascotaDTO mascotaDTO = modelMapper.map(mascota, MascotaDTO.class);
         if (mascota.getUsuario() != null) {
             mascotaDTO.setNombreDueno(mascota.getUsuario().getNombre() + " " + mascota.getUsuario().getApellido());
         }
 
-        // 2. Busca en cada repositorio toda la información relacionada con esa mascota
+        // --- INICIO DE LA CORRECCIÓN ---
+
+        // 2. Busca las listas de entidades
         List<Cita> citas = citaRepositorio.findByMascota_IdMascota(idMascota);
         List<Diagnosticodueno> diagnosticos = diagnosticoDuenoRepositorio.findByMascota_IdMascota(idMascota);
         List<Dieta> dietas = dietaRepositorio.findByMascota_IdMascota(idMascota);
         List<ActividadFisica> actividades = actividadFisicaRepositorio.findByMascota_IdMascota(idMascota);
 
-        // 3. Pone toda la información recolectada en la "cesta" (el Map)
+        // 3. Convierte las listas de Entidades a listas de DTOs
+        List<CitaDTO> citasDTO = citas.stream()
+                .map(this::convertirADTO) // Reutiliza tu método (asumiendo que está en esta clase)
+                .collect(Collectors.toList());
+
+        // Mapea los diagnósticos manualmente para asegurarte de que los nombres están
+        List<DiagnosticoDuenoDTO> diagnosticosDTO = diagnosticos.stream()
+                .map(diag -> {
+                    DiagnosticoDuenoDTO dto = modelMapper.map(diag, DiagnosticoDuenoDTO.class);
+                    if (diag.getVeterinario() != null && diag.getVeterinario().getUsuario() != null) {
+                        dto.setNombreVeterinario(diag.getVeterinario().getUsuario().getNombre() + " " + diag.getVeterinario().getUsuario().getApellido());
+                    }
+                    if (diag.getMascota() != null && diag.getMascota().getUsuario() != null) {
+                        dto.setNombreDueno(diag.getMascota().getUsuario().getNombre());
+                        dto.setNombreMascota(diag.getMascota().getNombre());
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        List<DietaDTO> dietasDTO = dietas.stream()
+                .map(d -> modelMapper.map(d, DietaDTO.class))
+                .collect(Collectors.toList());
+
+        List<ActividadFisicaDTO> actividadesDTO = actividades.stream()
+                .map(a -> modelMapper.map(a, ActividadFisicaDTO.class))
+                .collect(Collectors.toList());
+
+        // 4. Pone los DTOs (objetos planos) en el Map
         datos.put("mascota", mascotaDTO);
-        datos.put("citas", citas);
-        datos.put("diagnosticos", diagnosticos);
-        datos.put("dietas", dietas);
-        datos.put("actividades", actividades);
+        datos.put("citas", citasDTO);
+        datos.put("diagnosticos", diagnosticosDTO); // <-- Ahora es una lista de DTOs con nombres
+        datos.put("dietas", dietasDTO);
+        datos.put("actividades", actividadesDTO);
+        // --- FIN DE LA CORRECCIÓN ---
 
         return datos;
     }

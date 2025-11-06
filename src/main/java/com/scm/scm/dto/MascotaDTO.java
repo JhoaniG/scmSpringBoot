@@ -32,5 +32,6 @@ public class MascotaDTO {
 
     private boolean esAdoptado;
     private Integer edadEstimadaAnios;
-
+    private boolean tieneNuevasDietas;
+    private boolean tieneNuevasActividades;
 }

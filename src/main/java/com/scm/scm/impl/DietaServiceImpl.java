@@ -13,6 +13,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+// Asegúrate de que esta importación esté presente
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -40,7 +42,6 @@ public class DietaServiceImpl implements DietaService {
     @Override
     public DietaDTO crearDieta(DietaDTO dietaDTO) {
         Dieta dieta = modelMapper.map(dietaDTO, Dieta.class);
-
         // Procesar foto
         MultipartFile archivo = dietaDTO.getArchivoFoto();
         if (archivo != null && !archivo.isEmpty()) {
@@ -55,7 +56,6 @@ public class DietaServiceImpl implements DietaService {
 
                 // Guardar archivo en disco
                 archivo.transferTo(rutaArchivo.toFile());
-
                 // Guardar el nombre del archivo en el DTO para el modelo
                 dieta.setFoto(nombreArchivo);
             } catch (IOException e) {
@@ -76,6 +76,7 @@ public class DietaServiceImpl implements DietaService {
             dieta.setVeterinario(veterinario);
         }
 
+        // Al crear, la alerta se activa (vistaPorDueno es 'false' por defecto en la BD)
         dieta = dietaRepositorio.save(dieta);
         return modelMapper.map(dieta, DietaDTO.class);
     }
@@ -120,12 +121,14 @@ public class DietaServiceImpl implements DietaService {
 
     @Override
     public DietaDTO obtenerDietaPorMascotaId(Long mascotaId) {
-        return null; // Aún no implementado
+        return null;
+        // Aún no implementado
     }
 
     @Override
     public DietaDTO obtenerDietaPorDuenoId(Long duenoId) {
-        return null; // Aún no implementado
+        return null;
+        // Aún no implementado
     }
 
     @Override
@@ -134,10 +137,28 @@ public class DietaServiceImpl implements DietaService {
         return dietaDTOS;
     }
 
+    // --- ESTE MÉTODO HA SIDO MODIFICADO ---
     @Override
+    @Transactional // <-- AÑADIDA ANOTACIÓN
     public List<DietaVistaDTO> obtenerDietasPorMascotaId(Long mascotaId) {
         List<Dieta> dietas = dietaRepositorio.findByMascota_IdMascota(mascotaId);
 
+        // --- LÓGICA PARA MARCAR COMO VISTO ---
+        // 1. Filtra las que no han sido vistas
+        List<Dieta> dietasParaActualizar = dietas.stream()
+                .filter(dieta -> !dieta.isVistaPorDueno())
+                .toList();
+
+        // 2. Si hay alguna, actualízalas y guárdalas
+        if (!dietasParaActualizar.isEmpty()) {
+            for (Dieta dieta : dietasParaActualizar) {
+                dieta.setVistaPorDueno(true);
+            }
+            dietaRepositorio.saveAll(dietasParaActualizar); // Guarda los cambios en la BD
+        }
+        // --- FIN DE LA ADICIÓN ---
+
+        // 3. Devuelve la lista completa de DTOs (ya actualizada)
         return dietas.stream().map(dieta -> {
             DietaVistaDTO dietaVistaDTO = new DietaVistaDTO();
             dietaVistaDTO.setIdDieta(dieta.getIdDieta());
@@ -146,7 +167,8 @@ public class DietaServiceImpl implements DietaService {
             dietaVistaDTO.setFoto(dieta.getFoto());
 
             // Lógica para obtener los nombres
-            if (dieta.getMascota() != null) {
+            if (dieta.getMascota() != null)
+            {
                 dietaVistaDTO.setNombreMascota(dieta.getMascota().getNombre());
             }
             if (dieta.getVeterinario() != null && dieta.getVeterinario().getUsuario() != null) {
@@ -155,6 +177,7 @@ public class DietaServiceImpl implements DietaService {
             return dietaVistaDTO;
         }).collect(Collectors.toList());
     }
+    // --- FIN DE LA MODIFICACIÓN ---
 
 
     private DietaDTO convertirADTO(Dieta dieta) {
@@ -167,6 +190,7 @@ public class DietaServiceImpl implements DietaService {
         }
         return dto;
     }
+
     @Override
     public Page<DietaDTO> getAllDietasPaginadas(Pageable pageable) {
         return dietaRepositorio.findAll(pageable).map(this::convertirADTO);

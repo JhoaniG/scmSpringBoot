@@ -13,6 +13,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+// Asegúrate de que esta importación esté presente
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -40,7 +42,6 @@ public class ActividadFisicaServiceImpl implements ActividadFisicaService {
     @Override
     public ActividadFisicaDTO crearActividadFisica(ActividadFisicaDTO actividadFisicaDTO) {
         ActividadFisica actividadFisica = modelMapper.map(actividadFisicaDTO, ActividadFisica.class);
-
         // Lógica para guardar la foto
         MultipartFile archivo = actividadFisicaDTO.getArchivoFoto();
         if (archivo != null && !archivo.isEmpty()) {
@@ -71,6 +72,7 @@ public class ActividadFisicaServiceImpl implements ActividadFisicaService {
             actividadFisica.setVeterinario(veterinario);
         }
 
+        // Al crear, la alerta se activa (vistaPorDueno es 'false' por defecto en la BD)
         actividadFisica = actividadFisicaRepositorio.save(actividadFisica);
         return modelMapper.map(actividadFisica, ActividadFisicaDTO.class);
     }
@@ -131,10 +133,28 @@ public class ActividadFisicaServiceImpl implements ActividadFisicaService {
         return actividadFisicaDTOS;
     }
 
+    // --- ESTE MÉTODO HA SIDO MODIFICADO ---
     @Override
+    @Transactional // <-- AÑADIDA ANOTACIÓN
     public List<ActividadVistaDTO> obtenerActividadesPorMascotaId(Long mascotaId) {
         List<ActividadFisica> actividades = actividadFisicaRepositorio.findByMascota_IdMascota(mascotaId);
 
+        // --- LÓGICA PARA MARCAR COMO VISTO ---
+        // 1. Filtra las que no han sido vistas
+        List<ActividadFisica> actividadesParaActualizar = actividades.stream()
+                .filter(actividad -> !actividad.isVistaPorDueno())
+                .toList();
+
+        // 2. Si hay alguna, actualízalas y guárdalas
+        if (!actividadesParaActualizar.isEmpty()) {
+            for (ActividadFisica actividad : actividadesParaActualizar) {
+                actividad.setVistaPorDueno(true);
+            }
+            actividadFisicaRepositorio.saveAll(actividadesParaActualizar);
+        }
+        // --- FIN DE LA ADICIÓN ---
+
+        // 3. Devuelve la lista completa de DTOs (ya actualizada)
         return actividades.stream().map(actividad -> {
             ActividadVistaDTO actividadVistaDTO = new ActividadVistaDTO();
             actividadVistaDTO.setIdActividadFisica(actividad.getIdActividadFisica());
@@ -144,6 +164,7 @@ public class ActividadFisicaServiceImpl implements ActividadFisicaService {
 
             if (actividad.getMascota() != null) {
                 actividadVistaDTO.setNombreMascota(actividad.getMascota().getNombre());
+
             }
             if (actividad.getVeterinario() != null && actividad.getVeterinario().getUsuario() != null) {
                 actividadVistaDTO.setNombreVeterinario(actividad.getVeterinario().getUsuario().getNombre());
@@ -151,6 +172,7 @@ public class ActividadFisicaServiceImpl implements ActividadFisicaService {
             return actividadVistaDTO;
         }).collect(Collectors.toList());
     }
+    // --- FIN DE LA MODIFICACIÓN ---
 
     @Override
     public Page<ActividadFisicaDTO> getAllActividadesPaginadas(Pageable pageable) {

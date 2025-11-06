@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "dietas")
@@ -31,4 +32,7 @@ public class Dieta {
    @ManyToOne
    @JoinColumn(name = "id_veterinario", nullable = false)
    private Veterinario veterinario;
+    @Column(name = "vista_por_dueno", nullable = false)
+    @ColumnDefault("false") // <-- Importante para que los nuevos registros sean 'false'
+    private boolean vistaPorDueno = false;
 }
