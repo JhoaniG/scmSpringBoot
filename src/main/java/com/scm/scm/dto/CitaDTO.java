@@ -7,6 +7,7 @@ import com.scm.scm.model.Veterinario;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @AllArgsConstructor
@@ -32,5 +33,7 @@ public class CitaDTO {
     private String nombreMascota;
     private String nombreVeterinario;
     private  String nombreDueno;
+    private LocalDate fecha; // Para el <input type="date">
+    private LocalTime hora;
 
 }

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "citas")
@@ -20,7 +21,7 @@ public class Cita {
     @Column(name = "id_cita", nullable = false, updatable = false)
     private  Long idCita;
     @Column(name = "fechaCita", nullable = false)
-    private LocalDate fechaCita;
+    private LocalDateTime fechaCita; // <-- Antes era LocalDate
     @Column(name = "motivoCita", nullable = false, length = 100)
     private String motivoCita;
     @Column(name = "estadoCita", nullable = false, length = 200)

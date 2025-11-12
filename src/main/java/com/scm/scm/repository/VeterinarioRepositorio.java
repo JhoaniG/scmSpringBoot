@@ -16,4 +16,5 @@ public interface VeterinarioRepositorio extends JpaRepository<Veterinario, Long>
     Optional<Veterinario> findByUsuario(com.scm.scm.model.Usuario usuario);
 
 
+
 }

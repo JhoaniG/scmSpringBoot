@@ -1,5 +1,6 @@
 package com.scm.scm.controller;
 
+import com.scm.scm.dto.CalendarioEventoDTO;
 import com.scm.scm.dto.CitaDTO;
 import com.scm.scm.dto.DiagnosticoDuenoDTO;
 import com.scm.scm.model.Cita;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -84,23 +87,26 @@ public class CitaController {
 
     @PostMapping("/citas/crear")
     public String crearCita(@ModelAttribute CitaDTO citaDTO,
-                            HttpSession session,
-                            Model model,
-                            RedirectAttributes redirectAttributes) { // <-- 3. AÑADE RedirectAttributes
-
-        Veterinario vet = (Veterinario) session.getAttribute("veterinarioSesion");
-        if (vet == null) {
-            redirectAttributes.addFlashAttribute("mensajeError", "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
-            return "redirect:/login?error=sesionVacia";
-        }
-        citaDTO.setVeterinarioId(vet.getIdVeterinario());
+                            Authentication authentication, // <-- 1. Usa Authentication
+                            RedirectAttributes redirectAttributes) {
 
         try {
+            // 2. Busca al veterinario de forma segura (igual que en la API)
+            String email = authentication.getName();
+            Usuario usuarioLogueado = usuarioRepositorio.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            Veterinario vet = veterinarioService.buscarPorUsuario(usuarioLogueado);
+
+            // 3. Asigna el ID del veterinario al DTO
+            citaDTO.setVeterinarioId(vet.getIdVeterinario());
+
+            // 4. Intenta crear la cita
             citaService.crearCita(citaDTO);
-            // 4. MENSAJE DE ÉXITO
+
             redirectAttributes.addFlashAttribute("mensajeExito", "¡Cita creada exitosamente!");
+
         } catch (Exception e) {
-            // 5. MENSAJE DE ERROR
+            // Captura cualquier error (como "Horario no disponible")
             redirectAttributes.addFlashAttribute("mensajeError", "Error al crear la cita: " + e.getMessage());
         }
 
@@ -148,6 +154,53 @@ public class CitaController {
             // Maneja el caso de que la mascota no se encuentre
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/eventos/citas-veterinario")
+    @ResponseBody // <-- Devuelve JSON
+    public List<CalendarioEventoDTO> getCitasParaCalendario(Authentication authentication) {
+
+        // 1. Obtener el Veterinario de forma segura
+        String email = authentication.getName();
+        Usuario usuarioLogueado = usuarioRepositorio.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        Veterinario vet = veterinarioService.buscarPorUsuario(usuarioLogueado);
+
+        // 2. Obtener sus citas (¡Ahora sí vienen con fecha y hora!)
+        List<CitaDTO> citasDTO = citaService.obtenerCitasPorVeterinario(vet.getIdVeterinario());
+
+        // 3. Convertir CitaDTO a CalendarioEventoDTO
+        List<CalendarioEventoDTO> eventos = new ArrayList<>();
+        LocalDateTime ahora = LocalDateTime.now();
+
+        for (CitaDTO cita : citasDTO) {
+            String color;
+            String borde;
+
+            // 4. Lógica de Colores
+            // AHORA SÍ PODEMOS USAR GETFECHA() Y GETHORA()
+            LocalDateTime fechaCitaCompleta = LocalDateTime.of(cita.getFecha(), cita.getHora());
+
+            if ("Terminada".equals(cita.getEstadoCita())) {
+                color = "#198754"; // Verde
+                borde = "#198754";
+            } else if (fechaCitaCompleta.isBefore(ahora)) {
+                color = "#dc3545"; // Rojo (Pasada y no terminada)
+                borde = "#dc3545";
+            } else {
+                color = "#0d6efd"; // Azul (Pendiente)
+                borde = "#0d6efd";
+            }
+
+            eventos.add(new CalendarioEventoDTO(
+                    cita.getNombreMascota() + ": " + cita.getMotivoCita(),
+                    fechaCitaCompleta,
+                    color,
+                    borde
+            ));
+        }
+        return eventos;
     }
 
 

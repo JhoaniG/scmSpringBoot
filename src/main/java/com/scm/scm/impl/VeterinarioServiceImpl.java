@@ -113,4 +113,10 @@ public class VeterinarioServiceImpl implements VeterinarioService {
         Page<Veterinario> paginaVeterinarios = veterinarioRepositorio.findAll(pageable);
         return paginaVeterinarios.map(this::convertirADTO);
     }
+
+    @Override
+    public Veterinario buscarPorUsuario(Usuario usuario) {
+        return veterinarioRepositorio.findByUsuario(usuario)
+                .orElseThrow(() -> new RuntimeException("No se encontró un perfil de veterinario para el usuario: " + usuario.getEmail()));
+    }
 }

@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -195,5 +196,20 @@ public class VeterinarioController {
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(pdfBytes);
+    }
+
+    @GetMapping("veterinario/calendario") // <-- La ruta es /veterinario + /calendario
+    public String mostrarCalendario(Model model, Authentication auth) {
+
+        // (Carga el usuario logueado para la barra lateral)
+        if (auth != null && auth.isAuthenticated()) {
+            String email = auth.getName();
+            Usuario usuario = usuarioRepositorio.findByEmail(email).orElse(null);
+            model.addAttribute("usuario", usuario);
+            model.addAttribute("logueado", true);
+        }
+
+        // Devuelve el archivo HTML: /templates/veterinario/calendario.html
+        return "veterinarios/calendario";
     }
 }

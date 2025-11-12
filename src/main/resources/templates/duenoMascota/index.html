@@ -179,6 +179,27 @@
             background-color: rgba(220, 53, 69, 0.1);
             color: #721c24;
         }
+        .alert-custom-success {
+    background-color: #198754; /* Un verde oscuro (de Bootstrap) */
+    color: #FFFFFF; /* Letra blanca */
+    border-color: #146c43;
+}
+
+/* Estilo para el mensaje de Error */
+.alert-custom-danger {
+    background-color: #DC3545; /* Un rojo oscuro (de Bootstrap) */
+    color: #FFFFFF; /* Letra blanca */
+    border-color: #b02a37;
+}
+
+/* Esto es un truco para que el botón 'X' de cierre (que es negro por defecto)
+   se vea de color blanco sobre el fondo oscuro.
+*/
+.alert-custom-success .btn-close,
+.alert-custom-danger .btn-close {
+    /* Filtro CSS para invertir el color (negro a blanco) */
+    filter: invert(1) grayscale(100%) brightness(200%);
+}s
     </style>
 </head>
 
@@ -206,12 +227,16 @@
             </div>
         </div>
 
-        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <div th:if="${mensajeExito}"
+             class="alert alert-custom-success alert-dismissible fade show"
+             role="alert">
             <strong>¡Éxito!</strong> <span th:text="${mensajeExito}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${mensajeError}" class="alert alert-danger
- fade show" role="alert">
+
+        <div th:if="${mensajeError}"
+             class="alert alert-custom-danger alert-dismissible fade show"
+             role="alert">
             <strong>Error</strong> <span th:text="${mensajeError}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
