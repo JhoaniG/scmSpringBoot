@@ -268,6 +268,7 @@
                     </p>
 
                     <div class="d-flex flex-wrap gap-2">
+
                         <a th:href="@{'/mascotas/editar/' + ${m.idMascota}}" class="btn btn-warning btn-action btn-sm">
                             <i class="fas fa-edit"></i> Editar
                         </a>
@@ -276,16 +277,23 @@
                             <i class="fas fa-file-pdf"></i> Ficha
                         </a>
 
-                        <a th:href="@{/duenoMascota/dietas(idMascota=${m.idMascota})}"
+                        <a th:href="@{/dueno/mascota/historial/{idMascota}(idMascota=${m.idMascota})}"
+                           class="btn btn-secondary btn-action btn-sm">
+                            <i class="fas fa-history"></i> Historial
+                        </a>
+
+                        <a th:if="${m.tieneNuevasDietas}"
+                           th:href="@{/duenoMascota/dietas(idMascota=${m.idMascota})}"
                            class="btn btn-primary btn-action btn-sm position-relative">
                             <i class="fas fa-utensils"></i> Dieta
                             <span th:if="${m.tieneNuevasDietas}"
                                   class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle">
-                                <span class="visually-hidden">Nuevas dietas</span>
+                                 <span class="visually-hidden">Nuevas dietas</span>
                             </span>
                         </a>
 
-                        <a th:href="@{/duenoMascota/actividades(idMascota=${m.idMascota})}"
+                        <a th:if="${m.tieneNuevasActividades}"
+                           th:href="@{/duenoMascota/actividades(idMascota=${m.idMascota})}"
                            class="btn btn-success btn-action btn-sm position-relative">
                             <i class="fas fa-running"></i> Actividad
                             <span th:if="${m.tieneNuevasActividades}"

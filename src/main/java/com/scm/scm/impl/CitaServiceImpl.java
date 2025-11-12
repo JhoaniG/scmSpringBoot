@@ -173,6 +173,16 @@ public class CitaServiceImpl implements CitaService {
                 .toList();
     }
     @Override
+    public List<CitaDTO> listarCitasPorMascota(Long mascotaId) {
+        // Usamos la lógica del repositorio que ya estás usando
+        List<Cita> citas = citaRepositorio.findByMascota_IdMascota(mascotaId);
+
+        // Mapeamos a DTO (podemos reusar convertirADTO)
+        return citas.stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+    @Override
     public Map<String, Object> obtenerDatosHistorialClinico(Long idMascota) {
         Map<String, Object> datos = new HashMap<>();
 

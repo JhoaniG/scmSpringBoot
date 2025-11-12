@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 
 public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
@@ -133,6 +135,25 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
 
             return dto;
         }).toList();
+    }
+    @Override
+    public List<DiagnosticoDuenoDTO> listarDiagnosticosPorMascota(Long mascotaId) {
+        // Usamos la misma lógica que ya tienes en CitaServiceImpl
+        List<Diagnosticodueno> diagnosticos = diagnosticoDuenoRepositorio.findByMascota_IdMascota(mascotaId);
+
+        return diagnosticos.stream()
+                .map(diag -> {
+                    DiagnosticoDuenoDTO dto = modelMapper.map(diag, DiagnosticoDuenoDTO.class);
+                    if (diag.getVeterinario() != null && diag.getVeterinario().getUsuario() != null) {
+                        dto.setNombreVeterinario(diag.getVeterinario().getUsuario().getNombre() + " " + diag.getVeterinario().getUsuario().getApellido());
+                    }
+                    if (diag.getMascota() != null && diag.getMascota().getUsuario() != null) {
+                        dto.setNombreDueno(diag.getMascota().getUsuario().getNombre());
+                        dto.setNombreMascota(diag.getMascota().getNombre());
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
     private DiagnosticoDuenoDTO convertirADTO(Diagnosticodueno diagnostico) {
         DiagnosticoDuenoDTO dto = modelMapper.map(diagnostico, DiagnosticoDuenoDTO.class);

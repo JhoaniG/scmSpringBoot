@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -45,14 +46,19 @@ public class DuenoMascotaController {
     private VeterinarioRepositorio veterinarioRepositorio;
 
     // --- 4. AÑADIR EL REPOSITORIO AL CONSTRUCTOR ---
-    public DuenoMascotaController(MascotaService mascotaService, DietaService dietaService, ActividadFisicaService actividadFisicaService, CitaService citaService, PdfGenerationService pdfService, VeterinarioRepositorio veterinarioRepositorio) {
+    public DuenoMascotaController(MascotaService mascotaService, DietaService dietaService,
+                                  ActividadFisicaService actividadFisicaService, CitaService citaService,
+                                  PdfGenerationService pdfService, VeterinarioRepositorio veterinarioRepositorio,
+                                  DiagnosticoDuenoService diagnosticoDuenoService) { // <-- Añadir aquí
         this.mascotaService = mascotaService;
         this.dietaService = dietaService;
         this.actividadFisicaService = actividadFisicaService;
         this.citaService = citaService;
         this.pdfService = pdfService;
-        this.veterinarioRepositorio = veterinarioRepositorio; // <-- Asignarlo
+        this.veterinarioRepositorio = veterinarioRepositorio;
+        this.diagnosticoDuenoService = diagnosticoDuenoService; // <-- Y aquí
     }
+    private final DiagnosticoDuenoService diagnosticoDuenoService;
 
     @ModelAttribute
     public void agregarAtributosGlobales(Model model, Authentication auth) {
@@ -174,5 +180,27 @@ public class DuenoMascotaController {
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(pdfBytes);
+    }
+    @GetMapping("/dueno/mascota/historial/{idMascota}")
+    public String verHistorialMascota(@PathVariable Long idMascota, Model model) {
+
+        // 1. Obtener la mascota para el título
+        MascotaDTO mascota = mascotaService.obtenerMascotaPorId(idMascota);
+
+        // 2. Obtener las listas (usando los métodos que creamos en el paso anterior)
+        List<CitaDTO> citas = citaService.listarCitasPorMascota(idMascota);
+        List<DiagnosticoDuenoDTO> diagnosticos = diagnosticoDuenoService.listarDiagnosticosPorMascota(idMascota);
+
+        // 3. Ordenar las listas por fecha (más reciente primero)
+        citas.sort(Comparator.comparing(CitaDTO::getFechaCita).reversed());
+        diagnosticos.sort(Comparator.comparing(DiagnosticoDuenoDTO::getFechaDiagnostico).reversed());
+
+        // 4. Añadir todo al modelo
+        model.addAttribute("mascota", mascota);
+        model.addAttribute("citas", citas);
+        model.addAttribute("diagnosticos", diagnosticos);
+
+        // 5. Devolver el nombre del nuevo archivo HTML
+        return "duenoMascota/historialMascota";
     }
 }
