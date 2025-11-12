@@ -40,8 +40,8 @@ public class SecurityConfig {
                                 "/uploads/**",
                                 "/public/**",
                                 "/forgot-password",
-                                "/reset-password"
-                        ).permitAll()
+                                "/eventos/citas-veterinario").permitAll()
+
 
                         // Registro de usuario
                         .requestMatchers(HttpMethod.GET, "/usuarios/create").permitAll()

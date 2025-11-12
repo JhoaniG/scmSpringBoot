@@ -5,151 +5,135 @@ import com.scm.scm.model.*;
 import com.scm.scm.repository.*;
 import com.scm.scm.service.CitaService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.IllegalFormatCodePointException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-
 public class CitaServiceImpl implements CitaService {
 
-    @Autowired private DiagnosticoDuenoRepositorio diagnosticoRepositorio;
-    @Autowired private DietaRepositorio dietaRepositorio;
-    @Autowired private ActividadFisicaRepositorio actividadFisicaRepositorio;
+    // --- 1. Dependencias (Inyección por Constructor) ---
     private final CitaRepositorio citaRepositorio;
-
-    @Override
-    public List<CitaDTO> listarCitasPorDueno(Long idUsuario) {
-        List<Cita> citas = citaRepositorio.findByDuenoId(idUsuario);
-        return citas.stream()
-                .map(cita -> {
-                    CitaDTO dto = modelMapper.map(cita, CitaDTO.class);
-                    dto.setNombreMascota(cita.getMascota().getNombre());
-                    dto.setNombreVeterinario(cita.getVeterinario().getUsuario().getNombre() + " " + cita.getVeterinario().getUsuario().getApellido());
-                    return dto;
-                })
-                .toList();
-    }
-
-    @Override // <-- Asegúrate de que este método esté en la interfaz CitaService
-    public List<CitaDTO> obtenerCitasPorVeterinario(Long idVeterinario) {
-        List<Cita> citas = citaRepositorio.findByVeterinario_IdVeterinario(idVeterinario);
-
-        // Mapear entidad -> DTO
-        return citas.stream().map(c -> {
-            CitaDTO dto = new CitaDTO();
-
-            // --- ESTAS SON LAS LÍNEAS CLAVE QUE FALTABAN ---
-            dto.setIdCita(c.getIdCita()); //
-            dto.setMascotaId(c.getMascota().getIdMascota()); // <-- Necesario para Dieta
-            dto.setDuenoId(c.getMascota().getUsuario().getIdUsuario()); // <-- Necesario para Dieta
-            // --- FIN DE LÍNEAS AÑADIDAS ---
-
-            dto.setNombreMascota(c.getMascota().getNombre());
-            dto.setNombreDueno(c.getMascota().getUsuario().getNombre());
-            dto.setFechaCita(c.getFechaCita());
-            dto.setMotivoCita(c.getMotivoCita());
-            dto.setEstadoCita(c.getEstadoCita());
-            return dto;
-        }).toList();
-    }
-
-    private CitaDTO convertirADTO(Cita cita) {
-        CitaDTO dto = modelMapper.map(cita, CitaDTO.class);
-        if (cita.getMascota() != null) {
-            dto.setNombreMascota(cita.getMascota().getNombre());
-            if (cita.getMascota().getUsuario() != null) {
-                dto.setNombreDueno(cita.getMascota().getUsuario().getNombre());
-            }
-        }
-        if (cita.getVeterinario() != null && cita.getVeterinario().getUsuario() != null) {
-            dto.setNombreVeterinario(cita.getVeterinario().getUsuario().getNombre());
-        }
-        return dto;
-    }
-    @Override
-    public Page<CitaDTO> getAllCitasPaginadas(Pageable pageable) {
-        return citaRepositorio.findAll(pageable).map(this::convertirADTO);
-    }
-
-
-    private  final ModelMapper modelMapper;
     private final MascotaRepositorio mascotaRepositorio;
-    private  final VeterinarioRepositorio veterinarioRepositorio;
+    private final VeterinarioRepositorio veterinarioRepositorio;
     private final DiagnosticoDuenoRepositorio diagnosticoDuenoRepositorio;
+    private final DietaRepositorio dietaRepositorio;
+    private final ActividadFisicaRepositorio actividadFisicaRepositorio;
+    private final ModelMapper modelMapper;
 
-    public CitaServiceImpl(CitaRepositorio citaRepositorio, ModelMapper modelMapper, MascotaRepositorio mascotaRepositorio, VeterinarioRepositorio veterinarioRepositorio, DiagnosticoDuenoRepositorio diagnosticoDuenoRepositorio) {
+    // Constructor único para todas las dependencias
+    public CitaServiceImpl(CitaRepositorio citaRepositorio, ModelMapper modelMapper,
+                           MascotaRepositorio mascotaRepositorio, VeterinarioRepositorio veterinarioRepositorio,
+                           DiagnosticoDuenoRepositorio diagnosticoDuenoRepositorio,
+                           DietaRepositorio dietaRepositorio,
+                           ActividadFisicaRepositorio actividadFisicaRepositorio) {
         this.citaRepositorio = citaRepositorio;
         this.modelMapper = modelMapper;
         this.mascotaRepositorio = mascotaRepositorio;
         this.veterinarioRepositorio = veterinarioRepositorio;
         this.diagnosticoDuenoRepositorio = diagnosticoDuenoRepositorio;
+        this.dietaRepositorio = dietaRepositorio;
+        this.actividadFisicaRepositorio = actividadFisicaRepositorio;
+    }
+
+    // --- 2. MÉTODOS PÚBLICOS DEL SERVICIO ---
+
+    @Override
+    public List<CitaDTO> listarCitasPorDueno(Long idUsuario) {
+        List<Cita> citas = citaRepositorio.findByDuenoId(idUsuario);
+        return citas.stream().map(this::convertirADTO).collect(Collectors.toList());
     }
 
     @Override
-    public CitaDTO crearCita(CitaDTO citaDTO) {
-        Cita cita=modelMapper.map(citaDTO, Cita.class);
-        if(citaDTO.getMascotaId() != null){
-            Mascota mascota=mascotaRepositorio.findById(citaDTO.getMascotaId()).orElseThrow(() -> new RuntimeException("No existe una mascota con el ID: " + citaDTO.getMascotaId()));
-            cita.setMascota(mascota);
-        }
-        if (citaDTO.getVeterinarioId()!= null){
-            Veterinario veterinario=veterinarioRepositorio.findById(citaDTO.getVeterinarioId()).orElseThrow(() -> new RuntimeException("No existe un veterinario con el ID: " + citaDTO.getVeterinarioId()));
-            cita.setVeterinario(veterinario);
-        }
-        if(citaDTO.getDiagnosticoduenoId() != null){
-            Diagnosticodueno diagnosticodueno=diagnosticoDuenoRepositorio.findById(citaDTO.getDiagnosticoduenoId()).orElseThrow(() -> new RuntimeException("No existe un diagnóstico de dueño con el ID: " + citaDTO.getDiagnosticoduenoId()));
-            cita.setDiagnosticodueno(diagnosticodueno);
-        }
-        cita.setEstadoCita("Pendiente");
-        cita=citaRepositorio.save(cita);
-        return modelMapper.map(cita, CitaDTO.class);
+    public List<CitaDTO> obtenerCitasPorVeterinario(Long idVeterinario) {
+        // Usa el método del repositorio que ordena por fecha
+        List<Cita> citas = citaRepositorio.findByVeterinario_IdVeterinarioOrderByFechaCitaAsc(idVeterinario);
+        return citas.stream().map(this::convertirADTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<CitaDTO> getAllCitasPaginadas(Pageable pageable) {
+        return citaRepositorio.findAll(pageable).map(this::convertirADTO);
     }
 
     @Override
     public CitaDTO obtenerCitaPorId(Long id) {
-        Cita cita = citaRepositorio.findById(id).orElseThrow(() -> new RuntimeException("No existe una cita con el ID: " + id));
-        return modelMapper.map(cita, CitaDTO.class);
+        Cita cita = citaRepositorio.findById(id)
+                .orElseThrow(() -> new RuntimeException("No existe una cita con el ID: " + id));
+        return convertirADTO(cita);
     }
 
     @Override
-    public CitaDTO actualizarCita(Long id, CitaDTO citaDTO) {
-        if (citaRepositorio.existsById(id)) {
-            Cita cita = citaRepositorio.findById(id).orElseThrow(() -> new RuntimeException("No existe una cita con el ID: " + id));
-            cita.setFechaCita(citaDTO.getFechaCita());
-            cita.setMotivoCita(citaDTO.getMotivoCita());
-            cita.setEstadoCita(citaDTO.getEstadoCita());
-
-            if (citaDTO.getMascotaId() != null) {
-                Mascota mascota = mascotaRepositorio.findById(citaDTO.getMascotaId())
-                        .orElseThrow(() -> new RuntimeException("No existe una mascota con el ID: " + citaDTO.getMascotaId()));
-                cita.setMascota(mascota);
-            }
-
-            if (citaDTO.getVeterinarioId() != null) {
-                Veterinario veterinario = veterinarioRepositorio.findById(citaDTO.getVeterinarioId())
-                        .orElseThrow(() -> new RuntimeException("No existe un veterinario con el ID: " + citaDTO.getVeterinarioId()));
-                cita.setVeterinario(veterinario);
-            }
-            if (citaDTO.getDiagnosticoduenoId() != null) {
-                Diagnosticodueno diagnosticodueno = diagnosticoDuenoRepositorio.findById(citaDTO.getDiagnosticoduenoId())
-                        .orElseThrow(() -> new RuntimeException("No existe un diagnóstico de dueño con el ID: " + citaDTO.getDiagnosticoduenoId()));
-                cita.setDiagnosticodueno(diagnosticodueno);
-            }
-            cita = citaRepositorio.save(cita);
-            return modelMapper.map(cita, CitaDTO.class);
-        } else {
-            throw new RuntimeException("No existe una cita con el ID: " + id);
+    @Transactional
+    public CitaDTO crearCita(CitaDTO citaDTO) {
+        // 1. Convertir fecha y hora del DTO a un solo LocalDateTime
+        LocalDateTime fechaYHoraCita;
+        try {
+            fechaYHoraCita = LocalDateTime.of(citaDTO.getFecha(), citaDTO.getHora());
+        } catch (Exception e) {
+            throw new RuntimeException("Fecha u hora inválida proporcionada.");
         }
+
+        // 2. Validar si el horario está ocupado
+        if (citaDTO.getVeterinarioId() != null) {
+            boolean citaOcupada = citaRepositorio.existsByVeterinario_IdVeterinarioAndFechaCita(
+                    citaDTO.getVeterinarioId(), fechaYHoraCita
+            );
+            if (citaOcupada) {
+                // Lanza un error que el controlador pueda atrapar
+                throw new RuntimeException("Horario no disponible: El veterinario ya tiene una cita en esa fecha y hora.");
+            }
+        }
+
+        // 3. Convertir DTO a Entidad (usando el helper corregido)
+        Cita cita = convertirAEntidad(citaDTO);
+
+        // 4. Asignar la fecha combinada y el estado
+        cita.setFechaCita(fechaYHoraCita);
+        cita.setEstadoCita("Pendiente");
+
+        // 5. Guardar
+        Cita citaGuardada = citaRepositorio.save(cita);
+        return convertirADTO(citaGuardada);
+    }
+
+    @Override
+    @Transactional
+    public CitaDTO actualizarCita(Long id, CitaDTO citaDTO) {
+        Cita cita = citaRepositorio.findById(id)
+                .orElseThrow(() -> new RuntimeException("No existe una cita con el ID: " + id));
+
+        // Actualizar campos simples
+        cita.setMotivoCita(citaDTO.getMotivoCita());
+        cita.setEstadoCita(citaDTO.getEstadoCita());
+
+        // Manejo de fecha y hora (si se enviaron)
+        if (citaDTO.getFecha() != null && citaDTO.getHora() != null) {
+            cita.setFechaCita(LocalDateTime.of(citaDTO.getFecha(), citaDTO.getHora()));
+        }
+        // Fallback si solo se envió el DTO con la fechaCita de tipo LocalDate
+        else if (citaDTO.getFechaCita() != null && cita.getFechaCita() != null) {
+            cita.setFechaCita(LocalDateTime.of(citaDTO.getFechaCita(), cita.getFechaCita().toLocalTime()));
+        }
+
+        // Re-asignar relaciones
+        cita.setMascota(mascotaRepositorio.findById(citaDTO.getMascotaId())
+                .orElseThrow(() -> new RuntimeException("Mascota no encontrada: " + citaDTO.getMascotaId())));
+        cita.setVeterinario(veterinarioRepositorio.findById(citaDTO.getVeterinarioId())
+                .orElseThrow(() -> new RuntimeException("Veterinario no encontrado: " + citaDTO.getVeterinarioId())));
+        cita.setDiagnosticodueno(diagnosticoDuenoRepositorio.findById(citaDTO.getDiagnosticoduenoId())
+                .orElseThrow(() -> new RuntimeException("Diagnóstico no encontrado: " + citaDTO.getDiagnosticoduenoId())));
+
+        Cita citaActualizada = citaRepositorio.save(cita);
+        return convertirADTO(citaActualizada);
     }
 
     @Override
@@ -161,17 +145,16 @@ public class CitaServiceImpl implements CitaService {
         try {
             citaRepositorio.deleteById(id);
         } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("No se puede eliminar esta cita, puede que esté asociada a un diagnóstico u otros registros.");
+            throw new RuntimeException("No se puede eliminar esta cita, puede que esté asociada a otros registros.");
         }
     }
 
     @Override
     public List<CitaDTO> listarCitas() {
-        List<Cita> citas=citaRepositorio.findAll();
-        return citas.stream()
-                .map(cita -> modelMapper.map(cita, CitaDTO.class))
-                .toList();
+        List<Cita> citas = citaRepositorio.findAll();
+        return citas.stream().map(this::convertirADTO).collect(Collectors.toList());
     }
+
     @Override
     public List<CitaDTO> listarCitasPorMascota(Long mascotaId) {
         // Usamos la lógica del repositorio que ya estás usando
@@ -193,20 +176,17 @@ public class CitaServiceImpl implements CitaService {
             mascotaDTO.setNombreDueno(mascota.getUsuario().getNombre() + " " + mascota.getUsuario().getApellido());
         }
 
-        // --- INICIO DE LA CORRECCIÓN ---
-
-        // 2. Busca las listas de entidades
         List<Cita> citas = citaRepositorio.findByMascota_IdMascota(idMascota);
         List<Diagnosticodueno> diagnosticos = diagnosticoDuenoRepositorio.findByMascota_IdMascota(idMascota);
         List<Dieta> dietas = dietaRepositorio.findByMascota_IdMascota(idMascota);
         List<ActividadFisica> actividades = actividadFisicaRepositorio.findByMascota_IdMascota(idMascota);
 
-        // 3. Convierte las listas de Entidades a listas de DTOs
+        // --- Conversión a DTOs ---
         List<CitaDTO> citasDTO = citas.stream()
-                .map(this::convertirADTO) // Reutiliza tu método (asumiendo que está en esta clase)
+                .map(this::convertirADTO)
                 .collect(Collectors.toList());
 
-        // Mapea los diagnósticos manualmente para asegurarte de que los nombres están
+        // Mapea diagnósticos asegurándote de incluir los nombres
         List<DiagnosticoDuenoDTO> diagnosticosDTO = diagnosticos.stream()
                 .map(diag -> {
                     DiagnosticoDuenoDTO dto = modelMapper.map(diag, DiagnosticoDuenoDTO.class);
@@ -222,21 +202,79 @@ public class CitaServiceImpl implements CitaService {
                 .collect(Collectors.toList());
 
         List<DietaDTO> dietasDTO = dietas.stream()
-                .map(d -> modelMapper.map(d, DietaDTO.class))
+                .map(d -> modelMapper.map(d, DietaDTO.class)) // Asumiendo DTO simple
                 .collect(Collectors.toList());
 
         List<ActividadFisicaDTO> actividadesDTO = actividades.stream()
-                .map(a -> modelMapper.map(a, ActividadFisicaDTO.class))
+                .map(a -> modelMapper.map(a, ActividadFisicaDTO.class)) // Asumiendo DTO simple
                 .collect(Collectors.toList());
 
-        // 4. Pone los DTOs (objetos planos) en el Map
         datos.put("mascota", mascotaDTO);
         datos.put("citas", citasDTO);
-        datos.put("diagnosticos", diagnosticosDTO); // <-- Ahora es una lista de DTOs con nombres
+        datos.put("diagnosticos", diagnosticosDTO);
         datos.put("dietas", dietasDTO);
         datos.put("actividades", actividadesDTO);
-        // --- FIN DE LA CORRECCIÓN ---
 
         return datos;
+    }
+
+    // --- 3. MÉTODOS HELPER PRIVADOS (CENTRALIZADOS Y CORREGIDOS) ---
+
+    private CitaDTO convertirADTO(Cita cita) {
+        // Mapea los campos simples que coinciden (ej: motivoCita, estadoCita)
+        CitaDTO dto = modelMapper.map(cita, CitaDTO.class);
+
+        // Mapeo Manual de Fechas (el más importante)
+        if (cita.getFechaCita() != null) {
+            dto.setFechaCita(cita.getFechaCita().toLocalDate()); // Campo LocalDate (para listas)
+            dto.setFecha(cita.getFechaCita().toLocalDate());     // Campo LocalDate (para formulario)
+            dto.setHora(cita.getFechaCita().toLocalTime());       // Campo LocalTime (para formulario)
+        }
+
+        // Mapeo Manual de IDs y Nombres
+        dto.setIdCita(cita.getIdCita());
+        if (cita.getMascota() != null) {
+            dto.setMascotaId(cita.getMascota().getIdMascota());
+            dto.setNombreMascota(cita.getMascota().getNombre());
+            if (cita.getMascota().getUsuario() != null) {
+                dto.setNombreDueno(cita.getMascota().getUsuario().getNombre());
+                dto.setDuenoId(cita.getMascota().getUsuario().getIdUsuario());
+            }
+        }
+        if (cita.getVeterinario() != null) {
+            dto.setVeterinarioId(cita.getVeterinario().getIdVeterinario());
+            if (cita.getVeterinario().getUsuario() != null) {
+                dto.setNombreVeterinario(cita.getVeterinario().getUsuario().getNombre() + " " + cita.getVeterinario().getUsuario().getApellido());
+            }
+        }
+        if (cita.getDiagnosticodueno() != null) {
+            dto.setDiagnosticoduenoId(cita.getDiagnosticodueno().getIdDiagnosticoDueno());
+        }
+
+        return dto;
+    }
+
+    private Cita convertirAEntidad(CitaDTO citaDTO) {
+        // Creamos una nueva entidad. No usamos ModelMapper para evitar conflictos.
+        Cita cita = new Cita();
+
+        // Mapeamos los campos simples manualmente
+        cita.setIdCita(citaDTO.getIdCita()); // Si es una actualización, conservará el ID
+        cita.setMotivoCita(citaDTO.getMotivoCita());
+        cita.setEstadoCita(citaDTO.getEstadoCita());
+
+        // Asignamos las entidades buscando por los IDs del DTO
+        cita.setMascota(mascotaRepositorio.findById(citaDTO.getMascotaId())
+                .orElseThrow(() -> new RuntimeException("Mascota no encontrada: " + citaDTO.getMascotaId())));
+        cita.setVeterinario(veterinarioRepositorio.findById(citaDTO.getVeterinarioId())
+                .orElseThrow(() -> new RuntimeException("Veterinario no encontrado: " + citaDTO.getVeterinarioId())));
+        cita.setDiagnosticodueno(diagnosticoDuenoRepositorio.findById(citaDTO.getDiagnosticoduenoId())
+                .orElseThrow(() -> new RuntimeException("Diagnóstico no encontrado: " + citaDTO.getDiagnosticoduenoId())));
+
+        // IMPORTANTE: NO asignamos la fecha aquí.
+        // La fecha se asigna en el método 'crearCita' o 'actualizarCita'
+        // después de combinar 'fecha' y 'hora'.
+
+        return cita;
     }
 }

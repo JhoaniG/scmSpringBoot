@@ -1,6 +1,8 @@
 package com.scm.scm.service;
 
 import com.scm.scm.dto.VeterinarioDTO;
+import com.scm.scm.model.Usuario;
+import com.scm.scm.model.Veterinario;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,4 +16,6 @@ public interface VeterinarioService {
     void eliminarVeterinario(Long id);
     List<VeterinarioDTO>getAllVeterinarios();
     Page<VeterinarioDTO> getAllVeterinariosPaginados(Pageable pageable);
+
+    Veterinario buscarPorUsuario(Usuario usuario);
 }
