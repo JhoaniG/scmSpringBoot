@@ -17,4 +17,5 @@ public interface CitaService {
     List<CitaDTO> obtenerCitasPorVeterinario(Long idVeterinario);
     Page<CitaDTO> getAllCitasPaginadas(Pageable pageable);
     Map<String, Object> obtenerDatosHistorialClinico(Long idMascota);
+    List<CitaDTO> listarCitasPorMascota(Long mascotaId);
 }

@@ -8,13 +8,14 @@ import com.scm.scm.service.DietaService;
 import com.scm.scm.service.MascotaService;
 import com.scm.scm.service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import org.springframework.validation.BindingResult;
 import java.util.List;
 
 @Controller
@@ -82,36 +83,58 @@ public class DietaController {
     @GetMapping("/crear/seleccionar-mascota")
     public String seleccionarMascota(@RequestParam("duenoId") Long duenoId, Model model, HttpSession session) {
         Long idVeterinario = (Long) session.getAttribute("idVeterinario");
-
-        // Agrega esta línea para ver si el ID es nulo
-        System.out.println("ID del Veterinario en la sesion: " + idVeterinario);
-
         List<MascotaDTO> listaMascotas = mascotaService.obtenerMascotasPorDuenoId(duenoId);
         model.addAttribute("listaMascotas", listaMascotas);
         model.addAttribute("idVeterinario", idVeterinario);
+
+        // --- ¡NUEVO! Pasamos un DTO vacío para el th:object ---
+        DietaDTO dietaDTO = new DietaDTO();
+        dietaDTO.setVeterinarioId(idVeterinario); // Pre-llenamos el ID del vet
+        model.addAttribute("dietaDTO", dietaDTO);
+
         return "veterinarios/crearDieta";
     }
     @PostMapping("/crear")
-    public String crearDieta(@ModelAttribute DietaDTO dietaDTO,
-                             @RequestParam(value = "archivoFoto", required = false) MultipartFile archivoFoto,
-                             RedirectAttributes redirectAttributes) { // <-- 3. AÑADE RedirectAttributes
+    public String crearDieta(
+            @Valid @ModelAttribute("dietaDTO") DietaDTO dietaDTO, // 1. Añade @Valid y @ModelAttribute
+            BindingResult result, // 2. Añade BindingResult para atrapar errores
+            @RequestParam(value = "archivoFoto", required = false) MultipartFile archivoFoto,
+            RedirectAttributes redirectAttributes,
+            Model model, // 3. Añade Model
+            HttpSession session) { // 4. Añade HttpSession
+
+        // 5. LÓGICA DE VALIDACIÓN
+        if (result.hasErrors()) {
+            // Si hay errores, volvemos al formulario, NO redirigimos
+
+            // Necesitamos recargar los datos para el select de mascotas
+            Long duenoId = mascotaService.obtenerMascotaPorId(dietaDTO.getMascotaId()).getUsuarioId();
+            List<MascotaDTO> listaMascotas = mascotaService.obtenerMascotasPorDuenoId(duenoId);
+            model.addAttribute("listaMascotas", listaMascotas);
+            model.addAttribute("idVeterinario", (Long) session.getAttribute("idVeterinario"));
+
+            return "veterinarios/crearDieta"; // Devuelve la VISTA (así se mantienen los errores)
+        }
+
+        // Si la validación pasa, intentamos guardar
         try {
-            // Asigna el archivo al DTO antes de llamar al servicio
             dietaDTO.setArchivoFoto(archivoFoto);
             dietaService.crearDieta(dietaDTO);
 
-            // 4. MENSAJE DE ÉXITO
-            redirectAttributes.addFlashAttribute("mensajeExito", "¡Dieta creada exitosamente!");
+            redirectAttributes.addFlashAttribute("mensajeExito", "¡Dieta creada! Puede registrar otra.");
+            MascotaDTO mascota = mascotaService.obtenerMascotaPorId(dietaDTO.getMascotaId());
+            Long duenoId = mascota.getUsuarioId();
+            redirectAttributes.addAttribute("duenoId", duenoId);
+
+            return "redirect:/dieta/crear/seleccionar-mascota";
 
         } catch (Exception e) {
-            // 5. MENSAJE DE ERROR
+            // El catch ahora solo atrapa errores inesperados (ej. base de datos)
             redirectAttributes.addFlashAttribute("mensajeError", "Error al crear la dieta: " + e.getMessage());
+            return "redirect:/dieta/seleccionar-dueno";
         }
-
-        // Redirige a la misma página en ambos casos
-        return "redirect:/dieta/seleccionar-dueno";
     }
-
-
-
 }
+
+
+

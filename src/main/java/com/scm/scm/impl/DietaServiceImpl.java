@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 // Asegúrate de que esta importación esté presente
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.time.LocalDate;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -139,36 +139,42 @@ public class DietaServiceImpl implements DietaService {
 
     // --- ESTE MÉTODO HA SIDO MODIFICADO ---
     @Override
-    @Transactional // <-- AÑADIDA ANOTACIÓN
+    @Transactional
     public List<DietaVistaDTO> obtenerDietasPorMascotaId(Long mascotaId) {
-        List<Dieta> dietas = dietaRepositorio.findByMascota_IdMascota(mascotaId);
+        // 1. Obtenemos la fecha de hoy
+        LocalDate hoy = LocalDate.now();
 
-        // --- LÓGICA PARA MARCAR COMO VISTO ---
-        // 1. Filtra las que no han sido vistas
-        List<Dieta> dietasParaActualizar = dietas.stream()
+        // 2. Obtenemos TODAS las dietas de la mascota
+        List<Dieta> todasLasDietas = dietaRepositorio.findByMascota_IdMascota(mascotaId);
+
+        // --- 3. NUEVO: Filtramos solo las dietas activas ---
+        // (Una dieta está activa si su fecha de fin no es anterior a hoy)
+        List<Dieta> dietasActivas = todasLasDietas.stream()
+                .filter(dieta -> !dieta.getFechaFin().isBefore(hoy))
+                .collect(Collectors.toList());
+        // --- FIN DEL FILTRO ---
+
+        // 4. Lógica para marcar como VISTO (ahora solo sobre las dietas activas)
+        List<Dieta> dietasParaActualizar = dietasActivas.stream() // <-- Usamos la lista filtrada
                 .filter(dieta -> !dieta.isVistaPorDueno())
                 .toList();
 
-        // 2. Si hay alguna, actualízalas y guárdalas
         if (!dietasParaActualizar.isEmpty()) {
             for (Dieta dieta : dietasParaActualizar) {
                 dieta.setVistaPorDueno(true);
             }
-            dietaRepositorio.saveAll(dietasParaActualizar); // Guarda los cambios en la BD
+            dietaRepositorio.saveAll(dietasParaActualizar);
         }
-        // --- FIN DE LA ADICIÓN ---
 
-        // 3. Devuelve la lista completa de DTOs (ya actualizada)
-        return dietas.stream().map(dieta -> {
+        // 5. Devolvemos solo las dietas ACTIVAS al DTO
+        return dietasActivas.stream().map(dieta -> { // <-- Usamos la lista filtrada
             DietaVistaDTO dietaVistaDTO = new DietaVistaDTO();
             dietaVistaDTO.setIdDieta(dieta.getIdDieta());
             dietaVistaDTO.setTipoDieta(dieta.getTipoDieta());
             dietaVistaDTO.setDescripcion(dieta.getDescripcion());
             dietaVistaDTO.setFoto(dieta.getFoto());
 
-            // Lógica para obtener los nombres
-            if (dieta.getMascota() != null)
-            {
+            if (dieta.getMascota() != null) {
                 dietaVistaDTO.setNombreMascota(dieta.getMascota().getNombre());
             }
             if (dieta.getVeterinario() != null && dieta.getVeterinario().getUsuario() != null) {

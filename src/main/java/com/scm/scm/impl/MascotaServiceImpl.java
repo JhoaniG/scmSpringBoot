@@ -75,29 +75,37 @@ public class MascotaServiceImpl implements MascotaService {
             dto.setNombreDueno(mascota.getUsuario().getNombre() + " " + mascota.getUsuario().getApellido());
         }
 
-        // --- LÓGICA DE ALERTA AÑADIDA ---
-        // (Esto funciona gracias al @Transactional en los métodos que llaman a convertirADTO)
-
+        // --- LÓGICA DE ALERTA (YA EXISTENTE) ---
         // 1. Revisa las Dietas
         if (mascota.getDietas() != null) {
-            // anyMatch es eficiente, deja de buscar tan pronto encuentra una
+            // Lógica para la ALERTA (si son NUEVAS)
             boolean nuevasDietas = mascota.getDietas().stream()
                     .anyMatch(dieta -> !dieta.isVistaPorDueno());
             dto.setTieneNuevasDietas(nuevasDietas);
+
+            // --- LÓGICA NUEVA: Para MOSTRAR EL BOTÓN (si EXISTEN) ---
+            dto.setTieneDietas(!mascota.getDietas().isEmpty());
+
         } else {
-            // Si la lista es nula (aún no se ha cargado o no tiene), no hay nuevas dietas
             dto.setTieneNuevasDietas(false);
+            dto.setTieneDietas(false); // --- AÑADIDO ---
         }
 
         // 2. Revisa las Actividades Físicas
         if (mascota.getActividadesFisicas() != null) {
+            // Lógica para la ALERTA (si son NUEVAS)
             boolean nuevasActividades = mascota.getActividadesFisicas().stream()
                     .anyMatch(actividad -> !actividad.isVistaPorDueno());
             dto.setTieneNuevasActividades(nuevasActividades);
+
+            // --- LÓGICA NUEVA: Para MOSTRAR EL BOTÓN (si EXISTEN) ---
+            dto.setTieneActividades(!mascota.getActividadesFisicas().isEmpty());
+
         } else {
             dto.setTieneNuevasActividades(false);
+            dto.setTieneActividades(false); // --- AÑADIDO ---
         }
-        // --- FIN DE LA LÓGICA DE ALERTA ---
+        // --- FIN DE LA LÓGICA MODIFICADA ---
 
         return dto;
     }

@@ -46,18 +46,20 @@
 <main style="margin-top: 90px; margin-left: 250px; padding: 30px;">
     <div class="form-card">
         <div class="form-title">📝 Registrar Dieta para Mascota</div>
-        <form th:action="@{/dieta/crear}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-            <input type="hidden" name="veterinarioId" th:value="${idVeterinario}">
+
+        <form th:action="@{/dieta/crear}" th:object="${dietaDTO}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <input type="hidden" th:field="*{veterinarioId}" th:value="${idVeterinario}">
 
             <div class="mb-4">
                 <label for="idMascota" class="form-label fw-semibold">🐾 Mascota</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-paw"></i></span>
-                    <select name="mascotaId" id="idMascota" class="form-select form-select-lg" required>
+                    <select th:field="*{mascotaId}" id="idMascota" class="form-select form-select-lg"
+                            th:classappend="${#fields.hasErrors('mascotaId')} ? 'is-invalid' : ''" required>
                         <option value="" disabled selected>Seleccione una mascota</option>
                         <option th:each="mascota : ${listaMascotas}" th:value="${mascota.idMascota}" th:text="${mascota.nombre}"></option>
                     </select>
-                    <div class="invalid-feedback">Por favor, seleccione la mascota.</div>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('mascotaId')}" th:errors="*{mascotaId}"></div>
                 </div>
             </div>
 
@@ -65,7 +67,8 @@
                 <label for="tipoDieta" class="form-label fw-semibold">🍽️ Tipo de Dieta</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-nut-fill"></i></span>
-                    <select name="tipoDieta" id="tipoDieta" class="form-select form-select-lg" required>
+                    <select th:field="*{tipoDieta}" id="tipoDieta" class="form-select form-select-lg"
+                            th:classappend="${#fields.hasErrors('tipoDieta')} ? 'is-invalid' : ''" required>
                         <option value="" disabled selected>Seleccione tipo de dieta</option>
                         <option value="Baja en grasas">Baja en grasas</option>
                         <option value="Alta en proteínas">Alta en proteínas</option>
@@ -74,7 +77,7 @@
                         <option value="Rica en fibra">Rica en fibra</option>
                         <option value="Dieta especial (recetada)">Dieta especial (recetada)</option>
                     </select>
-                    <div class="invalid-feedback">Por favor, seleccione un tipo de dieta.</div>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('tipoDieta')}" th:errors="*{tipoDieta}"></div>
                 </div>
             </div>
 
@@ -82,28 +85,70 @@
                 <label for="descripcion" class="form-label fw-semibold">🗒️ Descripción</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-card-text"></i></span>
-                    <textarea name="descripcion" id="descripcion" class="form-control form-control-lg"
-                              rows="4" placeholder="Describa la dieta sugerida para la mascota..."
-                              required minlength="10" maxlength="500"></textarea>
-                    <div class="invalid-feedback">Por favor, ingrese una descripción (mínimo 10, máximo 500 caracteres).</div>
+                    <textarea th:field="*{descripcion}" id="descripcion" class="form-control form-control-lg"
+                              rows="4" placeholder="Describa la dieta sugerida..."
+                              th:classappend="${#fields.hasErrors('descripcion')} ? 'is-invalid' : ''" required minlength="10" maxlength="500"></textarea>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label for="fechaInicio" class="form-label fw-semibold">🗓️ Fecha de Inicio</label>
+                    <input type="date" th:field="*{fechaInicio}" id="fechaInicio" class="form-control form-control-lg"
+                           th:classappend="${#fields.hasErrors('fechaInicio')} ? 'is-invalid' : ''" required>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaInicio')}" th:errors="*{fechaInicio}"></div>
+                </div>
+                <div class="col-md-6">
+                    <label for="fechaFin" class="form-label fw-semibold">🗓️ Fecha de Fin</label>
+                    <input type="date" th:field="*{fechaFin}" id="fechaFin" class="form-control form-control-lg"
+                           th:classappend="${#fields.hasErrors('fechaFin')} ? 'is-invalid' : ''" required>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaFin')}" th:errors="*{fechaFin}"></div>
                 </div>
             </div>
 
             <div class="mb-3">
-                <label for="fotoDieta" class="form-label fw-semibold">🖼️ Foto de Dieta (Opcional)</label>
+                <label for="fotoDieta" class="form-label fw-semibold">🖼️ Foto (Opcional)</label>
                 <input type="file" class="form-control" id="fotoDieta" name="archivoFoto" accept="image/*">
-                <div class="invalid-feedback">Por favor, selecciona una imagen válida.</div>
             </div>
 
             <div class="text-end mt-4">
                 <button type="submit" class="btn btn-success me-2">✅ Registrar</button>
-                <a th:href="@{/dieta/seleccionar-dueno}" class="btn btn-secondary">↩️ Volver</a>
+                <a th:href="@{/dieta/seleccionar-dueno}" class="btn btn-secondary">↩️ Volver a Dueños</a>
+                <a th:href="@{/veterinario/index}" class="btn btn-outline-primary ms-2">🏠 Volver al Inicio</a>
             </div>
+        </form>
+    </div>
+</main>
         </form>
     </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/validarDieta.js}"></script>
+<script th:src="@{/js/validarDieta.js}"></script>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        // 1. Obtener la fecha de hoy en formato YYYY-MM-DD
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        const day = today.getDate().toString().padStart(2, '0');
+        const minDate = `${year}-${month}-${day}`;
+
+        // 2. Encontrar los campos de fecha
+        const fechaInicioInput = document.getElementById('fechaInicio');
+        const fechaFinInput = document.getElementById('fechaFin');
+
+        // 3. Asignar la fecha mínima a ambos
+        if (fechaInicioInput) {
+            fechaInicioInput.setAttribute('min', minDate);
+        }
+        if (fechaFinInput) {
+            fechaFinInput.setAttribute('min', minDate);
+        }
+    });
+</script>
 </body>
 </html>

@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import jakarta.validation.Valid;
 
 @Controller
 public class CitaController {
@@ -87,26 +88,28 @@ public class CitaController {
 
     @PostMapping("/citas/crear")
     public String crearCita(@ModelAttribute CitaDTO citaDTO,
-                            Authentication authentication, // <-- 1. Usa Authentication
+                            Authentication authentication,
                             RedirectAttributes redirectAttributes) {
 
         try {
-            // 2. Busca al veterinario de forma segura (igual que en la API)
+            // Busca al veterinario de forma segura
             String email = authentication.getName();
             Usuario usuarioLogueado = usuarioRepositorio.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
             Veterinario vet = veterinarioService.buscarPorUsuario(usuarioLogueado);
 
-            // 3. Asigna el ID del veterinario al DTO
+            // Asigna el ID del veterinario al DTO
             citaDTO.setVeterinarioId(vet.getIdVeterinario());
 
-            // 4. Intenta crear la cita
+            // Intenta crear la cita
             citaService.crearCita(citaDTO);
 
             redirectAttributes.addFlashAttribute("mensajeExito", "¡Cita creada exitosamente!");
 
+            // --- LÍNEAS ELIMINADAS ---
+            // Ya no pasamos el 'mascotaIdParaAccion' ni 'duenoIdParaAccion' aquí
+
         } catch (Exception e) {
-            // Captura cualquier error (como "Horario no disponible")
             redirectAttributes.addFlashAttribute("mensajeError", "Error al crear la cita: " + e.getMessage());
         }
 
@@ -136,11 +139,19 @@ public class CitaController {
             CitaDTO citaDTO = citaService.obtenerCitaPorId(idCita);
             citaDTO.setEstadoCita("Terminada");
             citaService.actualizarCita(idCita, citaDTO);
+
             redirectAttributes.addFlashAttribute("mensajeExito", "Cita marcada como terminada.");
+
+            // --- ¡NUEVA LÓGICA AQUÍ! ---
+            // Pasamos los IDs necesarios para los botones de "Siguientes Pasos"
+            redirectAttributes.addFlashAttribute("mascotaIdParaAccion", citaDTO.getMascotaId());
+            redirectAttributes.addFlashAttribute("duenoIdParaAccion", citaDTO.getDuenoId());
+            // --- FIN DE LA NUEVA LÓGICA ---
+
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("mensajeError", "Error al actualizar la cita.");
         }
-        return "redirect:/citas"; // Vuelve a la lista de citas
+        return "redirect:/citas"; // Redirige a la lista de citas (citas.html)
     }
 
     @GetMapping("/api/historial/mascota/{idMascota}")

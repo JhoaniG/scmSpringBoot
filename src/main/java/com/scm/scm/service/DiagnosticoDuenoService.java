@@ -14,4 +14,5 @@ public interface DiagnosticoDuenoService {
     List<DiagnosticoDuenoDTO>ListartodosDiagnosticosDueno();
     List<DiagnosticoDuenoDTO> listarDiagnosticosPorVeterinario(Long veterinarioId);
     Page<DiagnosticoDuenoDTO> getAllDiagnosticosPaginados(Pageable pageable);
+    List<DiagnosticoDuenoDTO> listarDiagnosticosPorMascota(Long mascotaId);
 }
