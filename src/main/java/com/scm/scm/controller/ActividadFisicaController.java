@@ -19,7 +19,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes; // <-- Importado
-
+import org.springframework.validation.BindingResult; // <-- IMPORTAR
+import jakarta.validation.Valid; // <-- IMPORTAR
 import java.util.List;
 
 @Controller
@@ -83,43 +84,67 @@ public class ActividadFisicaController {
     @GetMapping("/crear/seleccionar-mascota")
     public String seleccionarMascota(@RequestParam("duenoId") Long duenoId, Model model, Authentication authentication) {
 
-        // Obtenemos el ID del veterinario logueado (forma segura)
         String email = authentication.getName();
         Usuario usuarioLogueado = usuarioRepositorio.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        Veterinario veterinario = veterinarioRepositorio.findByUsuario(usuarioLogueado)
+        Veterinario veterinario = veterinarioRepositorio.findByUsuario_IdUsuario(usuarioLogueado.getIdUsuario())
                 .orElseThrow(() -> new RuntimeException("Perfil de veterinario no encontrado"));
 
-        // Pasamos el ID del veterinario a la vista (para el formulario)
         model.addAttribute("idVeterinario", veterinario.getIdVeterinario());
-
         List<MascotaDTO> listaMascotas = mascotaService.obtenerMascotasPorDuenoId(duenoId);
         model.addAttribute("listaMascotas", listaMascotas);
 
-        // Pasamos un DTO vacío para el formulario
-        model.addAttribute("actividadFisicaDTO", new ActividadFisicaDTO());
+        // --- ¡NUEVO! Pasamos un DTO vacío para el th:object ---
+        ActividadFisicaDTO actividadDTO = new ActividadFisicaDTO();
+        actividadDTO.setVeterinarioId(veterinario.getIdVeterinario()); // Pre-llenamos
+        model.addAttribute("actividadFisicaDTO", actividadDTO);
 
-        return "veterinarios/crearActividadFisica"; // Vista para crear la actividad
+        return "veterinarios/crearActividadFisica";
     }
 
-    // --- MÉTODO 'crear' MODIFICADO (con mensajes) ---
     @PostMapping("/crear")
-    public String crearActividad(@ModelAttribute ActividadFisicaDTO actividadFisicaDTO,
-                                 @RequestParam(value = "archivoFoto", required = false) MultipartFile archivoFoto,
-                                 RedirectAttributes redirectAttributes) { // <-- Añadido
+    public String crearActividad(
+            @Valid @ModelAttribute("actividadFisicaDTO") ActividadFisicaDTO actividadFisicaDTO, // 1. Añade @Valid
+            BindingResult result, // 2. Añade BindingResult
+            @RequestParam(value = "archivoFoto", required = false) MultipartFile archivoFoto,
+            RedirectAttributes redirectAttributes,
+            Model model, // 3. Añade Model
+            Authentication authentication) { // 4. Añade Authentication
+
+        // 5. LÓGICA DE VALIDACIÓN
+        if (result.hasErrors()) {
+            // Si hay errores, volvemos al formulario
+
+            if (actividadFisicaDTO.getMascotaId() != null) {
+                Long duenoId = mascotaService.obtenerMascotaPorId(actividadFisicaDTO.getMascotaId()).getUsuarioId();
+                List<MascotaDTO> listaMascotas = mascotaService.obtenerMascotasPorDuenoId(duenoId);
+                model.addAttribute("listaMascotas", listaMascotas);
+            } else {
+                model.addAttribute("listaMascotas", List.of());
+            }
+
+            String email = authentication.getName();
+            Usuario usuarioLogueado = usuarioRepositorio.findByEmail(email).orElseThrow();
+            Veterinario veterinario = veterinarioRepositorio.findByUsuario_IdUsuario(usuarioLogueado.getIdUsuario()).orElseThrow();
+            model.addAttribute("idVeterinario", veterinario.getIdVeterinario());
+
+            return "veterinarios/crearActividadFisica"; // Devuelve la VISTA
+        }
+
         try {
             actividadFisicaDTO.setArchivoFoto(archivoFoto);
             actividadFisicaService.crearActividadFisica(actividadFisicaDTO);
 
-            // MENSAJE DE ÉXITO
-            redirectAttributes.addFlashAttribute("mensajeExito", "¡Actividad física creada exitosamente!");
+            redirectAttributes.addFlashAttribute("mensajeExito", "¡Actividad creada! Puede registrar otra.");
+            MascotaDTO mascota = mascotaService.obtenerMascotaPorId(actividadFisicaDTO.getMascotaId());
+            Long duenoId = mascota.getUsuarioId();
+            redirectAttributes.addAttribute("duenoId", duenoId);
+
+            return "redirect:/actividad/crear/seleccionar-mascota";
 
         } catch (Exception e) {
-            // MENSAJE DE ERROR
             redirectAttributes.addFlashAttribute("mensajeError", "Error al crear la actividad: " + e.getMessage());
+            return "redirect:/actividad/seleccionar-dueno";
         }
-
-        // Redirige a la página de seleccionar dueño
-        return "redirect:/actividad/seleccionar-dueno";
     }
 }

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 // Asegúrate de que esta importación esté presente
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.time.LocalDate;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -135,27 +135,33 @@ public class ActividadFisicaServiceImpl implements ActividadFisicaService {
 
     // --- ESTE MÉTODO HA SIDO MODIFICADO ---
     @Override
-    @Transactional // <-- AÑADIDA ANOTACIÓN
+    @Transactional
     public List<ActividadVistaDTO> obtenerActividadesPorMascotaId(Long mascotaId) {
-        List<ActividadFisica> actividades = actividadFisicaRepositorio.findByMascota_IdMascota(mascotaId);
+        // 1. Obtenemos la fecha de hoy
+        LocalDate hoy = LocalDate.now();
 
-        // --- LÓGICA PARA MARCAR COMO VISTO ---
-        // 1. Filtra las que no han sido vistas
-        List<ActividadFisica> actividadesParaActualizar = actividades.stream()
+        // 2. Obtenemos TODAS las actividades de la mascota
+        List<ActividadFisica> todasLasActividades = actividadFisicaRepositorio.findByMascota_IdMascota(mascotaId);
+
+        // --- 3. NUEVO: Filtramos solo las actividades activas ---
+        List<ActividadFisica> actividadesActivas = todasLasActividades.stream()
+                .filter(actividad -> !actividad.getFechaFin().isBefore(hoy))
+                .collect(Collectors.toList());
+        // --- FIN DEL FILTRO ---
+
+        // 4. Lógica para marcar como VISTO (ahora solo sobre las activas)
+        List<ActividadFisica> actividadesParaActualizar = actividadesActivas.stream() // <-- Usamos la lista filtrada
                 .filter(actividad -> !actividad.isVistaPorDueno())
                 .toList();
-
-        // 2. Si hay alguna, actualízalas y guárdalas
         if (!actividadesParaActualizar.isEmpty()) {
             for (ActividadFisica actividad : actividadesParaActualizar) {
                 actividad.setVistaPorDueno(true);
             }
             actividadFisicaRepositorio.saveAll(actividadesParaActualizar);
         }
-        // --- FIN DE LA ADICIÓN ---
 
-        // 3. Devuelve la lista completa de DTOs (ya actualizada)
-        return actividades.stream().map(actividad -> {
+        // 5. Devolvemos solo las actividades ACTIVAS al DTO
+        return actividadesActivas.stream().map(actividad -> { // <-- Usamos la lista filtrada
             ActividadVistaDTO actividadVistaDTO = new ActividadVistaDTO();
             actividadVistaDTO.setIdActividadFisica(actividad.getIdActividadFisica());
             actividadVistaDTO.setDescripcion(actividad.getDescripcion());
@@ -164,7 +170,6 @@ public class ActividadFisicaServiceImpl implements ActividadFisicaService {
 
             if (actividad.getMascota() != null) {
                 actividadVistaDTO.setNombreMascota(actividad.getMascota().getNombre());
-
             }
             if (actividad.getVeterinario() != null && actividad.getVeterinario().getUsuario() != null) {
                 actividadVistaDTO.setNombreVeterinario(actividad.getVeterinario().getUsuario().getNombre());

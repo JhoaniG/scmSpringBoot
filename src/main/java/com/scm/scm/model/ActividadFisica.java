@@ -37,5 +37,10 @@ public class ActividadFisica {
     @Column(name = "vista_por_dueno", nullable = false)
     @ColumnDefault("false") // <-- Importante
     private boolean vistaPorDueno = false;
+    @Column(name = "fecha_inicio", nullable = false)
+    private LocalDate fechaInicio;
+
+    @Column(name = "fecha_fin", nullable = false)
+    private LocalDate fechaFin;
 
 }

@@ -82,7 +82,8 @@ public class CitaServiceImpl implements CitaService {
             throw new RuntimeException("Fecha u hora inválida proporcionada.");
         }
 
-        // 2. Validar si el horario está ocupado
+        // --- INICIO DE LA VALIDACIÓN (La parte clave) ---
+        // 2. Validar si el horario está ocupado (Usa el ID que el Controller asignó)
         if (citaDTO.getVeterinarioId() != null) {
             boolean citaOcupada = citaRepositorio.existsByVeterinario_IdVeterinarioAndFechaCita(
                     citaDTO.getVeterinarioId(), fechaYHoraCita
@@ -92,8 +93,9 @@ public class CitaServiceImpl implements CitaService {
                 throw new RuntimeException("Horario no disponible: El veterinario ya tiene una cita en esa fecha y hora.");
             }
         }
+        // --- FIN DE LA VALIDACIÓN ---
 
-        // 3. Convertir DTO a Entidad (usando el helper corregido)
+        // 3. Convertir DTO a Entidad (Tu CitaServiceImpl ya debe tener este método)
         Cita cita = convertirAEntidad(citaDTO);
 
         // 4. Asignar la fecha combinada y el estado
