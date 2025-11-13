@@ -163,6 +163,8 @@ public class CitaServiceImpl implements CitaService {
                 .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + idMascota));
         MascotaDTO mascotaDTO = modelMapper.map(mascota, MascotaDTO.class);
         if (mascota.getUsuario() != null) {
+            // AHORA LLENAMOS EL OBJETO COMPLETO
+            mascotaDTO.setUsuario(mascota.getUsuario()); // <-- ¡ESTA ES LA LÍNEA CLAVE!
             mascotaDTO.setNombreDueno(mascota.getUsuario().getNombre() + " " + mascota.getUsuario().getApellido());
         }
 

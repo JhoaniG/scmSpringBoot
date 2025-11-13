@@ -31,18 +31,121 @@
                     <i class="fas fa-file-pdf"></i> Exportar Historial a PDF
                 </a>
                 <a href="#" class="btn btn-primary mx-2"><i class="fas fa-calendar-plus"></i> Agendar Nueva Cita</a>
-                <a href="#" class="btn btn-info mx-2"><i class="fas fa-notes-medical"></i> Registrar Diagnóstico</a>
+                <a href="#" class="btn btn-info mx-2"><i class="fas fa-notes-medical"></i> Registrar Dieta</a>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <h4>Información de la Mascota</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><strong>Género:</strong> <span th:text="${mascota.genero}"></span></li>
+                    <li class="list-group-item"><strong>Nacimiento:</strong> <span th:text="${#temporals.format(mascota.fechaNacimiento, 'dd MMMM yyyy')}"></span></li>
+                    <li class="list-group-item"><strong>Especie:</strong> <span th:text="${mascota.especie}"></span></li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h4>Información del Dueño</h4>
+                <div class="card">
+                    <div class="card-body d-flex align-items-center">
+                        <img th:src="@{'/uploads/' + ${mascota.usuario.foto}}" class="img-thumbnail me-3"
+                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%;">
+                        <div>
+                            <h5 class="card-title mb-1" th:text="${mascota.usuario.nombre} + ' ' + ${mascota.usuario.apellido}"></h5>
+                            <p class="card-text text-muted mb-1" th:text="${mascota.usuario.email}"></p>
+                            <p class="card-text text-muted" th:text="${mascota.usuario.telefono}"></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="mt-4">
-            <h4>Información Adicional</h4>
-            <ul class="list-group">
-                <li class="list-group-item"><strong>Dueño:</strong> <span th:text="${mascota.nombreDueno}"></span></li>
-                <li class="list-group-item"><strong>Género:</strong> <span th:text="${mascota.genero}"></span></li>
-                <li class="list-group-item"><strong>Fecha de Nacimiento:</strong> <span th:text="${#temporals.format(mascota.fechaNacimiento, 'dd MMMM yyyy')}"></span></li>
+            <h3>Historial Clínico Completo</h3>
+            <ul class="nav nav-tabs" id="historialTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="citas-tab" data-bs-toggle="tab" data-bs-target="#tab-citas" type="button" role="tab">
+                        <i class="fas fa-calendar-alt"></i> Citas
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="diagnosticos-tab" data-bs-toggle="tab" data-bs-target="#tab-diagnosticos" type="button" role="tab">
+                        <i class="fas fa-stethoscope"></i> Reportes Dueño
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="dietas-tab" data-bs-toggle="tab" data-bs-target="#tab-dietas" type="button" role="tab">
+                        <i class="fas fa-utensils"></i> Dietas
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="actividades-tab" data-bs-toggle="tab" data-bs-target="#tab-actividades" type="button" role="tab">
+                        <i class="fas fa-running"></i> Actividades
+                    </button>
+                </li>
             </ul>
+
+            <div class="tab-content p-3 border border-top-0 rounded-bottom shadow-sm">
+
+                <div class="tab-pane fade show active" id="tab-citas" role="tabpanel">
+                    <div th:if="${#lists.isEmpty(citas)}" class="alert alert-info">No hay citas registradas.</div>
+                    <table th:unless="${#lists.isEmpty(citas)}" class="table table-sm table-striped">
+                        <thead><tr><th>Fecha y Hora</th><th>Motivo</th><th>Estado</th></tr></thead>
+                        <tbody>
+                        <tr th:each="c : ${citas}">
+                            <td th:text="${#temporals.format(c.fechaCita, 'dd/MM/yyyy hh:mm a')}"></td>
+                            <td th:text="${c.motivoCita}"></td>
+                            <td>
+                                <span class="badge" th:classappend="${c.estadoCita == 'Terminada'} ? 'bg-success' : 'bg-warning text-dark'" th:text="${c.estadoCita}"></span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-pane fade" id="tab-diagnosticos" role="tabpanel">
+                    <div th:if="${#lists.isEmpty(diagnosticos)}" class="alert alert-info">No hay reportes de síntomas registrados.</div>
+                    <table th:unless="${#lists.isEmpty(diagnosticos)}" class="table table-sm table-striped">
+                        <thead><tr><th>Fecha</th><th>Observaciones</th><th>Tipo</th><th>Veterinario</th></tr></thead>
+                        <tbody>
+                        <tr th:each="d : ${diagnosticos}">
+                            <td th:text="${d.fechaDiagnostico}"></td>
+                            <td th:text="${d.observaciones}"></td>
+                            <td th:text="${d.tipoEnfermedad}"></td>
+                            <td th:text="${d.nombreVeterinario}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-pane fade" id="tab-dietas" role="tabpanel">
+                    <div th:if="${#lists.isEmpty(dietas)}" class="alert alert-info">No hay dietas asignadas.</div>
+                    <table th:unless="${#lists.isEmpty(dietas)}" class="table table-sm table-striped">
+                        <thead><tr><th>Tipo de Dieta</th><th>Descripción</th></tr></thead>
+                        <tbody>
+                        <tr th:each="d : ${dietas}">
+                            <td th:text="${d.tipoDieta}"></td>
+                            <td th:text="${d.descripcion}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-pane fade" id="tab-actividades" role="tabpanel">
+                    <div th:if="${#lists.isEmpty(actividades)}" class="alert alert-info">No hay actividades asignadas.</div>
+                    <table th:unless="${#lists.isEmpty(actividades)}" class="table table-sm table-striped">
+                        <thead><tr><th>Tipo de Actividad</th><th>Descripción</th></tr></thead>
+                        <tbody>
+                        <tr th:each="a : ${actividades}">
+                            <td th:text="${a.tipoActividad}"></td>
+                            <td th:text="${a.descripcion}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
+
     </div>
 </div>
 

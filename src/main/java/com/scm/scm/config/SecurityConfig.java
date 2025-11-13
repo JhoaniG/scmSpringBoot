@@ -40,7 +40,9 @@ public class SecurityConfig {
                                 "/uploads/**",
                                 "/public/**",
                                 "/forgot-password",
-                                "/eventos/citas-veterinario").permitAll()
+                                "/eventos/citas-veterinario",
+                                "/api/historial/preview/**" // <-- AÑADE ESTA LÍNEA
+                        ).permitAll()
 
 
                         // Registro de usuario

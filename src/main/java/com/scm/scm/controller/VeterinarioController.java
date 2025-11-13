@@ -1,6 +1,10 @@
 package com.scm.scm.controller;
 
 import com.scm.scm.dto.CitaDTO;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.TemplateEngine;
+import java.util.Map;
 import com.scm.scm.dto.MascotaDTO;
 import com.scm.scm.dto.UsuarioDTO;
 import com.scm.scm.dto.VeterinarioDTO;
@@ -16,6 +20,9 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +59,8 @@ public class VeterinarioController {
         this.mascotaRepositorio = mascotaRepositorio;
         this.mascotaService = mascotaService;
     }
+    @Autowired
+    private TemplateEngine templateEngine;
 
     @GetMapping("/api/veterinarios/listar")
     public ResponseEntity<List<VeterinarioDTO>> listarVeterinairos() {
@@ -145,39 +154,61 @@ public class VeterinarioController {
 
     @GetMapping("/veterinario/mascotas/{idMascota}")
     public String verDetallesMascota(@PathVariable Long idMascota, Model model, Authentication authentication) {
-        // Obtenemos info del usuario logueado para el menú
+        // 1. Obtenemos info del usuario logueado para el menú
         String email = authentication.getName();
         Usuario usuarioLogueado = usuarioRepositorio.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         model.addAttribute("usuario", usuarioLogueado);
+        model.addAttribute("logueado", true); // <-- Añadido para consistencia
 
-        // Buscamos la mascota por su ID usando el servicio
-        MascotaDTO mascotaDTO = mascotaService.obtenerMascotaPorId(idMascota);
-        model.addAttribute("mascota", mascotaDTO);
+        // 2. Usamos el servicio que trae TODO el historial (el mismo del PDF)
+        Map<String, Object> datosHistorial = citaService.obtenerDatosHistorialClinico(idMascota);
 
-        // Devolvemos el nombre de la nueva página HTML que vamos a crear
+        // 3. Pasamos todos los datos a la vista usando el Map
+        model.addAllAttributes(datosHistorial);
+        // Esto añade automáticamente:
+        // model.addAttribute("mascota", (MascotaDTO) datosHistorial.get("mascota"));
+        // model.addAttribute("citas", (List<CitaDTO>) datosHistorial.get("citas"));
+        // model.addAttribute("diagnosticos", (List<DiagnosticoDuenoDTO>) datosHistorial.get("diagnosticos"));
+        // model.addAttribute("dietas", (List<DietaDTO>) datosHistorial.get("dietas"));
+        // model.addAttribute("actividades", (List<ActividadFisicaDTO>) datosHistorial.get("actividades"));
+
+        // 4. Devolvemos la vista
         return "veterinarios/detalles-mascota";
     }
 
     // MOSTRAR LA LISTA DE PACIENTES ---
     @GetMapping("/veterinario/mis-pacientes")
-    public String listarMisPacientes(Model model, Authentication authentication) {
-        // Obtenemos el email del veterinario logueado
+    public String listarMisPacientes(
+            Model model,
+            Authentication authentication,
+            @RequestParam(value = "filtro", required = false) String filtro,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            // --- CAMBIO AQUÍ: Tamaño de página por defecto 6 ---
+            @RequestParam(value = "size", defaultValue = "6") int size) {
+
         String email = authentication.getName();
         Usuario usuarioLogueado = usuarioRepositorio.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // Encontramos el perfil de Veterinario asociado a ese Usuario
-        Veterinario veterinario = veterinarioRepositorio.findByUsuario_IdUsuario(usuarioLogueado.getIdUsuario())
+        Veterinario veterinario = veterinarioRepositorio.findByUsuario(usuarioLogueado)
                 .orElseThrow(() -> new RuntimeException("Perfil de veterinario no encontrado"));
 
-        // Usamos el nuevo método del repositorio para obtener solo sus pacientes
-        List<Mascota> pacientes = mascotaRepositorio.findPacientesByVeterinarioId(veterinario.getIdVeterinario());
+        Pageable pageable = PageRequest.of(page, size);
 
-        model.addAttribute("pacientes", pacientes);
-        model.addAttribute("usuario", usuarioLogueado); // Para el menú/sidebar
+        Page<Mascota> pacientesPage;
 
-        return "veterinarios/mis-pacientes"; // Devolvemos la nueva vista
+        if (filtro != null && !filtro.trim().isEmpty()) {
+            pacientesPage = mascotaRepositorio.findPacientesByVeterinarioIdAndFiltro(veterinario.getIdVeterinario(), filtro, pageable);
+        } else {
+            pacientesPage = mascotaRepositorio.findPacientesByVeterinarioId(veterinario.getIdVeterinario(), pageable);
+        }
+
+        model.addAttribute("pacientesPage", pacientesPage);
+        model.addAttribute("usuario", usuarioLogueado);
+        model.addAttribute("filtro", filtro); // Devuelve el filtro a la vista
+
+        return "veterinarios/mis-pacientes";
     }
 
     @GetMapping("/veterinario/mascotas/{idMascota}/historial/pdf")
@@ -211,5 +242,20 @@ public class VeterinarioController {
 
         // Devuelve el archivo HTML: /templates/veterinario/calendario.html
         return "veterinarios/calendario";
+    }
+    @GetMapping("/api/historial/preview/{idMascota}")
+    @ResponseBody // <-- ¡Importante! Devuelve un String (el HTML), no una vista.
+    public String getHistorialPreview(@PathVariable Long idMascota) {
+
+        // 1. Obtenemos los datos (exactamente igual que en el método del PDF)
+        Map<String, Object> datos = citaService.obtenerDatosHistorialClinico(idMascota);
+
+        // 2. Creamos el "Contexto" de Thymeleaf con esos datos
+        Context context = new Context();
+        context.setVariables(datos); // Pasa el Map completo (mascota, citas, dietas, etc.)
+
+        // 3. Procesamos la plantilla HTML del PDF y la devolvemos como un String
+        //    (Asegúrate que la ruta 'reports/historial-clinico-template' sea correcta)
+        return templateEngine.process("reports/historial-clinico-template", context);
     }
 }

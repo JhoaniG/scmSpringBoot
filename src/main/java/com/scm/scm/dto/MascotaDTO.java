@@ -24,7 +24,7 @@ public class MascotaDTO {
     private LocalDate fechaNacimiento;
 
     private String raza;
-
+    private Usuario usuario;
     private Long usuarioId;
     private MultipartFile archivoFoto;
     private String nombreDueno;
