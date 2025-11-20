@@ -140,20 +140,19 @@ public class CitaController {
             citaDTO.setEstadoCita("Terminada");
             citaService.actualizarCita(idCita, citaDTO);
 
+            // --- ¡CAMBIO IMPORTANTE! ---
+            // Pasamos los IDs necesarios para los botones de Dieta/Actividad
             redirectAttributes.addFlashAttribute("mensajeExito", "Cita marcada como terminada.");
-
-            // --- ¡NUEVA LÓGICA AQUÍ! ---
-            // Pasamos los IDs necesarios para los botones de "Siguientes Pasos"
+            redirectAttributes.addFlashAttribute("citaTerminadaId", idCita);
             redirectAttributes.addFlashAttribute("mascotaIdParaAccion", citaDTO.getMascotaId());
-            redirectAttributes.addFlashAttribute("duenoIdParaAccion", citaDTO.getDuenoId());
-            // --- FIN DE LA NUEVA LÓGICA ---
+            redirectAttributes.addFlashAttribute("duenoIdParaAccion", citaDTO.getDuenoId()); // Asumiendo que tu DTO tiene duenoId
+            // --- FIN DEL CAMBIO ---
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("mensajeError", "Error al actualizar la cita.");
         }
-        return "redirect:/citas"; // Redirige a la lista de citas (citas.html)
+        return "redirect:/citas"; // Vuelve a la lista de citas
     }
-
     @GetMapping("/api/historial/mascota/{idMascota}")
     @ResponseBody // <-- ¡Muy importante! Devuelve JSON, no una vista HTML.
     public ResponseEntity<Map<String, Object>> getHistorialCompletoMascota(@PathVariable Long idMascota) {

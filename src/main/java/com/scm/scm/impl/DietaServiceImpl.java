@@ -147,15 +147,13 @@ public class DietaServiceImpl implements DietaService {
         // 2. Obtenemos TODAS las dietas de la mascota
         List<Dieta> todasLasDietas = dietaRepositorio.findByMascota_IdMascota(mascotaId);
 
-        // --- 3. NUEVO: Filtramos solo las dietas activas ---
-        // (Una dieta está activa si su fecha de fin no es anterior a hoy)
+        // 3. Filtramos solo las dietas activas
         List<Dieta> dietasActivas = todasLasDietas.stream()
                 .filter(dieta -> !dieta.getFechaFin().isBefore(hoy))
                 .collect(Collectors.toList());
-        // --- FIN DEL FILTRO ---
 
-        // 4. Lógica para marcar como VISTO (ahora solo sobre las dietas activas)
-        List<Dieta> dietasParaActualizar = dietasActivas.stream() // <-- Usamos la lista filtrada
+        // 4. Lógica para marcar como VISTO
+        List<Dieta> dietasParaActualizar = dietasActivas.stream()
                 .filter(dieta -> !dieta.isVistaPorDueno())
                 .toList();
 
@@ -167,12 +165,17 @@ public class DietaServiceImpl implements DietaService {
         }
 
         // 5. Devolvemos solo las dietas ACTIVAS al DTO
-        return dietasActivas.stream().map(dieta -> { // <-- Usamos la lista filtrada
+        return dietasActivas.stream().map(dieta -> {
             DietaVistaDTO dietaVistaDTO = new DietaVistaDTO();
             dietaVistaDTO.setIdDieta(dieta.getIdDieta());
             dietaVistaDTO.setTipoDieta(dieta.getTipoDieta());
             dietaVistaDTO.setDescripcion(dieta.getDescripcion());
             dietaVistaDTO.setFoto(dieta.getFoto());
+
+            // --- AGREGAR ESTAS DOS LÍNEAS ---
+            dietaVistaDTO.setFechaInicio(dieta.getFechaInicio());
+            dietaVistaDTO.setFechaFin(dieta.getFechaFin());
+            // --------------------------------
 
             if (dieta.getMascota() != null) {
                 dietaVistaDTO.setNombreMascota(dieta.getMascota().getNombre());
@@ -200,5 +203,52 @@ public class DietaServiceImpl implements DietaService {
     @Override
     public Page<DietaDTO> getAllDietasPaginadas(Pageable pageable) {
         return dietaRepositorio.findAll(pageable).map(this::convertirADTO);
+    }
+
+
+
+
+    @Transactional
+    @Override
+    public List<DietaVistaDTO> obtenerHistorialDietasPorMascotaId(Long mascotaId) {
+        LocalDate hoy = LocalDate.now();
+
+        // 1. Buscamos todas
+        List<Dieta> todas = dietaRepositorio.findByMascota_IdMascota(mascotaId);
+
+        // 2. Filtramos las que YA TERMINARON (fechaFin < hoy)
+        List<Dieta> terminadas = todas.stream()
+                .filter(d -> d.getFechaFin().isBefore(hoy))
+                .toList();
+
+        // 3. Convertimos a DTO
+        return terminadas.stream().map(dieta -> {
+            DietaVistaDTO dto = new DietaVistaDTO();
+            dto.setIdDieta(dieta.getIdDieta());
+            dto.setTipoDieta(dieta.getTipoDieta());
+            dto.setDescripcion(dieta.getDescripcion());
+            dto.setFoto(dieta.getFoto());
+            dto.setFechaInicio(dieta.getFechaInicio());
+            dto.setFechaFin(dieta.getFechaFin());
+
+            if (dieta.getMascota() != null) {
+                dto.setNombreMascota(dieta.getMascota().getNombre());
+            }
+            if (dieta.getVeterinario() != null && dieta.getVeterinario().getUsuario() != null) {
+                dto.setNombreVeterinario(dieta.getVeterinario().getUsuario().getNombre());
+            }
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    // También necesitamos el método para TERMINAR (cambiar fecha fin a ayer)
+    @Override
+    public void terminarDieta(Long id) {
+        Dieta dieta = dietaRepositorio.findById(id)
+                .orElseThrow(() -> new RuntimeException("Dieta no encontrada"));
+
+        // Cambiamos fecha fin a ayer para que pase al historial
+        dieta.setFechaFin(LocalDate.now().minusDays(1));
+        dietaRepositorio.save(dieta);
     }
 }

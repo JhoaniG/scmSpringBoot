@@ -1,22 +1,42 @@
 package com.scm.scm.controller;
 
 import com.scm.scm.dto.*;
+import com.scm.scm.model.Dieta;
+import com.scm.scm.model.Mascota;
 import com.scm.scm.model.Usuario;
 import com.scm.scm.model.Veterinario;
+import com.scm.scm.repository.DietaRepositorio;
+import com.scm.scm.repository.MascotaRepositorio;
+import com.scm.scm.repository.UsuarioRepositorio;
 import com.scm.scm.repository.VeterinarioRepositorio;
 import com.scm.scm.service.DietaService;
 import com.scm.scm.service.MascotaService;
 import com.scm.scm.service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.validation.BindingResult;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
+import org.springframework.http.ResponseEntity; // <-- Importa esto
+import org.springframework.http.HttpStatus; // <-- Importa esto
+import jakarta.validation.Valid; // <-- Importa esto
+import org.springframework.validation.BindingResult; // <-- Importa esto
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/dieta")
@@ -35,6 +55,14 @@ public class DietaController {
         this.usuarioRepositorio = usuarioRepositorio;
         this.veterinarioRepositorio = veterinarioRepositorio;
     }
+    @Autowired
+    private DietaRepositorio dietaRepository;
+
+    @Autowired
+    private MascotaRepositorio mascotaRepository;
+
+    @Autowired
+    private UsuarioRepositorio usuarioRepository;
     @ModelAttribute
     public void agregarAtributosGlobales(Model model, Authentication auth) {
         // Siempre agregamos un objeto vacío para que el fragmento no falle
@@ -134,6 +162,81 @@ public class DietaController {
             return "redirect:/dieta/seleccionar-dueno";
         }
     }
+
+
+    @PostMapping("/crear/foto")
+    @ResponseBody
+    public ResponseEntity<?> crearDietaConFoto(
+            @RequestParam("mascotaId") Integer mascotaId,
+            @RequestParam("tipoDieta") String tipoDieta,
+            @RequestParam("fechaInicio") String fechaInicio,
+            @RequestParam("fechaFin") String fechaFin,
+            @RequestParam("descripcion") String descripcion,
+            // 1. Marcamos la foto como NO requerida
+            @RequestParam(value = "foto", required = false) MultipartFile foto
+    ) {
+
+        try {
+            // ... (Tu lógica de Mascota y Veterinario está bien) ...
+            Mascota mascota = mascotaRepository.findById(Long.valueOf(mascotaId))
+                    .orElseThrow(() -> new RuntimeException("Mascota no existe"));
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String correo = auth.getName();
+            Usuario usuarioVet = usuarioRepository.findByEmail(correo)
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            Veterinario veterinario = veterinarioRepositorio.findByUsuario(usuarioVet)
+                    .orElseThrow(() -> new RuntimeException("Perfil veterinario no encontrado"));
+
+
+            // 2. Iniciamos el nombre del archivo como null
+            String nombreArchivo = null;
+
+            // 3. Solo procesamos la foto SI existe y NO está vacía
+            if (foto != null && !foto.isEmpty()) {
+                // 3. Guardar foto
+                nombreArchivo = System.currentTimeMillis() + "_" + foto.getOriginalFilename();
+                Path ruta = Paths.get("uploads/dietas/" + nombreArchivo);
+
+                Files.createDirectories(ruta.getParent());
+                Files.write(ruta, foto.getBytes());
+            }
+
+            // 4. Crear dieta
+            Dieta dieta = new Dieta();
+            dieta.setMascota(mascota);
+            dieta.setVeterinario(veterinario);
+            dieta.setTipoDieta(tipoDieta);
+            dieta.setDescripcion(descripcion);
+            dieta.setFechaInicio(LocalDate.parse(fechaInicio));
+            dieta.setFechaFin(LocalDate.parse(fechaFin));
+
+            // 4. Asignamos el nombre (o se queda null si no hubo foto)
+            dieta.setFoto(nombreArchivo);
+
+            dietaRepository.save(dieta);
+
+            return ResponseEntity.ok(Map.of("mensaje", "Dieta registrada"));
+
+        } catch (Exception e) {
+            e.printStackTrace(); // Es bueno ver el error en la consola de Spring
+            return ResponseEntity.badRequest().body(Map.of("error", "Datos inválidos o incompletos"));
+        }
+    }
+
+    @PostMapping("/terminar/{id}")
+    @ResponseBody // Importante para que el JavaScript reciba el JSON
+    public ResponseEntity<?> terminarDieta(@PathVariable("id") Long id) {
+        try {
+            // LLAMAMOS AL SERVICIO (que ya tiene la lógica de cambiar la fecha a ayer)
+            dietaService.terminarDieta(id);
+
+            return ResponseEntity.ok(Map.of("mensaje", "Dieta marcada como terminada"));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se pudo terminar la dieta: " + e.getMessage()));
+        }
+    }
+
 }
 
 

@@ -2,9 +2,9 @@ package com.scm.scm.controller;
 
 import com.scm.scm.dto.*;
 import com.scm.scm.model.Usuario;
-import com.scm.scm.model.Veterinario; // <-- 1. AÑADIR ESTE IMPORT
+import com.scm.scm.model.Veterinario;
 import com.scm.scm.repository.UsuarioRepositorio;
-import com.scm.scm.repository.VeterinarioRepositorio; // <-- 2. AÑADIR ESTE IMPORT
+import com.scm.scm.repository.VeterinarioRepositorio;
 import com.scm.scm.service.*;
 import jakarta.servlet.http.HttpSession;
 import org.modelmapper.ModelMapper;
@@ -28,12 +28,13 @@ import java.util.Map;
 @Controller
 public class DuenoMascotaController {
 
-    // --- Tus inyecciones existentes (están bien) ---
+    // --- Inyecciones ---
     private final MascotaService mascotaService;
     private final DietaService dietaService;
     private final ActividadFisicaService actividadFisicaService;
     private final CitaService citaService;
     private final PdfGenerationService pdfService;
+    private final DiagnosticoDuenoService diagnosticoDuenoService; // Movido arriba para orden
 
     @Autowired
     private UsuarioRepositorio usuarioRepositorio;
@@ -41,34 +42,29 @@ public class DuenoMascotaController {
     @Autowired
     private ModelMapper modelMapper;
 
-    // --- 3. AÑADIR ESTA INYECCIÓN ---
     @Autowired
     private VeterinarioRepositorio veterinarioRepositorio;
 
-    // --- 4. AÑADIR EL REPOSITORIO AL CONSTRUCTOR ---
+    // --- Constructor ---
     public DuenoMascotaController(MascotaService mascotaService, DietaService dietaService,
                                   ActividadFisicaService actividadFisicaService, CitaService citaService,
                                   PdfGenerationService pdfService, VeterinarioRepositorio veterinarioRepositorio,
-                                  DiagnosticoDuenoService diagnosticoDuenoService) { // <-- Añadir aquí
+                                  DiagnosticoDuenoService diagnosticoDuenoService) {
         this.mascotaService = mascotaService;
         this.dietaService = dietaService;
         this.actividadFisicaService = actividadFisicaService;
         this.citaService = citaService;
         this.pdfService = pdfService;
         this.veterinarioRepositorio = veterinarioRepositorio;
-        this.diagnosticoDuenoService = diagnosticoDuenoService; // <-- Y aquí
+        this.diagnosticoDuenoService = diagnosticoDuenoService;
     }
-    private final DiagnosticoDuenoService diagnosticoDuenoService;
 
     @ModelAttribute
     public void agregarAtributosGlobales(Model model, Authentication auth) {
 
         DiagnosticoDuenoDTO dto = new DiagnosticoDuenoDTO();
-        // 2. Ponle la fecha actual del servidor (convertida a String)
         dto.setFechaDiagnostico(LocalDate.now().toString());
-        // 3. Pásalo al modelo
-        model.addAttribute("diagnosticoDTO", dto);
-        model.addAttribute("diagnosticoDTO", new DiagnosticoDuenoDTO());
+        model.addAttribute("diagnosticoDTO", dto); // Solo una vez es suficiente
 
         if (auth != null && auth.isAuthenticated()) {
             String email = auth.getName();
@@ -79,12 +75,10 @@ public class DuenoMascotaController {
             model.addAttribute("logueado", false);
         }
 
-        // --- 5. CORRECCIÓN EN EL MÉTODO GLOBAL ---
-        // Cargamos la lista correcta de Veterinarios aquí para que esté disponible en todas las vistas
+        // Cargar lista global de veterinarios
         List<Veterinario> veterinarios = veterinarioRepositorio.findAll();
         model.addAttribute("veterinarios", veterinarios);
 
-        // Dejamos que los controladores específicos sobreescriban "mascotas" si es necesario
         model.addAttribute("mascotas", List.of());
     }
 
@@ -94,37 +88,22 @@ public class DuenoMascotaController {
         Usuario usuario = usuarioRepositorio.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // --- 6. CORRECCIÓN DE NOMBRES DE VARIABLE ---
-        // La lista para las tarjetas de la página principal se llamará "misMascotas"
         List<MascotaDTO> misMascotas = mascotaService.getAllMascotas()
                 .stream()
                 .filter(m -> m.getUsuarioId().equals(usuario.getIdUsuario()))
                 .toList();
         model.addAttribute("misMascotas", misMascotas);
-
-        // La lista para la barra lateral se llamará "mascotas" (para el modal)
-        // (La cargamos en @ModelAttribute, pero podemos ser explícitos si el modal la necesita completa)
-        model.addAttribute("mascotas", mascotaService.getAllMascotas());
-
-        // 'veterinarios' ya fue añadido correctamente por agregarAtributosGlobales
-        // No necesitamos esta línea incorrecta:
-        // List<Usuario> veterinarios = usuarioRepositorio.findByRolIdRol(3L);
-        // model.addAttribute("veterinarios", veterinarios);
-
+        model.addAttribute("mascotas", mascotaService.getAllMascotas()); // Para el modal lateral
         model.addAttribute("usuario", usuario);
         model.addAttribute("logueado", true);
-        model.addAttribute("diagnosticoDTO", new DiagnosticoDuenoDTO());
 
         session.setAttribute("usuarioSesion", usuario);
 
         return "duenoMascota/index";
     }
 
-    // --- EL RESTO DE MÉTODOS NO CAMBIAN ---
-
     @GetMapping("/dueno/mascotas")
     public String listarMascotas(Model model, HttpSession session) {
-        // ... (tu código original)
         Object sessionUser = session.getAttribute("usuarioSesion");
         if (sessionUser == null) {
             return "redirect:/login";
@@ -139,14 +118,20 @@ public class DuenoMascotaController {
 
     @GetMapping("/duenoMascota/dietas")
     public String consultarDietas(@RequestParam("idMascota") Long idMascota, Model model) {
+
+        // 1. Activas
         List<DietaVistaDTO> dietas = dietaService.obtenerDietasPorMascotaId(idMascota);
         model.addAttribute("dietas", dietas);
+
+        // 2. Historial (NUEVO)
+        List<DietaVistaDTO> historial = dietaService.obtenerHistorialDietasPorMascotaId(idMascota);
+        model.addAttribute("historial", historial);
+
         return "duenoMascota/dietasPorMascota";
     }
 
     @GetMapping("/dueno/mascotas/actividad")
     public String listarMascotasAc(Model model, HttpSession session) {
-        // ... (tu código original)
         Object sessionUser = session.getAttribute("usuarioSesion");
         if (sessionUser == null) {
             return "redirect:/login";
@@ -159,17 +144,25 @@ public class DuenoMascotaController {
         return "duenoMascota/mascotasActividad";
     }
 
+    // --- AQUÍ ESTÁ EL CAMBIO IMPORTANTE ---
     @GetMapping("/duenoMascota/actividades")
     public String consultarActividades(@RequestParam("idMascota") Long idMascota, Model model) {
-        // ... (tu código original)
+
+        // 1. Obtener Actividades ACTIVAS (En curso)
         List<ActividadVistaDTO> actividades = actividadFisicaService.obtenerActividadesPorMascotaId(idMascota);
         model.addAttribute("actividades", actividades);
+
+        // 2. Obtener Actividades TERMINADAS (Historial)
+        // Asegúrate de que este método exista en tu Interfaz y ServiceImpl como lo creamos antes
+        List<ActividadVistaDTO> historial = actividadFisicaService.obtenerHistorialActividadesPorMascotaId(idMascota);
+        model.addAttribute("historial", historial);
+
         return "duenoMascota/actividadesPorMascota";
     }
+    // --------------------------------------
 
     @GetMapping("/dueno/mascotas/{idMascota}/ficha/pdf")
     public ResponseEntity<byte[]> exportarFichaPdf(@PathVariable Long idMascota) {
-        // ... (tu código original)
         Map<String, Object> datos = citaService.obtenerDatosHistorialClinico(idMascota);
         MascotaDTO mascotaDTO = (MascotaDTO) datos.get("mascota");
         String nombreArchivo = "ficha_" + mascotaDTO.getNombre().toLowerCase().replace(" ", "_") + ".pdf";
@@ -181,26 +174,20 @@ public class DuenoMascotaController {
                 .headers(headers)
                 .body(pdfBytes);
     }
+
     @GetMapping("/dueno/mascota/historial/{idMascota}")
     public String verHistorialMascota(@PathVariable Long idMascota, Model model) {
-
-        // 1. Obtener la mascota para el título
         MascotaDTO mascota = mascotaService.obtenerMascotaPorId(idMascota);
-
-        // 2. Obtener las listas (usando los métodos que creamos en el paso anterior)
         List<CitaDTO> citas = citaService.listarCitasPorMascota(idMascota);
         List<DiagnosticoDuenoDTO> diagnosticos = diagnosticoDuenoService.listarDiagnosticosPorMascota(idMascota);
 
-        // 3. Ordenar las listas por fecha (más reciente primero)
         citas.sort(Comparator.comparing(CitaDTO::getFechaCita).reversed());
         diagnosticos.sort(Comparator.comparing(DiagnosticoDuenoDTO::getFechaDiagnostico).reversed());
 
-        // 4. Añadir todo al modelo
         model.addAttribute("mascota", mascota);
         model.addAttribute("citas", citas);
         model.addAttribute("diagnosticos", diagnosticos);
 
-        // 5. Devolver el nombre del nuevo archivo HTML
         return "duenoMascota/historialMascota";
     }
 }

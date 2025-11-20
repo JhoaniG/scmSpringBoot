@@ -137,22 +137,19 @@ public class ActividadFisicaServiceImpl implements ActividadFisicaService {
     @Override
     @Transactional
     public List<ActividadVistaDTO> obtenerActividadesPorMascotaId(Long mascotaId) {
-        // 1. Obtenemos la fecha de hoy
         LocalDate hoy = LocalDate.now();
-
-        // 2. Obtenemos TODAS las actividades de la mascota
         List<ActividadFisica> todasLasActividades = actividadFisicaRepositorio.findByMascota_IdMascota(mascotaId);
 
-        // --- 3. NUEVO: Filtramos solo las actividades activas ---
+        // Filtramos solo las activas
         List<ActividadFisica> actividadesActivas = todasLasActividades.stream()
                 .filter(actividad -> !actividad.getFechaFin().isBefore(hoy))
                 .collect(Collectors.toList());
-        // --- FIN DEL FILTRO ---
 
-        // 4. Lógica para marcar como VISTO (ahora solo sobre las activas)
-        List<ActividadFisica> actividadesParaActualizar = actividadesActivas.stream() // <-- Usamos la lista filtrada
+        // Marcar como visto
+        List<ActividadFisica> actividadesParaActualizar = actividadesActivas.stream()
                 .filter(actividad -> !actividad.isVistaPorDueno())
                 .toList();
+
         if (!actividadesParaActualizar.isEmpty()) {
             for (ActividadFisica actividad : actividadesParaActualizar) {
                 actividad.setVistaPorDueno(true);
@@ -160,24 +157,27 @@ public class ActividadFisicaServiceImpl implements ActividadFisicaService {
             actividadFisicaRepositorio.saveAll(actividadesParaActualizar);
         }
 
-        // 5. Devolvemos solo las actividades ACTIVAS al DTO
-        return actividadesActivas.stream().map(actividad -> { // <-- Usamos la lista filtrada
-            ActividadVistaDTO actividadVistaDTO = new ActividadVistaDTO();
-            actividadVistaDTO.setIdActividadFisica(actividad.getIdActividadFisica());
-            actividadVistaDTO.setDescripcion(actividad.getDescripcion());
-            actividadVistaDTO.setTipoActividad(actividad.getTipoActividad());
-            actividadVistaDTO.setFoto(actividad.getFoto());
+        return actividadesActivas.stream().map(actividad -> {
+            ActividadVistaDTO dto = new ActividadVistaDTO();
+            dto.setIdActividadFisica(actividad.getIdActividadFisica());
+            dto.setDescripcion(actividad.getDescripcion());
+            dto.setTipoActividad(actividad.getTipoActividad());
+            dto.setFoto(actividad.getFoto());
+
+            // --- ESTO ES LO QUE FALTABA ---
+            dto.setFechaInicio(actividad.getFechaInicio());
+            dto.setFechaFin(actividad.getFechaFin());
+            // ------------------------------
 
             if (actividad.getMascota() != null) {
-                actividadVistaDTO.setNombreMascota(actividad.getMascota().getNombre());
+                dto.setNombreMascota(actividad.getMascota().getNombre());
             }
             if (actividad.getVeterinario() != null && actividad.getVeterinario().getUsuario() != null) {
-                actividadVistaDTO.setNombreVeterinario(actividad.getVeterinario().getUsuario().getNombre());
+                dto.setNombreVeterinario(actividad.getVeterinario().getUsuario().getNombre());
             }
-            return actividadVistaDTO;
+            return dto;
         }).collect(Collectors.toList());
     }
-    // --- FIN DE LA MODIFICACIÓN ---
 
     @Override
     public Page<ActividadFisicaDTO> getAllActividadesPaginadas(Pageable pageable) {
@@ -193,6 +193,50 @@ public class ActividadFisicaServiceImpl implements ActividadFisicaService {
             dto.setNombreVeterinario(actividad.getVeterinario().getUsuario().getNombre());
         }
         return dto;
+    }
+
+
+    @Override
+    public void terminarActividad(Long id) {
+        ActividadFisica actividad = actividadFisicaRepositorio.findById(id)
+                .orElseThrow(() -> new RuntimeException("Actividad no encontrada"));
+
+        // Para "terminar", establecemos la fecha fin a AYER, así el filtro la oculta
+        actividad.setFechaFin(LocalDate.now().minusDays(1));
+        actividadFisicaRepositorio.save(actividad);
+    }
+
+    @Transactional
+    @Override
+    public List<ActividadVistaDTO> obtenerHistorialActividadesPorMascotaId(Long mascotaId) {
+        LocalDate hoy = LocalDate.now();
+
+        // 1. Buscamos todas
+        List<ActividadFisica> todas = actividadFisicaRepositorio.findByMascota_IdMascota(mascotaId);
+
+        // 2. Filtramos las que YA TERMINARON (fechaFin < hoy)
+        List<ActividadFisica> terminadas = todas.stream()
+                .filter(a -> a.getFechaFin().isBefore(hoy))
+                .toList();
+
+        // 3. Convertimos a DTO
+        return terminadas.stream().map(actividad -> {
+            ActividadVistaDTO dto = new ActividadVistaDTO();
+            dto.setIdActividadFisica(actividad.getIdActividadFisica());
+            dto.setDescripcion(actividad.getDescripcion());
+            dto.setTipoActividad(actividad.getTipoActividad());
+            dto.setFoto(actividad.getFoto());
+            dto.setFechaInicio(actividad.getFechaInicio());
+            dto.setFechaFin(actividad.getFechaFin());
+
+            if (actividad.getMascota() != null) {
+                dto.setNombreMascota(actividad.getMascota().getNombre());
+            }
+            if (actividad.getVeterinario() != null && actividad.getVeterinario().getUsuario() != null) {
+                dto.setNombreVeterinario(actividad.getVeterinario().getUsuario().getNombre());
+            }
+            return dto;
+        }).collect(Collectors.toList());
     }
 
 }
