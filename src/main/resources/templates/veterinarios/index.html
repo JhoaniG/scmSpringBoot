@@ -6,13 +6,11 @@
     <title>Panel Veterinario - SCM</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link rel="stylesheet" th:href="@{/css/stilos.css}">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <style>
-        /* Estilos específicos para las tarjetas de pacientes */
+        /* Estilos de las Tarjetas de Pacientes (Ya los tenías) */
         .paciente-card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             border: none;
@@ -33,26 +31,11 @@
             align-items: center;
             justify-content: center;
         }
-        .paciente-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .paciente-icon-default {
-            font-size: 4rem;
-            color: #dee2e6;
-        }
-        .card-body {
-            padding: 1.5rem;
-        }
-        .badge-raza {
-            background-color: #e3f2fd;
-            color: #0d6efd;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
+        .paciente-img { width: 100%; height: 100%; object-fit: cover; }
+        .paciente-icon-default { font-size: 4rem; color: #dee2e6; }
+        .badge-raza { background-color: #e3f2fd; color: #0d6efd; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+
+        /* Cabecera */
         .dashboard-header {
             background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
             color: white;
@@ -61,13 +44,62 @@
             margin-bottom: 2rem;
             box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
         }
+
+        /* --- NUEVOS ESTILOS PARA ACCIONES RÁPIDAS --- */
+        .action-card {
+            border: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-bottom: 4px solid transparent; /* Línea de color abajo */
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            color: inherit; /* Mantiene el color del texto */
+        }
+
+        .action-icon {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        /* Colores específicos para cada acción */
+        .action-card.diagnostico { border-bottom-color: #0dcaf0; }
+        .action-card.diagnostico .action-icon { color: #0dcaf0; }
+
+        .action-card.citas { border-bottom-color: #6f42c1; }
+        .action-card.citas .action-icon { color: #6f42c1; }
+
+        .action-card.dietas { border-bottom-color: #198754; }
+        .action-card.dietas .action-icon { color: #198754; }
+
+        .action-card.actividades { border-bottom-color: #ffc107; }
+        .action-card.actividades .action-icon { color: #ffc107; }
+
+        .action-card.pacientes { border-bottom-color: #fd7e14; }
+        .action-card.pacientes .action-icon { color: #fd7e14; }
+
+        .action-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
 
 <div th:replace="~{fragments/menuV :: menuV}"></div>
 <input type="checkbox" id="btn-menu">
-
 <div th:replace="~{fragments/barralateralV :: barralateralV}"></div>
 
 <div class="capa container mt-4 mb-5">
@@ -75,21 +107,63 @@
     <div class="dashboard-header d-flex flex-column flex-md-row align-items-center justify-content-between">
         <div class="mb-3 mb-md-0">
             <h1 class="fw-bold mb-1">¡Hola, Dr. <span th:text="${usuario.nombre}">Nombre</span>! 👋</h1>
-            <p class="mb-0 opacity-75">Bienvenido a tu panel de control veterinario.</p>
+            <p class="mb-0 opacity-75">Bienvenido a tu panel de control.</p>
         </div>
         <div>
-            <a th:href="@{/veterinario/calendario}" class="btn btn-light fw-bold text-primary shadow-sm">
-                <i class="fas fa-calendar-alt me-2"></i> Ver Agenda
-            </a>
+            <span class="badge bg-light text-dark fs-6">
+                <i class="far fa-calendar-alt"></i> <span th:text="${#temporals.format(#temporals.createNow(), 'dd MMMM yyyy')}">Fecha</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="mb-5">
+        <h4 class="text-muted fw-bold mb-3">Acciones Rápidas</h4>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
+
+            <div class="col">
+                <a th:href="@{/diagnosticos/listar}" class="action-card diagnostico">
+                    <i class="fas fa-notes-medical action-icon"></i>
+                    <span class="action-title">Diagnósticos</span>
+                </a>
+            </div>
+
+            <div class="col">
+                <a th:href="@{/veterinario/calendario}" class="action-card citas">
+                    <i class="fas fa-calendar-check action-icon"></i>
+                    <span class="action-title">Agenda & Citas</span>
+                </a>
+            </div>
+
+            <div class="col">
+                <a th:href="@{/dieta/seleccionar-dueno}" class="action-card dietas">
+                    <i class="fas fa-utensils action-icon"></i>
+                    <span class="action-title">Crear Dieta</span>
+                </a>
+            </div>
+
+            <div class="col">
+                <a th:href="@{/actividad/seleccionar-dueno}" class="action-card actividades">
+                    <i class="fas fa-running action-icon"></i>
+                    <span class="action-title">Actividades</span>
+                </a>
+            </div>
+
+            <div class="col">
+                <a th:href="@{/veterinario/mis-pacientes}" class="action-card pacientes">
+                    <i class="fas fa-paw action-icon"></i>
+                    <span class="action-title">Mis Pacientes</span>
+                </a>
+            </div>
+
         </div>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-primary fw-bold mb-0">
-            <i class="fas fa-paw me-2"></i>Mis Pacientes Recientes
+            <i class="fas fa-history me-2"></i>Pacientes Recientes
         </h2>
         <a th:href="@{/veterinario/mis-pacientes}" class="btn btn-outline-primary btn-sm">
-            Ver lista completa <i class="fas fa-arrow-right ms-1"></i>
+            Ver todos <i class="fas fa-arrow-right ms-1"></i>
         </a>
     </div>
 
@@ -99,8 +173,7 @@
             <div class="mb-3">
                 <i class="fas fa-folder-open fa-4x opacity-50"></i>
             </div>
-            <h4>Aún no tienes pacientes asignados.</h4>
-            <p>Las mascotas aparecerán aquí cuando tengas citas con ellas.</p>
+            <h4>Aún no tienes pacientes recientes.</h4>
         </div>
 
         <div class="col" th:each="paciente : ${misPacientes}">
@@ -121,8 +194,8 @@
                     </div>
 
                     <p class="card-text text-muted small mb-3">
-                        <i class="fas fa-user me-1"></i> Dueño:
-                        <span class="fw-bold" th:text="${paciente.usuario.nombre} + ' ' + ${paciente.usuario.apellido}">Nombre Dueño</span>
+                        <i class="fas fa-user me-1"></i>
+                        <span th:text="${paciente.usuario.nombre} + ' ' + ${paciente.usuario.apellido}">Dueño</span>
                     </p>
 
                     <div class="d-grid">
@@ -135,7 +208,11 @@
             </div>
         </div>
 
-    </div> </div> <footer class="footer mt-auto py-3 bg-light text-center text-muted">
+    </div>
+
+</div>
+
+<footer class="footer mt-auto py-3 bg-light text-center text-muted">
     <div class="container">
         <p class="mb-0">&copy; 2025 SCM - Sistema de Control de Mascotas</p>
     </div>
