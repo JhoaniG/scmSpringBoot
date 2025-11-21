@@ -94,22 +94,29 @@ public class VeterinarioController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/veterinario/index")
-    public String veterinarioIndex(Model model, Authentication authentication, HttpSession session) {
+    // En tu VeterinarioController.java
+
+    @GetMapping("veterinario/index")
+    public String veterinarioIndex(Model model, Authentication authentication, jakarta.servlet.http.HttpSession session) {
         String email = authentication.getName();
-        Usuario usuario = usuarioRepositorio.findByEmail(email).orElseThrow(() -> new RuntimeException("Usuario en sesión no encontrado"));
+        Usuario usuario = usuarioRepositorio.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        model.addAttribute("usuario", usuario);
         session.setAttribute("usuario", usuario);
+        model.addAttribute("usuario", usuario);
 
-        // Obtener el objeto Veterinario
-        Optional<Veterinario> optVet = veterinarioRepositorio.findByUsuarioId(usuario.getIdUsuario());
-        Veterinario vet = optVet.orElseThrow(() -> new RuntimeException("Veterinario no encontrado"));
+        Veterinario vet = veterinarioRepositorio.findByUsuario(usuario)
+                .orElseThrow(() -> new RuntimeException("Veterinario no encontrado"));
 
-        // Guardar el ID del veterinario en la sesión
         session.setAttribute("idVeterinario", vet.getIdVeterinario());
-        // Guardar el objeto completo si es necesario para otras funcionalidades
         session.setAttribute("veterinarioSesion", vet);
+
+        // CORRECCIÓN: Pedimos una Página de 4 elementos, pero extraemos la Lista
+        Pageable top4 = PageRequest.of(0, 4);
+        Page<Mascota> paginaPacientes = mascotaRepositorio.findPacientesByVeterinarioId(vet.getIdVeterinario(), top4);
+
+        // Pasamos la lista (.getContent()) para que el th:each del index funcione igual
+        model.addAttribute("misPacientes", paginaPacientes.getContent());
 
         return "veterinarios/index";
     }
