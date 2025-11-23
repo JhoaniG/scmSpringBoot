@@ -10,90 +10,89 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <style>
-        /* Estilos de las Tarjetas de Pacientes (Ya los tenías) */
-        .paciente-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: none;
-            border-radius: 15px;
-            overflow: hidden;
-            background-color: #fff;
+        body { background-color: #f4f6f9; min-height: 100vh; }
+
+        /* Centrado del Contenido */
+        .content-wrapper {
+            padding-top: 80px;
+            padding-bottom: 50px;
+            max-width: 1200px; /* Ancho máximo igual al del dueño */
+            margin: 0 auto; /* Centrado horizontal */
+            padding-left: 15px;
+            padding-right: 15px;
         }
-        .paciente-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .paciente-img-container {
-            height: 200px;
-            overflow: hidden;
-            position: relative;
-            background-color: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .paciente-img { width: 100%; height: 100%; object-fit: cover; }
-        .paciente-icon-default { font-size: 4rem; color: #dee2e6; }
-        .badge-raza { background-color: #e3f2fd; color: #0d6efd; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
 
         /* Cabecera */
         .dashboard-header {
             background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
             color: white;
-            padding: 2rem;
+            padding: 2.5rem;
             border-radius: 15px;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
             box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
         }
 
-        /* --- NUEVOS ESTILOS PARA ACCIONES RÁPIDAS --- */
+        /* Acciones Rápidas (Centradas) */
+        .quick-actions-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.5rem; /* Un poco más de espacio entre botones */
+            margin-bottom: 3rem;
+        }
         .action-card {
+            width: 160px; /* Ancho fijo para uniformidad */
             border: none;
             border-radius: 12px;
             transition: all 0.3s ease;
             text-decoration: none;
             color: inherit;
-            height: 100%;
+            height: 140px; /* Altura fija */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 1.5rem;
+            padding: 1rem;
             background-color: white;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border-bottom: 4px solid transparent; /* Línea de color abajo */
+            border-bottom: 4px solid transparent;
         }
-
         .action-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-            color: inherit; /* Mantiene el color del texto */
+            color: inherit;
         }
 
-        .action-icon {
-            font-size: 2rem;
-            margin-bottom: 0.8rem;
+        .action-icon { font-size: 2rem; margin-bottom: 0.8rem; }
+        .action-title { font-weight: 600; font-size: 0.9rem; text-align: center; line-height: 1.2; }
+
+        /* Colores */
+        .action-card.diagnostico { border-bottom-color: #0dcaf0; } .action-card.diagnostico .action-icon { color: #0dcaf0; }
+        .action-card.citas { border-bottom-color: #6f42c1; } .action-card.citas .action-icon { color: #6f42c1; }
+        .action-card.dietas { border-bottom-color: #198754; } .action-card.dietas .action-icon { color: #198754; }
+        .action-card.actividades { border-bottom-color: #ffc107; } .action-card.actividades .action-icon { color: #ffc107; }
+        .action-card.pacientes { border-bottom-color: #fd7e14; } .action-card.pacientes .action-icon { color: #fd7e14; }
+
+        /* Tarjetas de Pacientes */
+        .paciente-card {
+            border: none; border-radius: 15px; overflow: hidden;
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            height: 100%;
         }
+        .paciente-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
 
-        /* Colores específicos para cada acción */
-        .action-card.diagnostico { border-bottom-color: #0dcaf0; }
-        .action-card.diagnostico .action-icon { color: #0dcaf0; }
-
-        .action-card.citas { border-bottom-color: #6f42c1; }
-        .action-card.citas .action-icon { color: #6f42c1; }
-
-        .action-card.dietas { border-bottom-color: #198754; }
-        .action-card.dietas .action-icon { color: #198754; }
-
-        .action-card.actividades { border-bottom-color: #ffc107; }
-        .action-card.actividades .action-icon { color: #ffc107; }
-
-        .action-card.pacientes { border-bottom-color: #fd7e14; }
-        .action-card.pacientes .action-icon { color: #fd7e14; }
-
-        .action-title {
-            font-weight: 600;
-            font-size: 1rem;
+        .paciente-img-container {
+            height: 180px; overflow: hidden; position: relative;
+            background-color: #f8f9fa;
+            display: flex; align-items: center; justify-content: center;
         }
+        .paciente-img { width: 100%; height: 100%; object-fit: cover; }
+        .paciente-icon-default { font-size: 4rem; color: #dee2e6; }
+
+        .card-body { padding: 1.5rem; text-align: center; } /* Centrar texto de la tarjeta */
+        .badge-raza { background-color: #e3f2fd; color: #0d6efd; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -102,78 +101,68 @@
 <input type="checkbox" id="btn-menu">
 <div th:replace="~{fragments/barralateralV :: barralateralV}"></div>
 
-<div class="capa container mt-4 mb-5">
+<div class="content-wrapper">
 
     <div class="dashboard-header d-flex flex-column flex-md-row align-items-center justify-content-between">
-        <div class="mb-3 mb-md-0">
+        <div class="mb-3 mb-md-0 text-center text-md-start">
             <h1 class="fw-bold mb-1">¡Hola, Dr. <span th:text="${usuario.nombre}">Nombre</span>! 👋</h1>
             <p class="mb-0 opacity-75">Bienvenido a tu panel de control.</p>
         </div>
         <div>
-            <span class="badge bg-light text-dark fs-6">
-                <i class="far fa-calendar-alt"></i> <span th:text="${#temporals.format(#temporals.createNow(), 'dd MMMM yyyy')}">Fecha</span>
+            <span class="badge bg-light text-dark fs-6 shadow-sm py-2 px-3">
+                <i class="far fa-calendar-alt me-1"></i>
+                <span th:text="${#temporals.format(fechaHoy, 'dd MMMM yyyy')}">Fecha</span>
             </span>
         </div>
     </div>
 
     <div class="mb-5">
-        <h4 class="text-muted fw-bold mb-3">Acciones Rápidas</h4>
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
+        <h4 class="text-muted fw-bold mb-4 text-center">Acciones Rápidas</h4>
+        <div class="quick-actions-container">
+            <a th:href="@{/diagnosticos/listar}" class="action-card diagnostico">
+                <i class="fas fa-notes-medical action-icon"></i>
+                <span class="action-title">Diagnósticos</span>
+            </a>
 
-            <div class="col">
-                <a th:href="@{/diagnosticos/listar}" class="action-card diagnostico">
-                    <i class="fas fa-notes-medical action-icon"></i>
-                    <span class="action-title">Diagnósticos</span>
-                </a>
-            </div>
+            <a th:href="@{/veterinario/calendario}" class="action-card citas">
+                <i class="fas fa-calendar-check action-icon"></i>
+                <span class="action-title">Agenda & Citas</span>
+            </a>
 
-            <div class="col">
-                <a th:href="@{/veterinario/calendario}" class="action-card citas">
-                    <i class="fas fa-calendar-check action-icon"></i>
-                    <span class="action-title">Agenda & Citas</span>
-                </a>
-            </div>
+            <a th:href="@{/dieta/seleccionar-dueno}" class="action-card dietas">
+                <i class="fas fa-utensils action-icon"></i>
+                <span class="action-title">Crear Dieta</span>
+            </a>
 
-            <div class="col">
-                <a th:href="@{/dieta/seleccionar-dueno}" class="action-card dietas">
-                    <i class="fas fa-utensils action-icon"></i>
-                    <span class="action-title">Crear Dieta</span>
-                </a>
-            </div>
+            <a th:href="@{/actividad/seleccionar-dueno}" class="action-card actividades">
+                <i class="fas fa-running action-icon"></i>
+                <span class="action-title">Actividades</span>
+            </a>
 
-            <div class="col">
-                <a th:href="@{/actividad/seleccionar-dueno}" class="action-card actividades">
-                    <i class="fas fa-running action-icon"></i>
-                    <span class="action-title">Actividades</span>
-                </a>
-            </div>
-
-            <div class="col">
-                <a th:href="@{/veterinario/mis-pacientes}" class="action-card pacientes">
-                    <i class="fas fa-paw action-icon"></i>
-                    <span class="action-title">Mis Pacientes</span>
-                </a>
-            </div>
-
+            <a th:href="@{/veterinario/mis-pacientes}" class="action-card pacientes">
+                <i class="fas fa-paw action-icon"></i>
+                <span class="action-title">Mis Pacientes</span>
+            </a>
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary fw-bold mb-0">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+        <h3 class="text-primary fw-bold mb-0">
             <i class="fas fa-history me-2"></i>Pacientes Recientes
-        </h2>
-        <a th:href="@{/veterinario/mis-pacientes}" class="btn btn-outline-primary btn-sm">
+        </h3>
+        <a th:href="@{/veterinario/mis-pacientes}" class="btn btn-outline-primary rounded-pill px-4 btn-sm">
             Ver todos <i class="fas fa-arrow-right ms-1"></i>
         </a>
     </div>
 
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4 justify-content-center">
 
         <div th:if="${#lists.isEmpty(misPacientes)}" class="col-12 text-center py-5 text-muted">
             <div class="mb-3">
                 <i class="fas fa-folder-open fa-4x opacity-50"></i>
             </div>
-            <h4>Aún no tienes pacientes recientes.</h4>
+            <h4>Aún no tienes pacientes asignados.</h4>
+            <p>Las mascotas aparecerán aquí cuando tengas citas con ellas.</p>
         </div>
 
         <div class="col" th:each="paciente : ${misPacientes}">
@@ -187,20 +176,21 @@
                        class="fas fa-dog paciente-icon-default"></i>
                 </div>
 
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h4 class="card-title fw-bold text-dark mb-0" th:text="${paciente.nombre}">Nombre</h4>
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title fw-bold text-dark mb-2" th:text="${paciente.nombre}">Nombre</h4>
+
+                    <div class="mb-3">
                         <span class="badge-raza" th:text="${paciente.raza}">Raza</span>
                     </div>
 
-                    <p class="card-text text-muted small mb-3">
-                        <i class="fas fa-user me-1"></i>
-                        <span th:text="${paciente.usuario.nombre} + ' ' + ${paciente.usuario.apellido}">Dueño</span>
+                    <p class="card-text text-muted small mb-3 flex-grow-1">
+                        <i class="fas fa-user me-1"></i> Dueño: <br>
+                        <span class="fw-bold" th:text="${paciente.usuario.nombre} + ' ' + ${paciente.usuario.apellido}">Nombre</span>
                     </p>
 
-                    <div class="d-grid">
+                    <div class="d-grid mt-auto">
                         <a th:href="@{/veterinario/mascotas/{id}(id=${paciente.idMascota})}"
-                           class="btn btn-primary btn-sm">
+                           class="btn btn-primary btn-sm rounded-pill">
                             <i class="fas fa-file-medical me-1"></i> Ver Historial
                         </a>
                     </div>
@@ -212,7 +202,7 @@
 
 </div>
 
-<footer class="footer mt-auto py-3 bg-light text-center text-muted">
+<footer class="footer mt-auto py-3 bg-light text-center text-muted border-top">
     <div class="container">
         <p class="mb-0">&copy; 2025 SCM - Sistema de Control de Mascotas</p>
     </div>

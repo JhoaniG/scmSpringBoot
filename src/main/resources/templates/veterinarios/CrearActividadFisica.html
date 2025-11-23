@@ -2,136 +2,241 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Registrar Actividad Física</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Actividad Física - SCM</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/stilos.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .form-card { max-width: 1000px; margin: auto; background: #fff; padding: 40px 45px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); }
-        .form-title { text-align: center; font-size: 32px; font-weight: bold; color: #0d6efd; margin-bottom: 40px; }
-        .input-group-text { background-color: #f0f0f0; font-size: 18px; }
-        .form-label { font-size: 17px; }
-        .btn { font-size: 16px; min-width: 150px; padding: 10px 20px; }
+        body { background-color: #f4f6f9; min-height: 100vh; }
+
+        .content-wrapper {
+            padding-top: 90px;
+            padding-bottom: 50px;
+            transition: margin-left 0.3s;
+        }
+        @media (min-width: 992px) { .content-wrapper { margin-left: 250px; } }
+
+        /* Tarjeta del Formulario */
+        .form-card {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border-top: 6px solid #ffc107; /* Amarillo/Naranja para Actividad */
+        }
+
+        .form-header { text-align: center; margin-bottom: 2rem; }
+        .form-title { font-weight: 800; color: #333; margin-bottom: 0.5rem; }
+        .form-subtitle { color: #6c757d; font-size: 0.95rem; }
+
+        /* Estilos de Inputs */
+        .form-label { font-weight: 600; color: #495057; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .form-control, .form-select {
+            border-radius: 10px; padding: 0.7rem 1rem; border: 1px solid #dee2e6;
+            background-color: #fdfdfd;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #ffc107; box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.15);
+        }
+
+        /* Grupo de Input con Icono */
+        .input-group-text {
+            background-color: #fff8e1; border: 1px solid #dee2e6; border-right: none;
+            color: #ffc107; border-top-left-radius: 10px; border-bottom-left-radius: 10px;
+        }
+        .input-group .form-control, .input-group .form-select {
+            border-top-left-radius: 0; border-bottom-left-radius: 0;
+        }
+
+        /* Botones */
+        .btn-save {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            border: none; color: white; padding: 12px 30px;
+            border-radius: 50px; font-weight: 700; transition: all 0.3s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3); color: white;}
+
+        .btn-back {
+            border: 2px solid #dee2e6; color: #6c757d; font-weight: 600; border-radius: 50px;
+            padding: 10px 20px; text-decoration: none; transition: 0.3s; background: white;
+        }
+        .btn-back:hover { background-color: #e9ecef; color: #333; }
     </style>
 </head>
 <body>
 
 <div th:replace="fragments/menuV :: menuV"></div>
 <input type="checkbox" id="btn-menu">
-
-<!-- Barra lateral -->
 <div th:replace="fragments/barralateralV :: barralateralV"></div>
 
-<main style="margin-top: 90px; margin-left: 250px; padding: 30px;">
-    <div class="form-card">
-        <div class="form-title">📝 Registrar Actividad para Mascota</div>
+<div class="content-wrapper">
+    <div class="container">
 
-        <form th:action="@{/actividad/crear}" th:object="${actividadFisicaDTO}" method="post" class="needs-validation" novalidate enctype="multipart/form-data">
-            <input type="hidden" th:field="*{veterinarioId}" th:value="${idVeterinario}">
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show mb-4 shadow-sm rounded-3">
+            <i class="fas fa-check-circle me-2"></i><span th:text="${mensajeExito}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm rounded-3">
+            <i class="fas fa-exclamation-circle me-2"></i><span th:text="${mensajeError}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
 
-            <div class="mb-4">
-                <label for="idMascota" class="form-label fw-semibold">🐾 Mascota</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-paw"></i></span>
-                    <select th:field="*{mascotaId}" id="idMascota" class="form-select form-select-lg"
-                            th:classappend="${#fields.hasErrors('mascotaId')} ? 'is-invalid' : ''" required>
-                        <option value="" disabled selected>Seleccione una mascota</option>
-                        <option th:each="m : ${listaMascotas}" th:value="${m.idMascota}" th:text="${m.nombre}"></option>
-                    </select>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('mascotaId')}" th:errors="*{mascotaId}"></div>
+        <div class="form-card">
+            <div class="form-header">
+                <div class="d-inline-block bg-warning text-white rounded-circle p-3 mb-3 shadow-sm">
+                    <i class="fas fa-running fa-2x"></i>
                 </div>
+                <h2 class="form-title">Registrar Actividad Física</h2>
+                <p class="form-subtitle">Crea una rutina de ejercicios para mejorar la salud de la mascota.</p>
             </div>
 
-            <div class="mb-4">
-                <label for="tipoActividad" class="form-label fw-semibold">🏃 Tipo de Actividad</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-activity"></i></span>
-                    <select th:field="*{tipoActividad}" id="tipoActividad" class="form-select form-select-lg"
-                            th:classappend="${#fields.hasErrors('tipoActividad')} ? 'is-invalid' : ''" required>
-                        <option value="" disabled selected>Seleccione un tipo de actividad</option>
-                        <option value="Paseos Diarios">Paseos Diarios</option>
-                        <option value="Juegos de lanzar y traer">Juegos de lanzar y traer</option>
-                        <option value="Carreras en el parque">Carreras en el parque</option>
-                        <option value="Natación">Natación</option>
-                        <option value="Agilidad (Circuitos)">Agilidad (Circuitos)</option>
-                        <option value="Rascadores y árboles para gatos">Rascadores y árboles para gatos</option>
-                        <option value="Sesiones de caza (con juguetes)">Sesiones de caza (con juguetes)</option>
-                        <option value="Juegos de persecución (láser)">Juegos de persecución (láser)</option>
-                        <option value="Juegos con juguetes interactivos">Juegos con juguetes interactivos</option>
-                        <option value="Juegos de Olfato / Mentales">Juegos de Olfato / Mentales</option>
-                    </select>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('tipoActividad')}" th:errors="*{tipoActividad}"></div>
+            <form th:action="@{/actividad/crear}" th:object="${actividadFisicaDTO}" method="post" class="needs-validation" novalidate enctype="multipart/form-data">
+
+                <input type="hidden" th:field="*{veterinarioId}">
+
+                <div class="mb-4">
+                    <label for="idMascota" class="form-label">Paciente (Mascota)</label>
+                    <div class="input-group has-validation">
+                        <span class="input-group-text"><i class="fas fa-paw"></i></span>
+                        <select th:field="*{mascotaId}" id="idMascota" class="form-select"
+                                th:classappend="${#fields.hasErrors('mascotaId')} ? 'is-invalid' : ''" required>
+                            <option value="" disabled selected>Seleccione una mascota...</option>
+                            <option th:each="m : ${listaMascotas}" th:value="${m.idMascota}" th:text="${m.nombre}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('mascotaId')}" th:errors="*{mascotaId}">Error</div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="mb-4">
-                <label for="descripcion" class="form-label fw-semibold">🗒️ Descripción</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-card-text"></i></span>
-                    <textarea th:field="*{descripcion}" id="descripcion" class="form-control form-control-lg"
-                              rows="4" placeholder="Describa la actividad física sugerida..."
-                              th:classappend="${#fields.hasErrors('descripcion')} ? 'is-invalid' : ''" required minlength="10" maxlength="500"></textarea>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></div>
+                <div class="mb-4">
+                    <label for="tipoActividad" class="form-label">Tipo de Actividad</label>
+                    <div class="input-group has-validation">
+                        <span class="input-group-text"><i class="fas fa-dumbbell"></i></span>
+                        <select th:field="*{tipoActividad}" id="tipoActividad" class="form-select"
+                                th:classappend="${#fields.hasErrors('tipoActividad')} ? 'is-invalid' : ''" required>
+                            <option value="" disabled selected>Seleccione tipo...</option>
+                            <option value="Paseos Diarios">Paseos Diarios</option>
+                            <option value="Juegos de lanzar y traer">Juegos de lanzar y traer</option>
+                            <option value="Carreras en el parque">Carreras en el parque</option>
+                            <option value="Natación">Natación</option>
+                            <option value="Agilidad (Circuitos)">Agilidad (Circuitos)</option>
+                            <option value="Rascadores y árboles para gatos">Rascadores y árboles para gatos</option>
+                            <option value="Sesiones de caza (con juguetes)">Sesiones de caza (con juguetes)</option>
+                            <option value="Juegos de persecución">Juegos de persecución</option>
+                            <option value="Juegos de Olfato">Juegos de Olfato</option>
+                        </select>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('tipoActividad')}" th:errors="*{tipoActividad}">Error</div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label for="fechaInicio" class="form-label fw-semibold">🗓️ Fecha de Inicio</label>
-                    <input type="date" th:field="*{fechaInicio}" id="fechaInicio" class="form-control form-control-lg"
-                           th:classappend="${#fields.hasErrors('fechaInicio')} ? 'is-invalid' : ''" required>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaInicio')}" th:errors="*{fechaInicio}"></div>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="fechaInicio" class="form-label">Fecha de Inicio</label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                            <input type="date" th:field="*{fechaInicio}" id="fechaInicio" class="form-control"
+                                   th:classappend="${#fields.hasErrors('fechaInicio')} ? 'is-invalid' : ''" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaInicio')}" th:errors="*{fechaInicio}">Error</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mt-3 mt-md-0">
+                        <label for="fechaFin" class="form-label">Fecha de Fin</label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text"><i class="far fa-calendar-check"></i></span>
+                            <input type="date" th:field="*{fechaFin}" id="fechaFin" class="form-control"
+                                   th:classappend="${#fields.hasErrors('fechaFin')} ? 'is-invalid' : ''" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaFin')}" th:errors="*{fechaFin}">Error</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="fechaFin" class="form-label fw-semibold">🗓️ Fecha de Fin</label>
-                    <input type="date" th:field="*{fechaFin}" id="fechaFin" class="form-control form-control-lg"
-                           th:classappend="${#fields.hasErrors('fechaFin')} ? 'is-invalid' : ''" required>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaFin')}" th:errors="*{fechaFin}"></div>
+
+                <div class="mb-4">
+                    <label for="descripcion" class="form-label">Descripción Detallada</label>
+                    <div class="input-group has-validation">
+                        <span class="input-group-text"><i class="fas fa-align-left"></i></span>
+                        <textarea th:field="*{descripcion}" id="descripcion" class="form-control"
+                                  rows="4" placeholder="Describe la rutina, duración e intensidad..."
+                                  th:classappend="${#fields.hasErrors('descripcion')} ? 'is-invalid' : ''" required minlength="10" maxlength="500"></textarea>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}">Error</div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="mb-3">
-                <label for="fotoActividad" class="form-label fw-semibold">🖼️ Foto (Opcional)</label>
-                <input type="file" class="form-control" id="fotoActividad" name="archivoFoto" accept="image/*">
-            </div>
+                <div class="mb-4">
+                    <label for="fotoActividad" class="form-label">Imagen de Referencia (Opcional)</label>
+                    <input type="file" class="form-control" id="fotoActividad" name="archivoFoto" accept="image/*">
+                    <div class="form-text text-muted">Sube una imagen que explique el ejercicio.</div>
+                </div>
 
-            <div class="text-end mt-4">
-                <button type="submit" class="btn btn-success me-2">✅ Registrar</button>
-                <a th:href="@{/actividad/seleccionar-dueno}" class="btn btn-secondary">↩️ Volver a Dueños</a>
-                <a th:href="@{/veterinario/index}" class="btn btn-outline-primary ms-2">🏠 Volver al Inicio</a>
-            </div>
-        </form>
+                <div class="d-flex justify-content-between align-items-center mt-5">
+                    <div>
+                        <a th:href="@{/actividad/seleccionar-dueno}" class="btn-back me-2">
+                            <i class="fas fa-arrow-left me-1"></i> Volver
+                        </a>
+                        <a th:href="@{/veterinario/index}" class="btn-back">
+                            <i class="fas fa-home"></i>
+                        </a>
+                    </div>
+                    <button type="submit" class="btn-save shadow-sm">
+                        <i class="fas fa-check me-2"></i> Guardar Actividad
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</main>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{/js/validarActividad.js}"></script>
-<script th:src="@{/js/validarActividad.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        // 1. Obtener la fecha de hoy en formato YYYY-MM-DD
+        // Validación de Fecha Mínima (Hoy)
         const today = new Date();
         const year = today.getFullYear();
         const month = (today.getMonth() + 1).toString().padStart(2, '0');
         const day = today.getDate().toString().padStart(2, '0');
         const minDate = `${year}-${month}-${day}`;
 
-        // 2. Encontrar los campos de fecha
         const fechaInicioInput = document.getElementById('fechaInicio');
         const fechaFinInput = document.getElementById('fechaFin');
+        const form = document.querySelector('.needs-validation');
 
-        // 3. Asignar la fecha mínima a ambos
-        if (fechaInicioInput) {
-            fechaInicioInput.setAttribute('min', minDate);
-        }
-        if (fechaFinInput) {
-            fechaFinInput.setAttribute('min', minDate);
-        }
+        if (fechaInicioInput) fechaInicioInput.setAttribute('min', minDate);
+        if (fechaFinInput) fechaFinInput.setAttribute('min', minDate);
+
+        // Validación del Formulario
+        form.addEventListener('submit', function (event) {
+            let validDates = true;
+
+            // Validar que Fin > Inicio
+            if (fechaInicioInput && fechaFinInput && fechaInicioInput.value && fechaFinInput.value) {
+                if (fechaFinInput.value <= fechaInicioInput.value) {
+                    fechaFinInput.setCustomValidity("La fecha fin debe ser posterior a la fecha de inicio.");
+                    validDates = false;
+                } else {
+                    fechaFinInput.setCustomValidity("");
+                }
+            }
+
+            if (!form.checkValidity() || !validDates) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Limpiar error al cambiar fechas
+        if(fechaInicioInput) fechaInicioInput.addEventListener('input', () => {
+             fechaInicioInput.setCustomValidity("");
+             if(fechaFinInput) fechaFinInput.setCustomValidity("");
+        });
+        if(fechaFinInput) fechaFinInput.addEventListener('input', () => fechaFinInput.setCustomValidity(""));
     });
 </script>
-</body>
-</html>
+
 </body>
 </html>

@@ -3,353 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Mascotas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
+    <title>Mi Panel - SCM</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/stilos.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+        body { background-color: #f4f6f9; min-height: 100vh; }
+        .content-wrapper { padding-top: 80px; padding-bottom: 50px; }
+
+        /* Cabecera */
+        .welcome-card {
+            background: linear-gradient(135deg, #6f42c1 0%, #a88beb 100%);
+            color: white; border-radius: 15px; padding: 2rem; text-align: center;
+            margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(111, 66, 193, 0.2);
         }
 
-        .content-wrapper {
-            margin-left: 0;
-            transition: margin-left 0.3s ease;
-            padding-top: 80px;
+        /* Acciones Rápidas */
+        .quick-actions-container {
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 3rem;
         }
-
-        #btn-menu:checked ~ .content-wrapper {
-            margin-left: 250px;
-        }
-
-        .section-title {
-            color: #fff;
-            font-weight: 700;
-            font-size: 2rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            margin-bottom: 2rem;
-        }
-
-        /* Added action buttons section styles */
-        .action-buttons-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .action-buttons-section h3 {
-            color: #333;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        .buttons-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .btn-action-main {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            color: #fff;
-            padding: 15px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            text-decoration: none;
+        .action-btn {
+            background: white; border: none; border-radius: 12px; padding: 1rem 1.5rem; width: 160px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: #555; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
-            border: none;
+        }
+        .action-btn:hover:not(:disabled) { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); color: #6f42c1; }
+        .action-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .action-icon { font-size: 1.8rem; margin-bottom: 0.5rem; color: #6f42c1; }
+        .action-text { font-weight: 600; font-size: 0.9rem; text-align: center; }
+
+        /* Tarjetas de Mascotas */
+        .pet-card {
+            border: none; border-radius: 15px; overflow: visible;
+            background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.2s; height: 100%; position: relative;
+        }
+        .pet-card:hover { transform: translateY(-3px); }
+
+        .pet-img-wrapper {
+            height: 180px; overflow: hidden; position: relative; background-color: #e9ecef;
+            display: flex; align-items: center; justify-content: center; border-radius: 15px 15px 0 0;
+        }
+        .pet-img { width: 100%; height: 100%; object-fit: cover; }
+        .pet-icon-default { font-size: 4rem; color: #dee2e6; }
+
+        .pet-body { padding: 1.2rem; text-align: center; }
+        .pet-name { font-weight: 700; font-size: 1.2rem; color: #333; margin-bottom: 0.2rem; }
+        .pet-info { color: #777; font-size: 0.85rem; margin-bottom: 1rem; }
+
+        .pet-actions { display: flex; justify-content: center; gap: 0.5rem; }
+
+        .notification-dot {
+            position: absolute; top: 8px; right: 8px; height: 10px; width: 10px;
+            background-color: #dc3545; border-radius: 50%; border: 2px solid white;
         }
 
-        .btn-action-main:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
-            color: #fff;
-        }
-
-        .btn-action-main i {
-            font-size: 1.2rem;
-        }
-
-        .card {
-            border: none;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-        }
-
-        .card-img-top {
-            height: 250px;
-            object-fit: cover;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .empty-state {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 4rem 2rem;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            color: #667eea;
-            margin-bottom: 1rem;
-        }
-
-        .empty-state h3 {
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state p {
-            color: #666;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-add-pet {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            color: #fff;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-add-pet:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
-            color: #fff;
-        }
-
-        .btn-action {
-            font-size: 0.85rem;
-            padding: 6px 12px;
-            margin-right: 5px;
-            margin-top: 5px;
-        }
-
-        .pets-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .container-main {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-        }
-
-        .alert {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .alert-success {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: #155724;
-        }
-
-        .alert-danger {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #721c24;
-        }
-        .alert-custom-success {
-    background-color: #198754; /* Un verde oscuro (de Bootstrap) */
-    color: #FFFFFF; /* Letra blanca */
-    border-color: #146c43;
-}
-
-/* Estilo para el mensaje de Error */
-.alert-custom-danger {
-    background-color: #DC3545; /* Un rojo oscuro (de Bootstrap) */
-    color: #FFFFFF; /* Letra blanca */
-    border-color: #b02a37;
-}
-
-/* Esto es un truco para que el botón 'X' de cierre (que es negro por defecto)
-   se vea de color blanco sobre el fondo oscuro.
-*/
-.alert-custom-success .btn-close,
-.alert-custom-danger .btn-close {
-    /* Filtro CSS para invertir el color (negro a blanco) */
-    filter: invert(1) grayscale(100%) brightness(200%);
-}s
+        .alert-custom-success { background-color: #198754; color: #FFFFFF; border-color: #146c43; }
+        .alert-custom-danger { background-color: #DC3545; color: #FFFFFF; border-color: #b02a37; }
+        .alert-custom-success .btn-close, .alert-custom-danger .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
     </style>
 </head>
 
 <body>
 
-
-<div th:if="${!logueado}">
-    <meta http-equiv="refresh" content="0; URL='/'" />
-</div>
+<div th:if="${!logueado}"> <meta http-equiv="refresh" content="0; URL='/'" /> </div>
 
 <div th:replace="~{fragments/menuV :: menuV}"></div>
 <input type="checkbox" id="btn-menu">
 <div th:replace="~{fragments/barralateralD :: barralateralD(${diagnosticoDTO}, ${mascotas}, ${veterinarios}, ${usuario})}"></div>
 <div th:replace="~{fragments/barralateralD :: modalDiagnostico(${diagnosticoDTO}, ${mascotas}, ${veterinarios})}"></div>
 
-<div class="capa"></div>
-
 <div class="content-wrapper">
-    <div class="container-main">
-        <div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
-            <div class="container-fluid py-3">
-                <h1 class="display-5 fw-bold">¡Bienvenido, <span th:text="${usuario.nombre}">Dueño</span>!</h1>
+    <div class="container">
 
-                <p class="col-md-8 fs-4">Este es tu panel personal para gestionar la salud de tus mascotas.</p>
-            </div>
+        <div class="welcome-card">
+            <h1 class="display-6 fw-bold">¡Hola, <span th:text="${usuario.nombre}">Dueño</span>! 👋</h1>
+            <p class="mb-0 opacity-75">Bienvenido a tu panel de control de mascotas.</p>
         </div>
 
-        <div th:if="${mensajeExito}"
-             class="alert alert-custom-success alert-dismissible fade show"
-             role="alert">
-            <strong>¡Éxito!</strong> <span th:text="${mensajeExito}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div th:if="${mensajeExito}" class="alert alert-custom-success alert-dismissible fade show shadow-sm">
+            <i class="fas fa-check-circle me-2"></i><span th:text="${mensajeExito}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${mensajeError}" class="alert alert-custom-danger alert-dismissible fade show shadow-sm">
+            <i class="fas fa-exclamation-circle me-2"></i><span th:text="${mensajeError}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <div th:if="${mensajeError}"
-             class="alert alert-custom-danger alert-dismissible fade show"
-             role="alert">
-            <strong>Error</strong> <span th:text="${mensajeError}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div th:if="${#lists.isEmpty(misMascotas)}" class="alert alert-warning text-center shadow-sm mb-4">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>¡Atención!</strong> Necesitas registrar una mascota para poder reportar síntomas o ver citas.
         </div>
+        <div class="quick-actions-container">
 
-        <div class="action-buttons-section">
-            <h3><i class="fas fa-tasks"></i> Acciones Rápidas</h3>
-            <div class="buttons-grid">
-                <button class="btn-action-main" data-bs-toggle="modal" data-bs-target="#diagnosticoModal">
+            <button class="action-btn"
+                    th:onclick="${#lists.isEmpty(misMascotas)} ? 'mostrarAlertaSinMascotas()' : ''"
+                    th:data-bs-toggle="${not #lists.isEmpty(misMascotas)} ? 'modal' : ''"
+                    th:data-bs-target="${not #lists.isEmpty(misMascotas)} ? '#diagnosticoModal' : ''">
+                <i class="fas fa-stethoscope action-icon"></i>
+                <span class="action-text">Reportar<br>Síntomas</span>
+            </button>
 
-                    <i class="fas fa-stethoscope"></i> <span>Registrar Síntomas</span>
-                </button>
-                <a th:href="@{/duenoMascota/listar}" class="btn-action-main">
-                    <i class="fas fa-calendar-alt"></i> <span>Consultar Citas</span>
-                </a>
+            <a th:href="@{/duenoMascota/listar}" class="action-btn"
+               th:onclick="${#lists.isEmpty(misMascotas)} ? 'event.preventDefault(); mostrarAlertaSinMascotas();' : ''">
+                <i class="fas fa-calendar-alt action-icon"></i>
+                <span class="action-text">Mis<br>Citas</span>
+            </a>
 
-                <a th:href="@{/dueno/mascotas/actividad}" class="btn-action-main">
-                    <i class="fas fa-running"></i> <span>Actividad Física</span>
-                </a>
-                <a th:href="@{/dueno/mascotas}" class="btn-action-main">
-                    <i class="fas fa-utensils"></i> <span>Consultar Dieta</span>
+            <a th:href="@{/dueno/mascotas}" class="action-btn"
+               th:onclick="${#lists.isEmpty(misMascotas)} ? 'event.preventDefault(); mostrarAlertaSinMascotas();' : ''">
+                <i class="fas fa-utensils action-icon"></i>
+                <span class="action-text">Consultar<br>Dietas</span>
+            </a>
 
-                </a>
-                <a th:href="@{/mascotas/crear}" class="btn-action-main">
-                    <i class="fas fa-plus-circle"></i> <span>Agregar Mascota</span>
-                </a>
-            </div>
-        </div>
+            <a th:href="@{/dueno/mascotas/actividad}" class="action-btn"
+               th:onclick="${#lists.isEmpty(misMascotas)} ? 'event.preventDefault(); mostrarAlertaSinMascotas();' : ''">
+                <i class="fas fa-running action-icon"></i>
+                <span class="action-text">Consultar<br>Actividad</span>
+            </a>
 
-        <h2 class="section-title" style="margin-top:
- 3rem;">
-            <i class="fas fa-paw"></i> Mis Mascotas
-        </h2>
-
-        <div th:if="${misMascotas == null or misMascotas.isEmpty()}" class="empty-state">
-            <i class="fas fa-inbox"></i>
-            <h3>No tienes mascotas registradas</h3>
-            <p>Comienza agregando tu primera mascota para gestionar su información médica y seguimiento.</p>
-
-            <a th:href="@{/mascotas/crear}" class="btn btn-add-pet">
-                <i class="fas fa-plus-circle"></i> Agregar Primera Mascota
+            <a th:href="@{/mascotas/crear}" class="action-btn">
+                <i class="fas fa-plus-circle action-icon"></i>
+                <span class="action-text">Nueva<br>Mascota</span>
             </a>
         </div>
 
-        <div class="pets-grid" th:if="${misMascotas != null and !misMascotas.isEmpty()}">
-            <div th:each="m : ${misMascotas}" class="card"> <img th:src="@{'/uploads/mascotas/' + ${m.foto}}" class="card-img-top" th:alt="${m.nombre}">
-                <div class="card-body">
+        <div class="d-flex align-items-center justify-content-center mb-4">
+            <h3 class="fw-bold text-secondary m-0"><i class="fas fa-paw me-2"></i>Mis Mascotas</h3>
+        </div>
 
-                    <h5 class="card-title fw-bold text-dark" th:text="${m.nombre}">Nombre</h5>
-                    <p class="card-text text-muted" style="font-size: 0.95rem;">
-                        <strong>Raza:</strong> <span th:text="${m.raza}">Raza</span><br>
-                        <strong>Género:</strong> <span th:text="${m.genero}">Género</span><br>
+        <div th:if="${misMascotas == null or misMascotas.isEmpty()}" class="text-center py-5">
+            <i class="fas fa-dog fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No tienes mascotas registradas aún.</p>
+            <a th:href="@{/mascotas/crear}" class="btn btn-primary rounded-pill px-4">Registrar Mascota</a>
+        </div>
 
-                        <strong>Nacimiento:</strong> <span th:text="${#temporals.format(m.fechaNacimiento, 'dd/MM/yyyy')}">Fecha</span>
-                    </p>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 justify-content-center" th:if="${misMascotas != null and !misMascotas.isEmpty()}">
+            <div class="col" th:each="m : ${misMascotas}">
+                <div class="pet-card">
+                    <div class="pet-img-wrapper">
+                        <img th:if="${m.foto != null}" th:src="@{'/uploads/mascotas/' + ${m.foto}}" class="pet-img" alt="Mascota">
+                        <i th:if="${m.foto == null}" class="fas fa-paw pet-icon-default"></i>
+                    </div>
 
-                    <div class="d-flex flex-wrap gap-2">
+                    <div class="pet-body">
+                        <div class="pet-name" th:text="${m.nombre}">Nombre</div>
+                        <div class="pet-info">
+                            <span th:text="${m.raza}">Raza</span> • <span th:text="${m.genero}">Género</span>
+                        </div>
 
-                        <a th:href="@{'/mascotas/editar/' + ${m.idMascota}}" class="btn btn-warning btn-action btn-sm">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
+                        <div class="mb-3 d-flex gap-2" th:if="${m.tieneNuevasDietas or m.tieneNuevasActividades}">
+                            <a th:if="${m.tieneNuevasDietas}" th:href="@{/duenoMascota/dietas(idMascota=${m.idMascota})}" class="btn btn-success btn-sm flex-fill position-relative fw-bold" style="font-size: 0.8rem;">
+                                <i class="fas fa-utensils"></i> Dieta <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                            </a>
+                            <a th:if="${m.tieneNuevasActividades}" th:href="@{/duenoMascota/actividades(idMascota=${m.idMascota})}" class="btn btn-warning text-dark btn-sm flex-fill position-relative fw-bold" style="font-size: 0.8rem;">
+                                <i class="fas fa-running"></i> Actividad <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                            </a>
+                        </div>
 
-                        <a th:href="@{/dueno/mascotas/{id}/ficha/pdf(id=${m.idMascota})}" class="btn btn-info btn-action btn-sm" target="_blank">
-                            <i class="fas fa-file-pdf"></i> Ficha
-                        </a>
+                        <div class="pet-actions">
+                            <a th:href="@{/dueno/mascotas/{id}/seleccionar-veterinario(id=${m.idMascota})}" class="btn btn-outline-primary btn-sm w-100" title="Ver Historial Clínico">
+                                <i class="fas fa-history"></i> Historial
+                            </a>
 
-                        <a th:href="@{/dueno/mascota/historial/{idMascota}(idMascota=${m.idMascota})}"
-                           class="btn btn-secondary btn-action btn-sm">
-                            <i class="fas fa-history"></i> Historial
-                        </a>
-
-                        <a th:if="${m.tieneNuevasDietas}"
-                           th:href="@{/duenoMascota/dietas(idMascota=${m.idMascota})}"
-                           class="btn btn-primary btn-action btn-sm position-relative">
-                            <i class="fas fa-utensils"></i> Dieta
-                            <span th:if="${m.tieneNuevasDietas}"
-                                  class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle">
-                                 <span class="visually-hidden">Nuevas dietas</span>
-                            </span>
-                        </a>
-
-                        <a th:if="${m.tieneNuevasActividades}"
-                           th:href="@{/duenoMascota/actividades(idMascota=${m.idMascota})}"
-                           class="btn btn-success btn-action btn-sm position-relative">
-                            <i class="fas fa-running"></i> Actividad
-                            <span th:if="${m.tieneNuevasActividades}"
-                                  class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle">
-                                <span class="visually-hidden">Nuevas actividades</span>
-                            </span>
-                        </a>
-
-                        <a th:href="@{'/mascotas/eliminar/' + ${m.idMascota}}" class="btn btn-danger btn-action btn-sm"
-                           onclick="return confirm('¿Deseas eliminar esta mascota?');">
-                            <i class="fas fa-trash-alt"></i> Eliminar
-                        </a>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
+                                    <li><h6 class="dropdown-header">Gestionar</h6></li>
+                                    <li><a class="dropdown-item" th:href="@{'/mascotas/editar/' + ${m.idMascota}}"><i class="fas fa-edit text-warning me-2"></i> Editar Datos</a></li>
+                                    <li><a class="dropdown-item" th:href="@{/dueno/mascotas/{id}/ficha/pdf(id=${m.idMascota})}" target="_blank"><i class="fas fa-file-pdf text-danger me-2"></i> Ficha PDF</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" th:href="@{'/mascotas/eliminar/' + ${m.idMascota}}" onclick="return confirm('¿Seguro que deseas eliminar esta mascota?');"><i class="fas fa-trash-alt me-2"></i> Eliminar</a></li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
             </div>
         </div>
 
-        <div th:if="${misMascotas != null and !misMascotas.isEmpty()}" class="text-center mt-5">
-            <a th:href="@{/mascotas/crear}" class="btn btn-add-pet">
-                <i class="fas fa-plus-circle"></i> Agregar Nueva Mascota
-            </a>
-        </div>
     </div>
 </div>
 
-<footer class="footer mt-5 bg-dark text-white">
-</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Obtenemos si la lista está vacía desde Thymeleaf
+    var listaVacia = /*[[${#lists.isEmpty(misMascotas)}]]*/ false;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Si la lista está vacía, muestra una alerta al cargar la página
+        if (listaVacia) {
+            Swal.fire({
+                title: '¡Bienvenido!',
+                text: 'Para comenzar a usar todas las funciones, primero debes registrar a tu mascota.',
+                icon: 'info',
+                confirmButtonText: 'Registrar Mascota',
+                showCancelButton: true,
+                cancelButtonText: 'Más tarde'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/mascotas/crear';
+                }
+            });
+        }
+    });
+
+    // Función para el botón de "Reportar Síntomas" cuando no hay mascotas
+    function mostrarAlertaSinMascotas() {
+        Swal.fire({
+            title: 'No tienes mascotas',
+            text: 'Debes registrar una mascota para poder reportar síntomas.',
+            icon: 'warning',
+            confirmButtonText: 'Registrar ahora'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/mascotas/crear';
+            }
+        });
+    }
+    /*]]>*/
+</script>
 
 </body>
-
 </html>

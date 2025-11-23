@@ -29,4 +29,5 @@ public class VeterinarioDTO {
     private String nombreUsuario;
     private String emailUsuario;
     private String fotoUsuario;
+    private String apellidoUsuario;
 }

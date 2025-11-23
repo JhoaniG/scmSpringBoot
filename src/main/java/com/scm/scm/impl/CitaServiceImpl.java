@@ -281,4 +281,66 @@ public class CitaServiceImpl implements CitaService {
 
         return cita;
     }
+
+
+    // 1. Obtener lista de veterinarios que han atendido a una mascota
+    @Override
+    public List<VeterinarioDTO> obtenerVeterinariosDeMascota(Long mascotaId) {
+        List<Veterinario> veterinarios = veterinarioRepositorio.findVeterinariosByMascotaId(mascotaId);
+
+        // Mapeamos manualmente para asegurar que llevamos la foto y datos del usuario
+        return veterinarios.stream().map(v -> {
+            VeterinarioDTO dto = new VeterinarioDTO();
+            dto.setIdVeterinario(v.getIdVeterinario());
+            dto.setEspecialidad(v.getEspecialidad());
+            dto.setVeterinaria(v.getVeterinaria());
+
+            if(v.getUsuario() != null) {
+                dto.setNombreUsuario(v.getUsuario().getNombre());
+                dto.setApellidoUsuario(v.getUsuario().getApellido());
+                dto.setFotoUsuario(v.getUsuario().getFoto());
+                dto.setEmailUsuario(v.getUsuario().getEmail());
+            }
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    // 2. Obtener historial FILTRADO por Veterinario
+    @Override
+    public Map<String, Object> obtenerHistorialPorVeterinario(Long mascotaId, Long veterinarioId) {
+        // Reutilizamos la lógica de obtener todo, pero filtramos las listas
+        Map<String, Object> datos = obtenerDatosHistorialClinico(mascotaId);
+
+        // Filtramos Citas
+        List<CitaDTO> citas = (List<CitaDTO>) datos.get("citas");
+        datos.put("citas", citas.stream()
+                .filter(c -> c.getVeterinarioId() != null && c.getVeterinarioId().equals(veterinarioId))
+                .collect(Collectors.toList()));
+
+        // Filtramos Diagnósticos
+        List<DiagnosticoDuenoDTO> diagnosticos = (List<DiagnosticoDuenoDTO>) datos.get("diagnosticos");
+        datos.put("diagnosticos", diagnosticos.stream()
+                .filter(d -> d.getNombreVeterinario() != null) // (Mejor si usas getVeterinarioId en el DTO, pero esto sirve de ejemplo)
+                .collect(Collectors.toList()));
+
+        // Filtramos Dietas
+        List<DietaDTO> dietas = (List<DietaDTO>) datos.get("dietas");
+        datos.put("dietas", dietas.stream()
+                .filter(d -> d.getVeterinarioId() != null && d.getVeterinarioId().equals(veterinarioId))
+                .collect(Collectors.toList()));
+
+        // Filtramos Actividades
+        List<ActividadFisicaDTO> actividades = (List<ActividadFisicaDTO>) datos.get("actividades");
+        datos.put("actividades", actividades.stream()
+                .filter(a -> a.getVeterinarioId() != null && a.getVeterinarioId().equals(veterinarioId))
+                .collect(Collectors.toList()));
+
+        // Añadimos datos del veterinario seleccionado para la cabecera
+        Veterinario vet = veterinarioRepositorio.findById(veterinarioId).orElse(null);
+        if(vet != null) {
+            datos.put("veterinarioSeleccionado", vet);
+        }
+
+        return datos;
+    }
 }

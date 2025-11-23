@@ -2,58 +2,143 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalles de la Mascota</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/stilos.css}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        body { background-color: #f4f6f9; min-height: 100vh; }
+        .content-wrapper { padding-top: 90px; padding-bottom: 50px; }
+
+        /* --- CABECERA DE MASCOTA --- */
+        .pet-header-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .pet-header-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100px;
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%); /* Azul Veterinario */
+            z-index: 1;
+        }
+        .pet-content { position: relative; z-index: 2; display: flex; align-items: end; gap: 2rem; margin-top: 20px; }
+
+        .pet-avatar-large {
+            width: 140px; height: 140px; object-fit: cover;
+            border-radius: 50%; border: 5px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+
+        /* Badges Suaves */
+        .badge-soft-blue { background-color: #e3f2fd; color: #0d6efd; }
+        .badge-soft-purple { background-color: #f3e5f5; color: #6f42c1; }
+        .badge-soft-green { background-color: #e8f5e9; color: #2e7d32; }
+
+        /* --- TARJETA DUEÑO --- */
+        .owner-card {
+            background: white; border-radius: 15px; padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: 100%;
+            border-left: 5px solid #0dcaf0;
+        }
+
+        /* --- PESTAÑAS (TABS) --- */
+        .nav-pills .nav-link {
+            border-radius: 50px; color: #555; font-weight: 600; padding: 10px 25px; margin-right: 10px;
+            border: 1px solid transparent; transition: all 0.3s;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd; /* Azul Principal */
+            color: white; box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+        }
+        .nav-pills .nav-link:hover:not(.active) { background-color: #e9ecef; }
+
+        /* --- CONTENIDO TABLAS/LISTAS --- */
+        .tab-content-card {
+            background: white; border-radius: 20px; padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); min-height: 400px;
+        }
+
+        /* Estilo de lista para móvil (Timeline) */
+        .timeline-item {
+            border-left: 3px solid #e9ecef; padding-left: 20px; margin-bottom: 20px; position: relative;
+        }
+        .timeline-dot {
+            position: absolute; left: -6px; top: 5px; width: 12px; height: 12px;
+            border-radius: 50%; background-color: #0d6efd; border: 2px solid white;
+        }
+    </style>
 </head>
 <body>
+
 <div th:replace="~{fragments/menuV :: menuV}"></div>
 <input type="checkbox" id="btn-menu">
 <div th:replace="~{fragments/barralateralV :: barralateralV}"></div>
 
-<div class="capa">
-    <div class="container mt-5">
+<div class="content-wrapper">
+    <div class="container">
 
-        <div class="d-flex align-items-center mb-4 p-3 bg-light rounded shadow-sm">
-            <img th:src="@{'/uploads/mascotas/' + ${mascota.foto}}" class="img-thumbnail"
-                 style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%;">
-            <div class="ms-4">
-                <h1 class="display-4" th:text="${mascota.nombre}">Nombre Mascota</h1>
-                <p class="lead text-muted" th:text="${mascota.raza}"></p>
+        <div class="mb-3">
+            <a th:href="@{/veterinario/mis-pacientes}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+                <i class="fas fa-arrow-left me-2"></i> Volver a la lista
+            </a>
+        </div>
+
+        <div class="pet-header-card">
+            <div class="pet-header-bg"></div>
+
+            <div class="pet-content d-flex flex-column flex-md-row align-items-center align-items-md-end text-center text-md-start">
+                <div class="pet-avatar-large d-flex align-items-center justify-content-center overflow-hidden">
+                    <img th:if="${mascota.foto != null}" th:src="@{'/uploads/mascotas/' + ${mascota.foto}}" class="w-100 h-100 object-fit-cover">
+                    <i th:if="${mascota.foto == null}" class="fas fa-paw fa-3x text-secondary"></i>
+                </div>
+
+                <div class="flex-grow-1 pb-2">
+                    <h1 class="display-5 fw-bold mb-1 text-dark" th:text="${mascota.nombre}">Nombre</h1>
+                    <div class="mb-2">
+                        <span class="badge badge-soft-blue fs-6 me-2"><i class="fas fa-dna me-1"></i> <span th:text="${mascota.raza}"></span></span>
+                        <span class="badge badge-soft-purple fs-6"><i class="fas fa-venus-mars me-1"></i> <span th:text="${mascota.genero}"></span></span>
+                    </div>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-birthday-cake me-2 text-warning"></i>
+                        Nacimiento: <span th:text="${#temporals.format(mascota.fechaNacimiento, 'dd MMMM yyyy')}"></span>
+                    </p>
+                </div>
+
+                <div class="pb-3">
+                    <button type="button" class="btn btn-danger btn-lg rounded-pill shadow-sm btn-abrir-preview"
+                            data-bs-toggle="modal"
+                            data-bs-target="#previewPdfModal"
+                            th:data-mascota-id="${mascota.idMascota}"
+                            th:data-download-url="@{/veterinario/mascotas/{id}/historial/pdf(id=${mascota.idMascota})}">
+                        <i class="fas fa-file-pdf me-2"></i> Exportar Historial
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-body text-center">
-                <a th:href="@{/veterinario/mascotas/{id}/historial/pdf(id=${mascota.idMascota})}"
-                   class="btn btn-danger mx-2" target="_blank">
-                    <i class="fas fa-file-pdf"></i> Exportar Historial a PDF
-                </a>
-                <a href="#" class="btn btn-primary mx-2"><i class="fas fa-calendar-plus"></i> Agendar Nueva Cita</a>
-                <a href="#" class="btn btn-info mx-2"><i class="fas fa-notes-medical"></i> Registrar Dieta</a>
-            </div>
-        </div>
-
-        <div class="row g-4 mb-4">
-            <div class="col-md-6">
-                <h4>Información de la Mascota</h4>
-                <ul class="list-group">
-                    <li class="list-group-item"><strong>Género:</strong> <span th:text="${mascota.genero}"></span></li>
-                    <li class="list-group-item"><strong>Nacimiento:</strong> <span th:text="${#temporals.format(mascota.fechaNacimiento, 'dd MMMM yyyy')}"></span></li>
-                    <li class="list-group-item"><strong>Especie:</strong> <span th:text="${mascota.especie}"></span></li>
-                </ul>
-            </div>
-            <div class="col-md-6">
-                <h4>Información del Dueño</h4>
-                <div class="card">
-                    <div class="card-body d-flex align-items-center">
-                        <img th:src="@{'/uploads/' + ${mascota.usuario.foto}}" class="img-thumbnail me-3"
-                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%;">
-                        <div>
-                            <h5 class="card-title mb-1" th:text="${mascota.usuario.nombre} + ' ' + ${mascota.usuario.apellido}"></h5>
-                            <p class="card-text text-muted mb-1" th:text="${mascota.usuario.email}"></p>
-                            <p class="card-text text-muted" th:text="${mascota.usuario.telefono}"></p>
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="owner-card d-flex align-items-center">
+                    <div class="me-3">
+                        <img th:if="${mascota.usuario.foto != null}" th:src="@{'/uploads/' + ${mascota.usuario.foto}}"
+                             class="rounded-circle" width="60" height="60" style="object-fit: cover;">
+                        <div th:if="${mascota.usuario.foto == null}" class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <i class="fas fa-user text-secondary"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold text-dark">Propietario: <span th:text="${mascota.usuario.nombre} + ' ' + ${mascota.usuario.apellido}"></span></h5>
+                        <div class="text-muted small">
+                            <i class="fas fa-envelope me-1"></i> <span th:text="${mascota.usuario.email}"></span> |
+                            <i class="fas fa-phone me-1"></i> <span th:text="${mascota.usuario.telefono}"></span>
                         </div>
                     </div>
                 </div>
@@ -61,94 +146,127 @@
         </div>
 
         <div class="mt-4">
-            <h3>Historial Clínico Completo</h3>
-            <ul class="nav nav-tabs" id="historialTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="citas-tab" data-bs-toggle="tab" data-bs-target="#tab-citas" type="button" role="tab">
-                        <i class="fas fa-calendar-alt"></i> Citas
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="diagnosticos-tab" data-bs-toggle="tab" data-bs-target="#tab-diagnosticos" type="button" role="tab">
-                        <i class="fas fa-stethoscope"></i> Reportes Dueño
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="dietas-tab" data-bs-toggle="tab" data-bs-target="#tab-dietas" type="button" role="tab">
-                        <i class="fas fa-utensils"></i> Dietas
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="actividades-tab" data-bs-toggle="tab" data-bs-target="#tab-actividades" type="button" role="tab">
-                        <i class="fas fa-running"></i> Actividades
-                    </button>
-                </li>
+            <h3 class="mb-3 fw-bold text-secondary"><i class="fas fa-folder-open me-2"></i>Historial Clínico Completo</h3>
+
+            <ul class="nav nav-pills mb-4 justify-content-center justify-content-md-start" id="myTab" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#citas">Citas</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#diagnosticos">Reportes Dueño</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#dietas">Dietas</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#actividades">Actividades</button></li>
             </ul>
 
-            <div class="tab-content p-3 border border-top-0 rounded-bottom shadow-sm">
+            <div class="tab-content tab-content-card shadow-sm" id="myTabContent">
 
-                <div class="tab-pane fade show active" id="tab-citas" role="tabpanel">
-                    <div th:if="${#lists.isEmpty(citas)}" class="alert alert-info">No hay citas registradas.</div>
-                    <table th:unless="${#lists.isEmpty(citas)}" class="table table-sm table-striped">
-                        <thead><tr><th>Fecha y Hora</th><th>Motivo</th><th>Estado</th></tr></thead>
-                        <tbody>
-                        <tr th:each="c : ${citas}">
-                            <td th:text="${#temporals.format(c.fechaCita, 'dd/MM/yyyy hh:mm a')}"></td>
-                            <td th:text="${c.motivoCita}"></td>
-                            <td>
-                                <span class="badge" th:classappend="${c.estadoCita == 'Terminada'} ? 'bg-success' : 'bg-warning text-dark'" th:text="${c.estadoCita}"></span>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+                <div class="tab-pane fade show active" id="citas">
+                    <div th:if="${#lists.isEmpty(citas)}" class="alert alert-light text-center py-5"><p class="text-muted">No hay citas registradas.</p></div>
+                    <div class="table-responsive" th:unless="${#lists.isEmpty(citas)}">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light"><tr><th>Fecha</th><th>Motivo</th><th>Estado</th></tr></thead>
+                            <tbody>
+                            <tr th:each="c : ${citas}">
+                                <td class="fw-bold" th:text="${#temporals.format(c.fechaCita, 'dd/MM/yyyy hh:mm a')}"></td>
+                                <td th:text="${c.motivoCita}"></td>
+                                <td><span class="badge rounded-pill" th:classappend="${c.estadoCita == 'Terminada'} ? 'bg-success' : 'bg-warning text-dark'" th:text="${c.estadoCita}"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div class="tab-pane fade" id="tab-diagnosticos" role="tabpanel">
-                    <div th:if="${#lists.isEmpty(diagnosticos)}" class="alert alert-info">No hay reportes de síntomas registrados.</div>
-                    <table th:unless="${#lists.isEmpty(diagnosticos)}" class="table table-sm table-striped">
-                        <thead><tr><th>Fecha</th><th>Observaciones</th><th>Tipo</th><th>Veterinario</th></tr></thead>
-                        <tbody>
-                        <tr th:each="d : ${diagnosticos}">
-                            <td th:text="${d.fechaDiagnostico}"></td>
-                            <td th:text="${d.observaciones}"></td>
-                            <td th:text="${d.tipoEnfermedad}"></td>
-                            <td th:text="${d.nombreVeterinario}"></td>
-                        </tr>
-                        </tbody>
-                    </table>
+                <div class="tab-pane fade" id="diagnosticos">
+                    <div th:if="${#lists.isEmpty(diagnosticos)}" class="alert alert-light text-center"><p class="text-muted">No hay reportes.</p></div>
+                    <div class="row g-3" th:unless="${#lists.isEmpty(diagnosticos)}">
+                        <div class="col-md-6" th:each="d : ${diagnosticos}">
+                            <div class="card h-100 border-0 shadow-sm bg-light">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <h6 class="text-primary fw-bold" th:text="${d.tipoEnfermedad}">Tipo</h6>
+                                        <small class="text-muted" th:text="${d.fechaDiagnostico}">Fecha</small>
+                                    </div>
+                                    <p class="card-text text-dark" th:text="${d.observaciones}"></p>
+                                    <small class="text-muted">Atendido por: <span th:text="${d.nombreVeterinario}"></span></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="tab-pane fade" id="tab-dietas" role="tabpanel">
-                    <div th:if="${#lists.isEmpty(dietas)}" class="alert alert-info">No hay dietas asignadas.</div>
-                    <table th:unless="${#lists.isEmpty(dietas)}" class="table table-sm table-striped">
-                        <thead><tr><th>Tipo de Dieta</th><th>Descripción</th></tr></thead>
-                        <tbody>
-                        <tr th:each="d : ${dietas}">
-                            <td th:text="${d.tipoDieta}"></td>
-                            <td th:text="${d.descripcion}"></td>
-                        </tr>
-                        </tbody>
-                    </table>
+                <div class="tab-pane fade" id="dietas">
+                    <div th:if="${#lists.isEmpty(dietas)}" class="alert alert-light text-center"><p class="text-muted">No hay dietas.</p></div>
+                    <div class="row g-3" th:unless="${#lists.isEmpty(dietas)}">
+                        <div class="col-md-4" th:each="d : ${dietas}">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-header bg-success text-white fw-bold"><i class="fas fa-carrot me-2"></i><span th:text="${d.tipoDieta}"></span></div>
+                                <div class="card-body">
+                                    <p class="card-text small" th:text="${d.descripcion}"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="tab-pane fade" id="tab-actividades" role="tabpanel">
-                    <div th:if="${#lists.isEmpty(actividades)}" class="alert alert-info">No hay actividades asignadas.</div>
-                    <table th:unless="${#lists.isEmpty(actividades)}" class="table table-sm table-striped">
-                        <thead><tr><th>Tipo de Actividad</th><th>Descripción</th></tr></thead>
-                        <tbody>
-                        <tr th:each="a : ${actividades}">
-                            <td th:text="${a.tipoActividad}"></td>
-                            <td th:text="${a.descripcion}"></td>
-                        </tr>
-                        </tbody>
-                    </table>
+                <div class="tab-pane fade" id="actividades">
+                    <div th:if="${#lists.isEmpty(actividades)}" class="alert alert-light text-center"><p class="text-muted">No hay actividades.</p></div>
+                    <div class="list-group list-group-flush" th:unless="${#lists.isEmpty(actividades)}">
+                        <div class="list-group-item bg-light mb-2 rounded border-0 p-3" th:each="a : ${actividades}">
+                            <h6 class="fw-bold text-warning"><i class="fas fa-running me-2"></i><span th:text="${a.tipoActividad}"></span></h6>
+                            <p class="mb-0 text-secondary" th:text="${a.descripcion}"></p>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
 
     </div>
 </div>
 
+<div class="modal fade" id="previewPdfModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">Vista Previa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewModalBody">
+                <div id="preview-loading" class="text-center p-5"><div class="spinner-border text-primary"></div><p>Cargando...</p></div>
+                <div id="preview-content" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a id="btn-confirmar-descarga" href="#" class="btn btn-danger" target="_blank" download>Descargar PDF</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const previewModal = document.getElementById('previewPdfModal');
+        if (previewModal) {
+            const loadingSpinner = document.getElementById('preview-loading');
+            const contentDiv = document.getElementById('preview-content');
+            const downloadButton = document.getElementById('btn-confirmar-descarga');
+
+            previewModal.addEventListener('show.bs.modal', async function (event) {
+                loadingSpinner.style.display = 'block'; contentDiv.style.display = 'none'; contentDiv.innerHTML = '';
+                const button = event.relatedTarget;
+                const mascotaId = button.getAttribute('data-mascota-id');
+                const downloadUrl = button.getAttribute('data-download-url');
+                downloadButton.href = downloadUrl;
+
+                try {
+                    const response = await fetch(`/api/historial/preview/${mascotaId}`);
+                    if (!response.ok) throw new Error('Error');
+                    const html = await response.text();
+                    contentDiv.innerHTML = html;
+                    loadingSpinner.style.display = 'none'; contentDiv.style.display = 'block';
+                } catch (error) { loadingSpinner.innerHTML = '<p class="text-danger">Error al cargar vista previa.</p>'; }
+            });
+        }
+    });
+</script>
+
 </body>
 </html>

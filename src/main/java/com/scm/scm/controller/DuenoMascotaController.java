@@ -36,6 +36,7 @@ public class DuenoMascotaController {
     private final PdfGenerationService pdfService;
     private final DiagnosticoDuenoService diagnosticoDuenoService; // Movido arriba para orden
 
+
     @Autowired
     private UsuarioRepositorio usuarioRepositorio;
 
@@ -175,18 +176,47 @@ public class DuenoMascotaController {
                 .body(pdfBytes);
     }
 
-    @GetMapping("/dueno/mascota/historial/{idMascota}")
-    public String verHistorialMascota(@PathVariable Long idMascota, Model model) {
-        MascotaDTO mascota = mascotaService.obtenerMascotaPorId(idMascota);
-        List<CitaDTO> citas = citaService.listarCitasPorMascota(idMascota);
-        List<DiagnosticoDuenoDTO> diagnosticos = diagnosticoDuenoService.listarDiagnosticosPorMascota(idMascota);
+    // 1. Vista para SELECCIONAR al veterinario (Paso previo)
+    @GetMapping("/dueno/mascotas/{idMascota}/seleccionar-veterinario")
+    public String seleccionarVeterinarioHistorial(@PathVariable("idMascota") Long mascotaId, Model model) {
 
-        citas.sort(Comparator.comparing(CitaDTO::getFechaCita).reversed());
-        diagnosticos.sort(Comparator.comparing(DiagnosticoDuenoDTO::getFechaDiagnostico).reversed());
+        // Buscamos la mascota para mostrar su nombre en el título
+        MascotaDTO mascota = mascotaService.obtenerMascotaPorId(mascotaId);
+
+        // Obtenemos la lista de doctores con los que ha tenido citas
+        List<VeterinarioDTO> listaVeterinarios = citaService.obtenerVeterinariosDeMascota(mascotaId);
 
         model.addAttribute("mascota", mascota);
-        model.addAttribute("citas", citas);
-        model.addAttribute("diagnosticos", diagnosticos);
+        model.addAttribute("listaVeterinarios", listaVeterinarios);
+
+        // IMPORTANTE: En esta vista NO usamos "veterinarioSeleccionado" todavía,
+        // así que no hay riesgo de null pointer aquí si tu HTML es correcto.
+        return "duenoMascota/seleccionar-veterinario";
+    }
+
+    // 2. Vista del HISTORIAL DETALLADO (Donde tenías el error)
+    @GetMapping("/dueno/mascotas/{mascotaId}/historial/veterinario/{veterinarioId}")
+    public String verHistorialFiltrado(@PathVariable Long mascotaId,
+                                       @PathVariable Long veterinarioId,
+                                       Model model) {
+
+        // PASO 1: Garantizar que tenemos los datos de cabecera (Mascota y Veterinario)
+        // Buscamos explícitamente al Veterinario por ID para asegurarnos de que no sea NULL en la vista
+        Veterinario veterinario = veterinarioRepositorio.findById(veterinarioId)
+                .orElseThrow(() -> new RuntimeException("Veterinario no encontrado con ID: " + veterinarioId));
+
+        MascotaDTO mascota = mascotaService.obtenerMascotaPorId(mascotaId);
+
+        // PASO 2: Obtener los datos del historial (Citas, Dietas, Actividades)
+        // Este mapa trae las listas, pero ya aseguramos el veterinario arriba
+        Map<String, Object> datosHistorial = citaService.obtenerHistorialPorVeterinario(mascotaId, veterinarioId);
+
+        // PASO 3: Cargar todo al modelo
+        model.addAllAttributes(datosHistorial); // Carga las listas (citas, dietas, etc.)
+
+        // Sobrescribimos/Aseguramos estos dos objetos para que el encabezado HTML nunca falle
+        model.addAttribute("veterinarioSeleccionado", veterinario);
+        model.addAttribute("mascota", mascota);
 
         return "duenoMascota/historialMascota";
     }

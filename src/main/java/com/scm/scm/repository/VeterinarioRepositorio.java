@@ -14,7 +14,9 @@ public interface VeterinarioRepositorio extends JpaRepository<Veterinario, Long>
     Optional<Veterinario> findByUsuario_IdUsuario(Long idUsuario);
     List<Veterinario> findByEspecialidad(String especialidad);
     Optional<Veterinario> findByUsuario(com.scm.scm.model.Usuario usuario);
-
+    // --- AÑADE ESTA CONSULTA ---
+    @Query("SELECT DISTINCT v FROM Veterinario v JOIN Cita c ON c.veterinario = v WHERE c.mascota.idMascota = :mascotaId")
+    List<Veterinario> findVeterinariosByMascotaId(@Param("mascotaId") Long mascotaId);
 
 
 }

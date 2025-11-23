@@ -1,6 +1,7 @@
 package com.scm.scm.service;
 
 import com.scm.scm.dto.CitaDTO;
+import com.scm.scm.dto.VeterinarioDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -18,4 +19,10 @@ public interface CitaService {
     Page<CitaDTO> getAllCitasPaginadas(Pageable pageable);
     Map<String, Object> obtenerDatosHistorialClinico(Long idMascota);
     List<CitaDTO> listarCitasPorMascota(Long mascotaId);
+
+    // 1. Obtener lista de veterinarios que han atendido a una mascota
+    List<VeterinarioDTO> obtenerVeterinariosDeMascota(Long mascotaId);
+
+    // 2. Obtener historial FILTRADO por Veterinario
+    Map<String, Object> obtenerHistorialPorVeterinario(Long mascotaId, Long veterinarioId);
 }

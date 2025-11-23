@@ -1,146 +1,237 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="'Historial de ' + ${mascota.nombre}">Historial de Mascota</title>
+    <title>Historial Clínico - SCM</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/stilos.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        .content-wrapper {
-            margin-left: 0;
-            transition: margin-left 0.3s ease;
-            padding-top: 80px;
-        }
-        #btn-menu:checked ~ .content-wrapper {
-            margin-left: 250px;
-        }
-        .container-main {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-        }
-        .section-title {
-            color: #fff;
-            font-weight: 700;
-            font-size: 2rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            margin-bottom: 2rem;
-        }
-        .table-responsive {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
+        body { background-color: #f4f6f9; min-height: 100vh; }
+
+        /* Cabecera de la Mascota */
+        .pet-header-card {
+            background: white;
+            border-radius: 20px;
             padding: 2rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
         }
-        .table thead th {
-            color: #333;
-            font-weight: 700;
+        .pet-header-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Morado Dueño */
+            z-index: 1;
         }
-        .empty-state {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 3rem 2rem;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            color: #666;
+        .pet-content { position: relative; z-index: 2; display: flex; align-items: end; gap: 2rem; margin-top: 20px; }
+
+        .pet-avatar-large {
+            width: 140px; height: 140px; object-fit: cover;
+            border-radius: 50%; border: 5px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background-color: white;
         }
+
+        /* Pestañas Modernas */
+        .nav-pills .nav-link {
+            color: #555; font-weight: 600; border-radius: 30px; padding: 10px 20px; margin-right: 10px;
+            transition: all 0.3s;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #6f42c1; /* Morado */
+            color: white; box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3);
+        }
+        .nav-pills .nav-link:hover:not(.active) { background-color: #e9ecef; }
+
+        /* Contenedor de Tabs */
+        .tab-content-card {
+            background: white; border-radius: 20px; padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); min-height: 400px;
+        }
+
+        /* Tarjetas de Elementos (Dietas, Diagnósticos) */
+        .item-card {
+            border: 1px solid #f0f0f0; border-radius: 15px; padding: 1.5rem;
+            transition: transform 0.2s; height: 100%;
+        }
+        .item-card:hover { transform: translateY(-3px); border-color: #6f42c1; }
+
+        .badge-soft-purple { background-color: #f3e5f5; color: #8e24aa; }
+        .badge-soft-blue { background-color: #e3f2fd; color: #0d6efd; }
+        .badge-soft-green { background-color: #e8f5e9; color: #2e7d32; }
     </style>
 </head>
 <body>
 
-<div th:if="${!logueado}">
-    <meta http-equiv="refresh" content="0; URL='/'" />
-</div>
 <div th:replace="~{fragments/menuV :: menuV}"></div>
 <input type="checkbox" id="btn-menu">
 <div th:replace="~{fragments/barralateralD :: barralateralD(${diagnosticoDTO}, ${mascotas}, ${veterinarios}, ${usuario})}"></div>
 <div th:replace="~{fragments/barralateralD :: modalDiagnostico(${diagnosticoDTO}, ${mascotas}, ${veterinarios})}"></div>
-<div class="capa"></div>
 
-<div class="content-wrapper">
-    <div class="container-main">
+<div class="content-wrapper" style="padding-top: 90px;">
+    <div class="container">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="section-title" style="margin-bottom: 0;" th:text="'Historial de ' + ${mascota.nombre}">
-                <i class="fas fa-history"></i> Historial de Mascota
-            </h1>
-            <a th:href="@{/dueno/index}" class="btn btn-light shadow-sm">
-                <i class="fas fa-arrow-left"></i> Volver al Inicio
+        <div class="mb-3">
+            <a th:href="@{/dueno/index}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fas fa-arrow-left me-2"></i> Volver a Mis Mascotas
             </a>
         </div>
 
-        <h2 class="section-title fs-4"><i class="fas fa-stethoscope"></i> Diagnósticos</h2>
-        <div class="table-responsive mb-5">
-            <div th:if="${diagnosticos.isEmpty()}" class="empty-state">
-                <i class="fas fa-file-alt fa-2x mb-2"></i>
-                <p class="mb-0">No hay diagnósticos registrados para esta mascota.</p>
+        <div class="pet-header-card">
+            <div class="pet-header-bg"></div>
+            <div class="pet-content d-flex flex-column flex-md-row align-items-center align-items-md-end text-center text-md-start">
+                <img th:if="${mascota.foto != null}" th:src="@{'/uploads/mascotas/' + ${mascota.foto}}" class="pet-avatar-large">
+                <div th:if="${mascota.foto == null}" class="pet-avatar-large d-flex align-items-center justify-content-center bg-light text-muted">
+                    <i class="fas fa-paw fa-3x"></i>
+                </div>
+
+                <div class="flex-grow-1">
+                    <h1 class="display-5 fw-bold mb-1" th:text="${mascota.nombre}">Nombre</h1>
+                    <div class="mb-2">
+                        <span class="badge badge-soft-blue me-2"><i class="fas fa-dna me-1"></i> <span th:text="${mascota.raza}">Raza</span></span>
+                        <span class="badge badge-soft-purple"><i class="fas fa-venus-mars me-1"></i> <span th:text="${mascota.genero}">Género</span></span>
+                    </div>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-birthday-cake me-2 text-warning"></i>
+                        Nacimiento: <span th:text="${#temporals.format(mascota.fechaNacimiento, 'dd MMMM yyyy')}"></span>
+                    </p>
+                </div>
+
+                <div class="mt-3 mt-md-0">
+                    <a th:href="@{/dueno/mascotas/{id}/ficha/pdf(id=${mascota.idMascota})}" class="btn btn-danger btn-lg rounded-pill shadow-sm" target="_blank">
+                        <i class="fas fa-file-pdf me-2"></i> Ficha Médica
+                    </a>
+                </div>
             </div>
-            <table th:unless="${diagnosticos.isEmpty()}" class="table table-striped table-hover align-middle">
-                <thead class="table-light">
-                <tr>
-                    <th scope="col">Fecha</th>
-                    <th scope="col">Observaciones</th>
-                    <th scope="col">Veterinario</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="diag : ${diagnosticos}">
-                    <td th:text="${diag.fechaDiagnostico}"></td>
-                    <td th:text="${diag.observaciones}"></td>
-                    <td th:text="${diag.nombreVeterinario}"></td>
-                </tr>
-                </tbody>
-            </table>
         </div>
 
-        <h2 class="section-title fs-4"><i class="fas fa-calendar-alt"></i> Citas</h2>
-        <div class="table-responsive">
-            <div th:if="${citas.isEmpty()}" class="empty-state">
-                <i class="fas fa-calendar-times fa-2x mb-2"></i>
-                <p class="mb-0">No hay citas registradas para esta mascota.</p>
-            </div>
-            <table th:unless="${citas.isEmpty()}" class="table table-striped table-hover align-middle">
-                <thead class="table-light">
-                <tr>
-                    <th scope="col">Fecha</th>
-                    <th scope="col">Motivo</th>
-                    <th scope="col">Estado</th>
-                    <th scope="col">Veterinario</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="cita : ${citas}">
-                    <td th:text="${#temporals.format(cita.fechaCita, 'dd/MM/yyyy')}"></td>
-                    <td th:text="${cita.motivoCita}"></td>
-                    <td>
-                            <span th:text="${cita.estadoCita}"
-                                  th:classappend="${cita.estadoCita == 'Terminada'} ? 'badge bg-success' : (${cita.estadoCita == 'Pendiente'} ? 'badge bg-warning text-dark' : 'badge bg-secondary')">
-                            </span>
-                    </td>
-                    <td th:text="${cita.nombreVeterinario}"></td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+        <ul class="nav nav-pills mb-4 justify-content-center justify-content-md-start" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="citas-tab" data-bs-toggle="tab" data-bs-target="#citas" type="button">
+                    <i class="fas fa-calendar-check me-2"></i> Citas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="diagnosticos-tab" data-bs-toggle="tab" data-bs-target="#diagnosticos" type="button">
+                    <i class="fas fa-notes-medical me-2"></i> Mis Reportes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="dietas-tab" data-bs-toggle="tab" data-bs-target="#dietas" type="button">
+                    <i class="fas fa-utensils me-2"></i> Dietas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="actividades-tab" data-bs-toggle="tab" data-bs-target="#actividades" type="button">
+                    <i class="fas fa-running me-2"></i> Actividades
+                </button>
+            </li>
+        </ul>
 
-    </div>
+        <div class="tab-content tab-content-card" id="myTabContent">
+
+            <div class="tab-pane fade show active" id="citas" role="tabpanel">
+                <h4 class="mb-4 text-primary"><i class="fas fa-history me-2"></i>Historial de Citas</h4>
+
+                <div th:if="${#lists.isEmpty(citas)}" class="alert alert-light text-center py-5">
+                    <i class="fas fa-calendar-times fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">No hay citas registradas.</p>
+                </div>
+
+                <div class="table-responsive" th:unless="${#lists.isEmpty(citas)}">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light text-muted">
+                        <tr><th>FECHA</th><th>MOTIVO</th><th>VETERINARIO</th><th>ESTADO</th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="c : ${citas}">
+                            <td class="fw-bold text-secondary" th:text="${#temporals.format(c.fechaCita, 'dd/MM/yyyy hh:mm a')}"></td>
+                            <td th:text="${c.motivoCita}"></td>
+                            <td><span class="badge bg-light text-dark border"><i class="fas fa-user-md me-1"></i> <span th:text="${c.nombreVeterinario}"></span></span></td>
+                            <td>
+                                <span class="badge rounded-pill"
+                                      th:classappend="${c.estadoCita == 'Terminada'} ? 'bg-success' : 'bg-warning text-dark'"
+                                      th:text="${c.estadoCita}"></span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="diagnosticos" role="tabpanel">
+                <h4 class="mb-4 text-info"><i class="fas fa-file-medical-alt me-2"></i>Reportes Enviados</h4>
+
+                <div th:if="${#lists.isEmpty(diagnosticos)}" class="alert alert-light text-center py-5">
+                    <p class="text-muted">No has enviado reportes de síntomas.</p>
+                </div>
+
+                <div class="row g-3" th:unless="${#lists.isEmpty(diagnosticos)}">
+                    <div class="col-md-6" th:each="d : ${diagnosticos}">
+                        <div class="item-card border-start border-4 border-info">
+                            <div class="d-flex justify-content-between mb-2">
+                                <h5 class="text-dark fw-bold mb-0" th:text="${d.tipoEnfermedad}">Tipo</h5>
+                                <small class="text-muted" th:text="${d.fechaDiagnostico}">Fecha</small>
+                            </div>
+                            <p class="text-secondary mb-3" th:text="${d.observaciones}">Desc</p>
+                            <div class="d-flex align-items-center">
+                                <img class="rounded-circle me-2" src="https://via.placeholder.com/30" width="30">
+                                <small class="text-muted">Dr. <span th:text="${d.nombreVeterinario}"></span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="dietas" role="tabpanel">
+                <h4 class="mb-4 text-success"><i class="fas fa-leaf me-2"></i>Planes de Alimentación</h4>
+
+                <div th:if="${#lists.isEmpty(dietas)}" class="alert alert-light text-center py-5">
+                    <p class="text-muted">No hay dietas asignadas.</p>
+                </div>
+
+                <div class="row g-3" th:unless="${#lists.isEmpty(dietas)}">
+                    <div class="col-md-4" th:each="d : ${dietas}">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <img th:if="${d.foto != null}" th:src="@{'/uploads/dietas/' + ${d.foto}}" class="card-img-top" style="height: 160px; object-fit: cover;">
+                            <div class="card-body">
+                                <h5 class="card-title text-success fw-bold" th:text="${d.tipoDieta}">Tipo</h5>
+                                <p class="card-text text-muted small" th:text="${d.descripcion}"></p>
+                                <div class="mt-3 pt-3 border-top d-flex justify-content-between text-muted small">
+                                    <span><i class="far fa-calendar-alt"></i> Inicio: <span th:text="${d.fechaInicio}"></span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="actividades" role="tabpanel">
+                <h4 class="mb-4 text-warning"><i class="fas fa-dumbbell me-2"></i>Ejercicios y Actividades</h4>
+
+                <div th:if="${#lists.isEmpty(actividades)}" class="alert alert-light text-center py-5">
+                    <p class="text-muted">No hay actividades asignadas.</p>
+                </div>
+
+                <div class="list-group list-group-flush" th:unless="${#lists.isEmpty(actividades)}">
+                    <div class="list-group-item border-0 mb-3 bg-light rounded p-3" th:each="a : ${actividades}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1 fw-bold text-dark"><i class="fas fa-check-circle text-warning me-2"></i><span th:text="${a.tipoActividad}"></span></h5>
+                            <small class="text-muted" th:text="${a.fechaInicio}"></small>
+                        </div>
+                        <p class="mb-1 text-secondary ms-4" th:text="${a.descripcion}"></p>
+                        <small class="text-muted ms-4">Asignado por Dr. <span th:text="${a.nombreVeterinario}"></span></small>
+                    </div>
+                </div>
+            </div>
+
+        </div> </div>
 </div>
 
-<footer class="footer mt-5 bg-dark text-white">
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

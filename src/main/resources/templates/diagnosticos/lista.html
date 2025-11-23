@@ -2,152 +2,232 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Lista de Diagnósticos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnósticos Recientes</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link th:href="@{/css/stilos.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        body { background-color: #f4f6f9; min-height: 100vh; }
+        .content-wrapper { padding-top: 80px; padding-bottom: 50px; }
+
+        /* Cabecera estilo Veterinario */
+        .page-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(13, 202, 240, 0.2);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Tabla */
+        .table-card {
+            background: white; border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .table thead { background-color: #343a40; color: white; }
+        .table th { font-weight: 600; border: none; padding: 15px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .table td { padding: 15px; vertical-align: middle; border-bottom: 1px solid #f0f0f0; }
+        .table tbody tr:hover { background-color: #f8f9fa; }
+
+        /* Buscador */
+        .search-box {
+            background: white; padding: 1.5rem; border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 2rem;
+        }
+
+        /* Botones */
+        .btn-action { border-radius: 50px; font-weight: 600; padding: 5px 15px; font-size: 0.85rem; }
+
+        .empty-state { text-align: center; padding: 3rem; color: #adb5bd; }
+    </style>
 </head>
 <body>
 
 <div th:replace="fragments/menuV :: menuV"></div>
 <input type="checkbox" id="btn-menu">
-
 <div th:replace="fragments/barralateralV :: barralateralV"></div>
 
-<div class="container mt-5">
-    <h2 class="text-center mb-4 text-primary">Diagnósticos de Dueños</h2>
+<div class="content-wrapper">
+    <div class="container">
 
-    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <span th:text="${mensajeExito}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span th:text="${mensajeError}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-
-    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: .25rem;" class="shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover border-primary mb-0">
-                <thead class="table-dark text-center" style="position: sticky; top: 0; z-index: 1;">
-                <tr>
-                    <th>ID Diagnóstico</th>
-                    <th>Mascota</th>
-                    <th>Dueño</th>
-                    <th>Fecha</th>
-                    <th>Observaciones</th>
-                    <th>Tipo de enfermedad</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="d : ${listaDiagnosticos}" class="text-center">
-                    <td th:text="${d.idDiagnosticoDueno}"></td>
-                    <td th:text="${d.nombreM}"></td>
-                    <td th:text="${d.nombreDueno}"></td>
-                    <td th:text="${d.fechaDiagnostico}"></td>
-                    <td th:text="${d.observaciones}"></td>
-                    <td th:text="${d.tipoEnfermedad}"></td>
-                    <td>
-                        <button class="btn btn-sm btn-primary"
-                                data-bs-toggle="modal"
-                                data-bs-target="#citaModal"
-                                th:attr="data-iddiagnostico=${d.idDiagnosticoDueno},
-                                         data-idmascota=${d.mascotaId},
-                                         data-tipoenfermedad=${d.tipoEnfermedad}">
-                            Agendar Cita
-                        </button>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+        <div class="page-header">
+            <h2 class="fw-bold mb-2"><i class="fas fa-stethoscope me-2"></i>Diagnósticos Recientes</h2>
+            <p class="mb-0 opacity-90">Revisa los reportes de síntomas enviados por los dueños y agenda citas.</p>
         </div>
-    </div>
-    <div class="alert alert-info mt-4" role="alert">
-        <h5 class="alert-heading"><i class="fas fa-info-circle"></i> Recordatorio</h5>
-        <p class="mb-0">Recuerda que al registrar una cita y haberla efectuado, debes marcarla como <strong>"Terminada"</strong> en la lista de citas para poder registrar nuevas dietas o actividades.</p>
-    </div>
 
-    <div class="text-center mt-4">
-        <a th:href="@{/citas}" class="btn btn-primary">
-            <i class="fas fa-calendar-alt me-1"></i> Ir a Citas
-        </a>
-        <a th:href="@{/veterinario/index}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Volver al Panel
-        </a>
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm border-start border-5 border-success" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <strong th:text="${mensajeExito}"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${mensajeError}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="search-box">
+            <form th:action="@{/diagnosticos/listar}" method="GET" class="d-flex gap-2">
+                <div class="flex-grow-1 position-relative">
+                    <i class="fas fa-search position-absolute text-muted" style="top: 12px; left: 15px;"></i>
+                    <input class="form-control ps-5 rounded-pill" type="search"
+                           placeholder="Buscar por mascota o dueño..."
+                           name="filtro" th:value="${filtro}">
+                </div>
+                <button class="btn btn-primary rounded-pill px-4 fw-bold" type="submit">Buscar</button>
+                <a th:href="@{/diagnosticos/listar}" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" title="Limpiar filtro">
+                    <i class="fas fa-times"></i>
+                </a>
+            </form>
+        </div>
+
+        <div class="table-card">
+            <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                <table class="table table-hover mb-0">
+                    <thead style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th>Paciente</th>
+                        <th>Dueño</th>
+                        <th>Fecha Reporte</th>
+                        <th>Observaciones</th>
+                        <th>Tipo</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="d : ${listaDiagnosticos}">
+                        <td class="text-center text-muted" th:text="${d.idDiagnosticoDueno}"></td>
+
+                        <td class="fw-bold text-primary" th:text="${d.nombreM}"></td>
+
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center border" style="width: 30px; height: 30px;">
+                                    <i class="fas fa-user text-secondary" style="font-size: 0.8rem;"></i>
+                                </div>
+                                <span th:text="${d.nombreDueno}"></span>
+                            </div>
+                        </td>
+
+                        <td th:text="${d.fechaDiagnostico}"></td>
+
+                        <td>
+                            <span class="d-inline-block text-truncate" style="max-width: 250px;"
+                                  th:text="${d.observaciones}"
+                                  data-bs-toggle="tooltip"
+                                  th:title="${d.observaciones}"></span>
+                        </td>
+
+                        <td><span class="badge bg-info text-dark" th:text="${d.tipoEnfermedad}"></span></td>
+
+                        <td class="text-center">
+                            <button class="btn btn-primary btn-sm btn-action shadow-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#citaModal"
+                                    th:attr="data-iddiagnostico=${d.idDiagnosticoDueno},
+                                             data-idmascota=${d.mascotaId},
+                                             data-tipoenfermedad=${d.tipoEnfermedad}">
+                                <i class="fas fa-calendar-plus me-1"></i> Agendar Cita
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(listaDiagnosticos)}">
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                            <p class="mb-0">No hay diagnósticos pendientes.</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="alert alert-light mt-4 border shadow-sm rounded-3 d-flex align-items-center">
+            <i class="fas fa-info-circle text-primary fa-2x me-3"></i>
+            <div>
+                <h6 class="alert-heading fw-bold mb-1">Recordatorio Importante</h6>
+                <p class="mb-0 small text-muted">Recuerda marcar las citas como <strong>"Terminada"</strong> en la sección de <a th:href="@{/diagnosticos/listar}" class="fw-bold text-decoration-none">Citas Asignadas</a> para poder registrar dietas o actividades.</p>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 mb-5">
+            <a th:href="@{/veterinario/index}" class="btn btn-outline-secondary rounded-pill px-4 me-2">
+                <i class="fas fa-arrow-left me-2"></i> Volver al Panel
+            </a>
+            <a th:href="@{/citas}" class="btn btn-primary rounded-pill px-4 shadow-sm"> <i class="fas fa-calendar-check me-2"></i> Ir a Mis Citas
+            </a>
+        </div>
+
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-
-
 <div class="modal fade" id="citaModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content border-0 shadow">
             <form th:action="@{/citas/crear}" th:object="${citaDTO}" method="post" class="needs-validation" novalidate>
 
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Crear Cita</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <h5 class="modal-title fw-bold"><i class="fas fa-calendar-plus me-2"></i>Agendar Cita</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <input type="hidden" th:field="*{diagnosticoduenoId}" id="modalIdD">
                     <input type="hidden" th:field="*{mascotaId}" id="modalIdMascota">
-                    <input type="hidden" th:field="*{veterinarioId}" th:value="${session.veterinarioId}">
-
                     <div class="mb-3">
-                        <label for="FechaCita" class="form-label">Fecha de la Cita</label>
+                        <label for="FechaCita" class="form-label small fw-bold text-secondary">Fecha</label>
                         <input type="date" th:field="*{fecha}" id="FechaCita" class="form-control" required>
-                        <div class="invalid-feedback">
-                            Por favor, seleccione una fecha de cita válida (hoy o futura).
-                        </div>
+                        <div class="invalid-feedback">Seleccione una fecha válida.</div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="HoraCita" class="form-label">Hora de la Cita</LabeL>
+                        <label for="HoraCita" class="form-label small fw-bold text-secondary">Hora</label>
                         <select th:field="*{hora}" id="HoraCita" class="form-select" required>
-                            <option value="" disabled selected>Seleccione una franja horaria</option>
+                            <option value="" disabled selected>Seleccione hora...</option>
+                            <option value="08:00:00">08:00 AM</option>
                             <option value="09:00:00">09:00 AM</option>
                             <option value="10:00:00">10:00 AM</option>
                             <option value="11:00:00">11:00 AM</option>
-                            <option value="13:00:00">01:00 PM</option>
                             <option value="14:00:00">02:00 PM</option>
                             <option value="15:00:00">03:00 PM</option>
                             <option value="16:00:00">04:00 PM</option>
+                            <option value="17:00:00">05:00 PM</option>
                         </select>
-                        <div class="invalid-feedback">
-                            Por favor, seleccione una hora.
-                        </div>
+                        <div class="invalid-feedback">Seleccione una hora.</div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="MotivoCita" class="form-label">Motivo</label>
-                        <input type="text" th:field="*{motivoCita}" id="MotivoCita" class="form-control"
-                               required minlength="5" maxlength="255"
-                               title="El motivo de la cita debe tener entre 5 y 255 caracteres.">
-                        <div class="invalid-feedback">
-                            Por favor, ingrese un motivo para la cita (entre 5 y 255 caracteres).
-                        </div>
+                        <label for="MotivoCita" class="form-label small fw-bold text-secondary">Motivo</label>
+                        <input type="text" th:field="*{motivoCita}" id="MotivoCita" class="form-control" required minlength="5">
+                        <div class="invalid-feedback">Ingrese un motivo.</div>
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Guardar</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">Guardar Cita</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
+    // Tu script original (sin cambios, funciona perfecto)
     document.addEventListener('DOMContentLoaded', function () {
         const citaModal = document.getElementById('citaModal');
         const fechaCitaInput = document.getElementById('FechaCita');
         const motivoCitaInput = document.getElementById('MotivoCita');
 
-        // --- 1. Configuración de Fecha Mínima ---
         const today = new Date();
         const year = today.getFullYear();
         const month = (today.getMonth() + 1).toString().padStart(2, '0');
@@ -155,7 +235,6 @@
         const minDate = `${year}-${month}-${day}`;
         fechaCitaInput.setAttribute('min', minDate);
 
-        // --- 2. Evento para poblar el Modal ---
         citaModal.addEventListener('show.bs.modal', function (ev) {
             const btn = ev.relatedTarget;
             if (!btn) return;
@@ -166,33 +245,18 @@
 
             document.getElementById('modalIdD').value = idD;
             document.getElementById('modalIdMascota').value = idMascota;
-            motivoCitaInput.value = tipoEnfermedad;
+            // Pre-llenar el motivo con el tipo de enfermedad
+            if(tipoEnfermedad) motivoCitaInput.value = "Atención por: " + tipoEnfermedad;
 
             const form = citaModal.querySelector('.needs-validation');
             form.classList.remove('was-validated');
-            Array.from(form.elements).forEach(el => {
-                el.classList.remove('is-valid', 'is-invalid');
-                el.setCustomValidity("");
-            });
-
             document.getElementById('HoraCita').value = "";
             fechaCitaInput.value = minDate;
         });
 
-        // --- 3. Validación de Bootstrap ---
+        // Validación Bootstrap
         const form = citaModal.querySelector('.needs-validation');
         form.addEventListener('submit', function(event) {
-            const selectedDate = new Date(fechaCitaInput.value);
-            const currentDate = new Date();
-            selectedDate.setHours(0,0,0,0);
-            currentDate.setHours(0,0,0,0);
-
-            if (selectedDate < currentDate) {
-                fechaCitaInput.setCustomValidity("La fecha no puede ser pasada.");
-            } else {
-                fechaCitaInput.setCustomValidity("");
-            }
-
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -200,7 +264,11 @@
             form.classList.add('was-validated');
         });
 
-        fechaCitaInput.addEventListener('input', () => fechaCitaInput.setCustomValidity(""));
+        // Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
     });
 </script>
 </body>

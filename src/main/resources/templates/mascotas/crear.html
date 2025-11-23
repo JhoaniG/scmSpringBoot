@@ -2,90 +2,175 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Registrar Mascota - SCM</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Mascota - SCM</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/stilos.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
+    <style>
+        body { background-color: #f4f6f9; min-height: 100vh; }
+
+        .content-wrapper {
+            padding-top: 90px;
+            padding-bottom: 50px;
+            transition: margin-left 0.3s;
+        }
+        @media (min-width: 992px) { .content-wrapper { margin-left: 250px; } }
+
+        /* Tarjeta del Formulario */
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(111, 66, 193, 0.1); /* Sombra morada */
+            overflow: hidden;
+            max-width: 800px;
+            margin: 0 auto;
+            border: none;
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Morado Dueño */
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+        .header-icon { font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.9; }
+        .header-title { font-weight: 800; letter-spacing: 0.5px; margin: 0; }
+
+        .card-body-custom { padding: 3rem; }
+
+        /* Estilos de Inputs */
+        .form-label { font-weight: 700; color: #555; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .form-control, .form-select {
+            border-radius: 10px; padding: 0.8rem 1rem; border: 1px solid #e0e0e0;
+            background-color: #fdfdfd; transition: all 0.2s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #6f42c1; box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.15);
+        }
+
+        /* Radio Buttons Estilizados */
+        .radio-card {
+            border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem;
+            margin-bottom: 1rem; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center;
+        }
+        .radio-card:hover { background-color: #f8f9fa; }
+        .form-check-input:checked + .form-check-label { color: #6f42c1; font-weight: bold; }
+        .form-check-input:checked ~ .radio-card { border-color: #6f42c1; background-color: #f3e5f5; }
+
+        /* Botones */
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none; color: white; padding: 12px 35px;
+            border-radius: 50px; font-weight: 700; transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(111, 66, 193, 0.5); color: white;}
+
+        .btn-back {
+            border: 2px solid #dee2e6; color: #6c757d; font-weight: 600; border-radius: 50px;
+            padding: 10px 25px; text-decoration: none; transition: 0.3s; background: white;
+        }
+        .btn-back:hover { background-color: #e9ecef; color: #333; }
+
+        /* Select2 Tweaks */
+        .select2-container--bootstrap-5 .select2-selection { border-radius: 10px; padding: 0.5rem; }
+    </style>
 </head>
 <body>
 
-<div th:replace="fragments/menuV :: menuV"></div>
+<div th:replace="~{fragments/menuV :: menuV}"></div>
 <input type="checkbox" id="btn-menu">
 <div th:replace="~{fragments/barralateralD :: barralateralD(${diagnosticoDTO}, ${mascotas}, ${veterinarios}, ${usuario})}"></div>
 <div th:replace="~{fragments/barralateralD :: modalDiagnostico(${diagnosticoDTO}, ${mascotas}, ${veterinarios})}"></div>
 
-<div class="container mt-5 mb-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-info text-white text-center">
-                    <h4><i class="fas fa-dog"></i> Registrar Nueva Mascota</h4>
+<div class="content-wrapper">
+    <div class="container">
+
+        <div class="form-card">
+            <div class="card-header-custom">
+                <div class="header-icon"><i class="fas fa-paw"></i></div>
+                <h2 class="header-title">Registrar Nueva Mascota</h2>
+                <p class="mb-0 opacity-75">Añade un nuevo miembro a tu familia</p>
+            </div>
+
+            <div class="card-body-custom">
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 mb-4" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div class="card-body">
-                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <span th:text="${error}"></span>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+                <form th:action="@{/mascotas/crear}" th:object="${mascotaDTO}" method="post"
+                      enctype="multipart/form-data" class="needs-validation" novalidate>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre de la Mascota</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 rounded-start-3"><i class="fas fa-signature text-primary"></i></span>
+                                <input type="text" th:field="*{nombre}" id="nombre" class="form-control border-start-0"
+                                       placeholder="Ej: Max" required minlength="2" maxlength="50"
+                                       pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+">
+                                <div class="invalid-feedback">Solo letras y espacios (2-50 caracteres).</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <label for="genero" class="form-label">Género</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 rounded-start-3"><i class="fas fa-venus-mars text-danger"></i></span>
+                                <select th:field="*{genero}" id="genero" class="form-select border-start-0" required>
+                                    <option value="" disabled selected>Selecciona</option>
+                                    <option value="Macho">Macho</option>
+                                    <option value="Hembra">Hembra</option>
+                                </select>
+                                <div class="invalid-feedback">Selecciona el género.</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <form th:action="@{/mascotas/crear}" th:object="${mascotaDTO}" method="post"
-                          enctype="multipart/form-data" class="needs-validation">
+                    <div class="mb-4 p-3 bg-light rounded-3 border">
+                        <label class="form-label mb-3 d-block">¿Conoces la fecha de nacimiento?</label>
 
-                        <div class="form-group mb-4">
-                            <label for="nombre" class="form-label fw-bold text-primary">🐶 Nombre</label>
-                            <input type="text" th:field="*{nombre}" id="nombre" class="form-control form-control-lg rounded-pill"
-                                   placeholder="Ej: Max" required minlength="2" maxlength="50"
-                                   pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+">
-                            <div class="invalid-feedback">
-                                Por favor, ingresa un nombre válido (solo letras y espacios, 2-50 caracteres).
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check radio-card bg-white">
+                                    <input class="form-check-input me-2" type="radio" th:field="*{esAdoptado}" id="adoptadoNo" value="false" checked>
+                                    <label class="form-check-label w-100" for="adoptadoNo">Sí, la conozco</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check radio-card bg-white">
+                                    <input class="form-check-input me-2" type="radio" th:field="*{esAdoptado}" id="adoptadoSi" value="true">
+                                    <label class="form-check-label w-100" for="adoptadoSi">No, es adoptado (edad aprox)</label>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-group mb-4">
-                            <label for="genero" class="form-label fw-bold text-primary">⚧ Género</label>
-                            <select th:field="*{genero}" id="genero" class="form-select form-select-lg rounded-pill" required>
-                                <option value="" disabled selected>Selecciona</option>
-                                <option value="Macho">Macho</option>
-                                <option value="Hembra">Hembra</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Por favor, selecciona el género de la mascota.
-                            </div>
+                        <div class="mt-3" id="campoFechaNacimiento">
+                            <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+                            <input type="date" th:field="*{fechaNacimiento}" id="fechaNacimiento" class="form-control"/>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label font-weight-bold">¿Conoces la fecha de nacimiento?</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" th:field="*{esAdoptado}" id="adoptadoNo" value="false" checked>
-                                <label class="form-check-label" for="adoptadoNo">
-                                    Sí, conozco la fecha exacta.
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" th:field="*{esAdoptado}" id="adoptadoSi" value="true">
-                                <label class="form-check-label" for="adoptadoSi">
-                                    No, es adoptado (sé la edad aproximada).
-                                </label>
-                            </div>
+                        <div class="mt-3" id="campoEdadEstimada" style="display: none;">
+                            <label for="edadEstimadaAnios" class="form-label">Edad Estimada (Años)</label>
+                            <input type="number" th:field="*{edadEstimadaAnios}" id="edadEstimadaAnios" class="form-control" placeholder="Ej: 5" min="0" max="30"/>
+                            <div class="form-text">Calcularemos una fecha aproximada.</div>
                         </div>
+                    </div>
 
-                        <div class="mb-3" id="campoFechaNacimiento">
-                            <label for="fechaNacimiento" class="form-label fw-bold text-primary">📅 Fecha de Nacimiento</label>
-                            <input type="date" th:field="*{fechaNacimiento}" id="fechaNacimiento" class="form-control form-control-lg rounded-pill"/>
-                        </div>
-
-                        <div class="mb-3" id="campoEdadEstimada" style="display: none;">
-                            <label for="edadEstimadaAnios" class="form-label fw-bold text-primary">📅 Edad Estimada (en años)</label>
-                            <input type="number" th:field="*{edadEstimadaAnios}" id="edadEstimadaAnios" class="form-control form-control-lg rounded-pill" placeholder="Ej: 5" min="0" max="30"/>
-                        </div>
-
-                        <div class="form-group mb-4">
-                            <label for="especie" class="form-label fw-bold text-primary">🌎 Especie</label>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="especie" class="form-label">Especie</label>
                             <select class="form-control-select2" id="especie" th:field="*{especie}" required>
-                                <option value="" disabled selected>Selecciona una especie...</option>
+                                <option value="" disabled selected>Selecciona especie...</option>
                                 <option value="Perro">Perro</option>
                                 <option value="Gato">Gato</option>
                                 <option value="Pájaro">Pájaro</option>
@@ -96,46 +181,41 @@
                                 <option value="Otro">Otro</option>
                             </select>
                         </div>
-
-                        <div class="form-group mb-4">
-                            <label for="raza" class="form-label fw-bold text-primary">🐾 Raza</label>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <label for="raza" class="form-label">Raza</label>
                             <select class="form-control-select2" id="raza" th:field="*{raza}" required>
-                                <option value="" disabled selected>Primero selecciona una especie...</option>
+                                <option value="" disabled selected>Selecciona especie primero...</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label for="archivoFoto" class="form-label fw-bold text-primary">📸 Foto de la Mascota</label>
-                            <input type="file" th:field="*{archivoFoto}" id="archivoFoto" class="form-control" accept="image/*" required>
-                            <div class="invalid-feedback">
-                                Por favor, selecciona una foto para la mascota.
-                            </div>
-                        </div>
+                    </div>
 
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-info btn-lg me-2 rounded-pill">
-                                <i class="fas fa-plus"></i> Registrar Mascota
-                            </button>
-                            <a th:href="@{/mascotas/listar}" class="btn btn-secondary btn-lg rounded-pill">
-                                <i class="fas fa-arrow-left"></i> Volver
-                            </a>
-                        </div>
-                    </form>
-                </div>
+                    <div class="mb-4">
+                        <label for="archivoFoto" class="form-label">Foto de Perfil</label>
+                        <input type="file" th:field="*{archivoFoto}" id="archivoFoto" class="form-control" accept="image/*" required>
+                        <div class="invalid-feedback">Selecciona una foto.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-5">
+                        <a th:href="@{/dueno/index}" class="btn-back">
+                            <i class="fas fa-arrow-left me-2"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-check me-2"></i> Registrar Mascota
+                        </button>
+                    </div>
+
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-<footer class="footer mt-5" id="footer">
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-    // --- Objeto con las razas por especie ---
+    // --- 1. Lógica de Razas (Igual que antes) ---
     const razasPorEspecie = {
         "Perro": ["Labrador Retriever", "Pastor Alemán", "Golden Retriever", "Bulldog", "Poodle (Caniche)", "Beagle", "Boxer", "Dachshund (Salchicha)", "Shih Tzu", "Schnauzer", "Yorkshire Terrier", "Chihuahua", "Pug", "Criollo (Mestizo)"],
         "Gato": ["Siamés", "Persa", "Maine Coon", "Ragdoll", "Bengalí", "Abisinio", "Birmano", "Esfinge (Sphynx)", "Criollo (Mestizo)"],
@@ -147,92 +227,72 @@
         "Otro": ["No Aplica"]
     };
 
-    // --- Lógica de JavaScript cuando el documento esté listo ---
     $(document).ready(function() {
+        // Inicializar Select2
+        $('.form-control-select2').select2({ theme: "bootstrap-5", width: '100%' });
 
-        // --- 1. Inicializar Select2 (desplegables con buscador) ---
-        // Aplicamos estilos a los desplegables de especie y raza
-        $('.form-control-select2').select2({
-            theme: "bootstrap-5",
-            width: '100%'
-        });
-
-        // --- 2. Lógica para el cambio de Especie ---
+        // Cambio de Especie
         $('#especie').on('change', function() {
-            const especieSeleccionada = $(this).val();
-            const $razaSelect = $('#raza');
+            const especie = $(this).val();
+            const $raza = $('#raza');
+            $raza.empty();
+            $raza.append(new Option('No lo sé / Mestizo', 'No lo sé / Mestizo'));
 
-            $razaSelect.empty();
-            $razaSelect.append(new Option('No lo sé / Mestizo', 'No lo sé / Mestizo'));
-
-            if (razasPorEspecie[especieSeleccionada]) {
-                razasPorEspecie[especieSeleccionada].forEach(function(raza) {
-                    var option = new Option(raza, raza);
-                    $razaSelect.append(option);
-                });
+            if (razasPorEspecie[especie]) {
+                razasPorEspecie[especie].forEach(raza => $raza.append(new Option(raza, raza)));
             } else {
-                 $razaSelect.append(new Option('No Aplica', 'No Aplica'));
+                $raza.append(new Option('No Aplica', 'No Aplica'));
             }
-
-            $razaSelect.val('No lo sé / Mestizo').trigger('change');
+            $raza.val('No lo sé / Mestizo').trigger('change');
         });
 
-
-        // --- 3. Lógica para mostrar/ocultar campos de Adopción ---
+        // Cambio de Radio (Adopción)
         $('input[type=radio][name=esAdoptado]').change(function() {
             if (this.value === 'true') {
-                $('#campoEdadEstimada').show();
-                $('#campoFechaNacimiento').hide();
-                $('#fechaNacimiento').val('');
-                $('#fechaNacimiento').prop('required', false);
+                $('#campoEdadEstimada').slideDown();
+                $('#campoFechaNacimiento').slideUp();
+                $('#fechaNacimiento').val('').prop('required', false);
                 $('#edadEstimadaAnios').prop('required', true);
             } else {
-                $('#campoEdadEstimada').hide();
-                $('#campoFechaNacimiento').show();
-                $('#edadEstimadaAnios').val('');
+                $('#campoEdadEstimada').slideUp();
+                $('#campoFechaNacimiento').slideDown();
+                $('#edadEstimadaAnios').val('').prop('required', false);
                 $('#fechaNacimiento').prop('required', true);
-                $('#edadEstimadaAnios').prop('required', false);
             }
         });
-
-        // Disparar el evento change al cargar la página para establecer el estado inicial
+        // Disparar al inicio
         $('input[type=radio][name=esAdoptado]:checked').trigger('change');
     });
-</script>
-<script>
+
+    // --- 2. Validación de Fecha ---
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.querySelector('.needs-validation');
-        const fechaNacimientoInput = document.getElementById('fechaNacimiento');
+        const fechaInput = document.getElementById('fechaNacimiento');
 
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = (today.getMonth() + 1).toString().padStart(2, '0');
-        const day = today.getDate().toString().padStart(2, '0');
-        const maxDate = `${year}-${month}-${day}`;
-        fechaNacimientoInput.setAttribute('max', maxDate);
+        // Fecha Máxima (Hoy)
+        const today = new Date().toISOString().split('T')[0];
+        fechaInput.setAttribute('max', today);
 
         form.addEventListener('submit', function (event) {
-            const selectedDate = new Date(fechaNacimientoInput.value);
+            const selectedDate = new Date(fechaInput.value);
             const currentDate = new Date();
             currentDate.setHours(0, 0, 0, 0);
 
-            if (fechaNacimientoInput.value && selectedDate >= currentDate) {
-                fechaNacimientoInput.setCustomValidity("La fecha de nacimiento no puede ser hoy ni futura.");
+            // Validar que no sea futura (solo si está visible y tiene valor)
+            if ($('#campoFechaNacimiento').is(':visible') && fechaInput.value && selectedDate >= currentDate) {
+                fechaInput.setCustomValidity("La fecha de nacimiento debe ser anterior a hoy.");
             } else {
-                fechaNacimientoInput.setCustomValidity("");
+                fechaInput.setCustomValidity("");
             }
 
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();
             }
-
             form.classList.add('was-validated');
         });
 
-        fechaNacimientoInput.addEventListener('input', function() {
-            this.setCustomValidity("");
-        });
+        fechaInput.addEventListener('input', () => fechaInput.setCustomValidity(""));
     });
 </script>
 

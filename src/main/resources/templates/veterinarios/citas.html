@@ -2,628 +2,470 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Citas Asignadas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Citas - Veterinario</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/stilos.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body { background-color: #f0f2f5; min-height: 100vh; }
+
+        .content-wrapper {
+            padding-top: 80px;
+            padding-bottom: 50px;
+            transition: margin-left 0.3s;
+        }
+        @media (min-width: 992px) { .content-wrapper { margin-left: 250px; } }
+
+        /* Cabecera Profesional */
+        .page-header {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            text-align: center;
+            border-top: 5px solid #0dcaf0; /* Azul Cian Veterinario */
+        }
+
+        /* Tabla Estilizada */
+        .table-card {
+            background: white; border-radius: 15px; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .table thead { background-color: #343a40; color: white; }
+        .table th { font-weight: 600; border: none; padding: 15px; font-size: 0.9rem; text-transform: uppercase; }
+        .table td { vertical-align: middle; padding: 15px; border-bottom: 1px solid #f0f0f0; }
+        .table tbody tr:hover { background-color: #f8f9fa; }
+
+        /* Badges de Estado */
+        .badge-status { padding: 8px 12px; border-radius: 30px; font-weight: 600; font-size: 0.8rem; }
+        .bg-pendiente { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .bg-terminada { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+        .bg-confirmada { background-color: #cff4fc; color: #055160; border: 1px solid #b6effb; }
+
+        /* Botones de Acción */
+        .btn-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; padding: 0; transition: 0.2s; }
+        .btn-icon:hover { transform: scale(1.1); }
+    </style>
 </head>
 <body>
 
-<div th:replace="~{fragments/menuV :: menuV}"></div>
+<div th:replace="fragments/menuV :: menuV"></div>
 <input type="checkbox" id="btn-menu">
+<div th:replace="fragments/barralateralV :: barralateralV"></div>
 
-<div th:replace="~{fragments/barralateralV :: barralateralV}"></div>
+<span id="logged-in-vet-id" th:data-vet-id="${veterinarioIdLogueado}" style="display: none;"></span>
 
-<div class="capa container mt-5">
-    <h2 class="text-center mb-4 text-primary">Citas Asignadas</h2>
+<div class="content-wrapper">
+    <div class="container">
 
-    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <span th:text="${mensajeExito}"></span>
-        <div th:if="${mascotaIdParaAccion}" class="mt-3">
-            <h5 class="alert-heading">Siguientes Pasos:</h5>
-            <p>Ahora puedes registrar una dieta o actividad para este paciente:</p>
-            <button type="button" class="btn btn-primary btn-sm btn-abrir-modal-dieta"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalCrearDieta"
-                    th:data-mascota-id="${mascotaIdParaAccion}"
-                    th:data-mascota-nombre="'Paciente'"> <i class="fas fa-utensils"></i> Registrar Dieta
-            </button>
-
-            <button type="button" class="btn btn-success btn-sm ms-2 btn-abrir-modal-actividad"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalCrearActividad"
-                    th:data-mascota-id="${mascotaIdParaAccion}"
-                    th:data-mascota-nombre="'Paciente'">
-                <i class="fas fa-running"></i> Registrar Actividad
-            </button>
-
+        <div class="page-header">
+            <h2 class="fw-bold text-dark mb-2"><i class="fas fa-clipboard-list text-info me-2"></i>Citas Asignadas</h2>
+            <p class="text-muted mb-0">Administra tu agenda, registra evoluciones y asigna tratamientos.</p>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span th:text="${mensajeError}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
 
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm border-start border-5 border-success" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle fa-2x me-3 text-success"></i>
+                <div>
+                    <h5 class="alert-heading fw-bold mb-1">¡Operación Exitosa!</h5>
+                    <span th:text="${mensajeExito}"></span>
+                </div>
+            </div>
 
-    <div class="table-responsive shadow-sm">
-        <table class="table table-striped table-hover border border-primary">
-            <thead class="table-dark text-center">
-            <tr>
-                <th>#</th>
-                <th>Mascota</th>
-                <th>Dueño</th>
-                <th>Fecha y Hora</th>
-                <th>Motivo</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="cita, status : ${listaCitas}" class="text-center">
-                <td th:text="${status.index + 1}"></td>
-                <td th:text="${cita.nombreMascota}"></td>
-                <td>
-                    <span th:if="${cita.estadoCita == 'Pendiente'}" class="text-muted fst-italic">(Cita Pendiente)</span>
-                    <span th:unless="${cita.estadoCita == 'Pendiente'}" th:text="${cita.nombreDueno}"></span>
-                </td>
-                <td th:text="${#temporals.format(cita.fecha, 'dd/MM/yyyy')} + ' ' + ${#temporals.format(cita.hora, 'hh:mm a')}"></td>
-                <td th:text="${cita.motivoCita}"></td>
-                <td>
-                    <span class="badge bg-warning text-dark" th:if="${cita.estadoCita == 'Pendiente'}">Pendiente</span>
-                    <span class="badge bg-success" th:if="${cita.estadoCita == 'Terminada'}">Terminada</span>
-                    <span class="badge bg-info" th:if="${cita.estadoCita == 'Confirmada'}">Confirmada</span>
-                </td>
-
-                <td>
-                    <form th:if="${cita.estadoCita != 'Terminada'}"
-                          th:action="@{/citas/terminar/{id}(id=${cita.idCita})}"
-                          method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-success btn-sm" title="Marcar como Terminada"
-                                onclick="return confirm('¿Está seguro de que desea marcar esta cita como terminada?');">
-                            <i class="fas fa-check"></i>
-                        </button>
-                    </form>
-
-                    <button type="button" class="btn btn-info btn-sm btnVerHistorial"
-                            data-bs-toggle="modal"
-                            data-bs-target="#historialModal"
-                            th:data-mascota-id="${cita.mascotaId}"
-                            title="Ver Historial Completo">
-                        <i class="fas fa-eye"></i>
+            <div th:if="${mascotaIdParaAccion}" class="mt-3 pt-3 border-top border-success-subtle">
+                <p class="fw-bold mb-2 text-success"><i class="fas fa-arrow-right me-1"></i> Siguientes pasos recomendados:</p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-primary btn-sm btn-abrir-modal-dieta"
+                            data-bs-toggle="modal" data-bs-target="#modalCrearDieta"
+                            th:data-mascota-id="${mascotaIdParaAccion}" th:data-mascota-nombre="'Paciente'">
+                        <i class="fas fa-utensils me-1"></i> Asignar Dieta
                     </button>
+                    <button type="button" class="btn btn-warning text-dark btn-sm btn-abrir-modal-actividad"
+                            data-bs-toggle="modal" data-bs-target="#modalCrearActividad"
+                            th:data-mascota-id="${mascotaIdParaAccion}" th:data-mascota-nombre="'Paciente'">
+                        <i class="fas fa-running me-1"></i> Asignar Actividad
+                    </button>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
 
-                    <div th:if="${cita.estadoCita == 'Terminada'}" class="btn-group" role="group">
-                        <button type="button" class="btn btn-primary btn-sm btn-abrir-modal-dieta"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalCrearDieta"
-                                th:data-mascota-id="${cita.mascotaId}"
-                                th:data-mascota-nombre="${cita.nombreMascota}"
-                                title="Asignar Dieta">
-                            <i class="fas fa-utensils"></i>
-                        </button>
+        <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${mensajeError}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
 
-                        <button type="button" class="btn btn-success btn-sm btn-abrir-modal-actividad"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalCrearActividad"
-                                th:data-mascota-id="${cita.mascotaId}"
-                                th:data-mascota-nombre="${cita.nombreMascota}"
-                                title="Asignar Actividad">
-                            <i class="fas fa-running"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th>Paciente</th>
+                        <th>Dueño</th>
+                        <th>Fecha y Hora</th>
+                        <th>Motivo</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center" style="min-width: 150px;">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="cita, status : ${listaCitas}">
+                        <td class="text-center text-muted fw-bold" th:text="${status.index + 1}"></td>
 
-    <div class="text-center mt-4">
-        <a th:href="@{/veterinario/index}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Volver al Panel
-        </a>
-        <a th:href="@{/veterinario/calendario}" class="btn btn-primary">
-            <i class="fas fa-calendar-alt me-1"></i> Ver Calendario
-        </a>
+                        <td class="fw-bold text-primary" th:text="${cita.nombreMascota}"></td>
+
+                        <td>
+                            <span th:if="${cita.estadoCita == 'Pendiente'}" class="badge bg-light text-muted border">En espera</span>
+                            <span th:unless="${cita.estadoCita == 'Pendiente'}" th:text="${cita.nombreDueno}" class="fw-bold text-dark"></span>
+                        </td>
+
+                        <td th:text="${#temporals.format(cita.fecha, 'dd/MM/yyyy')} + ' - ' + ${#temporals.format(cita.hora, 'hh:mm a')}"></td>
+
+                        <td th:text="${cita.motivoCita}"></td>
+
+                        <td class="text-center">
+                            <span class="badge badge-status bg-pendiente" th:if="${cita.estadoCita == 'Pendiente'}">Pendiente</span>
+                            <span class="badge badge-status bg-terminada" th:if="${cita.estadoCita == 'Terminada'}">Terminada</span>
+                            <span class="badge badge-status bg-confirmada" th:if="${cita.estadoCita == 'Confirmada'}">Confirmada</span>
+                        </td>
+
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2 align-items-center">
+
+                                <form th:if="${cita.estadoCita != 'Terminada'}"
+                                      th:action="@{/citas/terminar/{id}(id=${cita.idCita})}"
+                                      method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-success btn-sm shadow-sm"
+                                            title="Marcar como Terminada"
+                                            onclick="return confirm('¿Confirmar que la cita ha finalizado?');">
+                                        <i class="fas fa-check me-1"></i> Terminar
+                                    </button>
+                                </form>
+
+                                <button type="button" class="btn btn-info btn-icon text-white shadow-sm btnVerHistorial"
+                                        data-bs-toggle="modal" data-bs-target="#historialModal"
+                                        th:data-mascota-id="${cita.mascotaId}" title="Ver Historial Clínico">
+                                    <i class="fas fa-file-medical"></i>
+                                </button>
+
+                                <div th:if="${cita.estadoCita == 'Terminada'}" class="btn-group shadow-sm">
+                                    <button type="button" class="btn btn-primary btn-icon btn-abrir-modal-dieta"
+                                            data-bs-toggle="modal" data-bs-target="#modalCrearDieta"
+                                            th:data-mascota-id="${cita.mascotaId}"
+                                            th:data-mascota-nombre="${cita.nombreMascota}" title="Asignar Dieta">
+                                        <i class="fas fa-utensils"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-warning text-dark btn-icon btn-abrir-modal-actividad"
+                                            data-bs-toggle="modal" data-bs-target="#modalCrearActividad"
+                                            th:data-mascota-id="${cita.mascotaId}"
+                                            th:data-mascota-nombre="${cita.nombreMascota}" title="Asignar Actividad">
+                                        <i class="fas fa-running"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div th:if="${#lists.isEmpty(listaCitas)}" class="text-center py-5">
+                <i class="far fa-calendar-check fa-3x text-muted mb-3 opacity-50"></i>
+                <p class="text-muted">No hay citas asignadas por el momento.</p>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 mb-5">
+            <a th:href="@{/veterinario/index}" class="btn btn-outline-secondary rounded-pill px-4 me-2">
+                <i class="fas fa-arrow-left me-2"></i> Volver al Panel
+            </a>
+            <a th:href="@{/veterinario/calendario}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                <i class="fas fa-calendar-alt me-2"></i> Ver Calendario
+            </a>
+        </div>
+
     </div>
 </div>
 
-<div class="modal fade" id="historialModal" tabindex="-1" aria-labelledby="historialModalLabel" aria-hidden="true">
+<div class="modal fade" id="historialModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="historialModalLabel">Historial Clínico Completo</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-file-medical-alt me-2"></i>Historial Clínico</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="historialModalBody">
                 <div id="historial-loading" class="text-center p-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                    <p class="mt-2">Cargando historial...</p>
+                    <div class="spinner-border text-info"></div><p class="mt-2">Cargando...</p>
                 </div>
                 <div id="historial-content" style="display: none;">
-                    <div class="card mb-3">
+                    <div class="card mb-3 border-0 bg-light">
                         <div class="card-body">
-                            <h4 class="card-title" id="historial-mascota-nombre"></h4>
-                            <p class="card-text mb-1"><strong>Dueño:</strong> <span id="historial-mascota-dueno"></span></p>
-                            <p class="card-text mb-1"><strong>Raza:</strong> <span id="historial-mascota-raza"></span> | <strong>Nacimiento:</strong> <span id="historial-mascota-fecha"></span></p>
+                            <h4 class="card-title text-dark fw-bold" id="historial-mascota-nombre"></h4>
+                            <p class="card-text mb-0 text-muted">Dueño: <span id="historial-mascota-dueno" class="fw-bold"></span></p>
+                            <p class="card-text text-muted small">Raza: <span id="historial-mascota-raza"></span> | Nacimiento: <span id="historial-mascota-fecha"></span></p>
                         </div>
                     </div>
                     <ul class="nav nav-tabs" id="historialTabs" role="tablist">
-                        <li class="nav-item" role="presentation"><button class="nav-link active" id="citas-tab" data-bs-toggle="tab" data-bs-target="#tab-citas" type="button" role="tab">Citas</button></li>
-                        <li class="nav-item" role="presentation"><button class="nav-link" id="diagnosticos-tab" data-bs-toggle="tab" data-bs-target="#tab-diagnosticos" type="button" role="tab">Reportes Dueño</button></li>
-                        <li class="nav-item" role="presentation"><button class="nav-link" id="dietas-tab" data-bs-toggle="tab" data-bs-target="#tab-dietas" type="button" role="tab">Dietas</button></li>
-                        <li class="nav-item" role="presentation"><button class="nav-link" id="actividades-tab" data-bs-toggle="tab" data-bs-target="#tab-actividades" type="button" role="tab">Actividades</button></li>
+                        <li class="nav-item"><button class="nav-link active" id="citas-tab" data-bs-toggle="tab" data-bs-target="#tab-citas" type="button">Citas</button></li>
+                        <li class="nav-item"><button class="nav-link" id="diagnosticos-tab" data-bs-toggle="tab" data-bs-target="#tab-diagnosticos" type="button">Reportes</button></li>
+                        <li class="nav-item"><button class="nav-link" id="dietas-tab" data-bs-toggle="tab" data-bs-target="#tab-dietas" type="button">Dietas</button></li>
+                        <li class="nav-item"><button class="nav-link" id="actividades-tab" data-bs-toggle="tab" data-bs-target="#tab-actividades" type="button">Actividades</button></li>
                     </ul>
-                    <div class="tab-content p-3 border border-top-0">
-                        <div class="tab-pane fade show active" id="tab-citas" role="tabpanel"><ul class="list-group" id="historial-lista-citas"></ul></div>
-                        <div class="tab-pane fade" id="tab-diagnosticos" role="tabpanel"><ul class="list-group" id="historial-lista-diagnosticos"></ul></div>
-                        <div class="tab-pane fade" id="tab-dietas" role="tabpanel"><ul class="list-group" id="historial-lista-dietas"></ul></div>
-                        <div class="tab-pane fade" id="tab-actividades" role="tabpanel"><ul class="list-group" id="historial-lista-actividades"></ul></div>
+                    <div class="tab-content p-3 border border-top-0 bg-white">
+                        <div class="tab-pane fade show active" id="tab-citas"><ul class="list-group list-group-flush" id="historial-lista-citas"></ul></div>
+                        <div class="tab-pane fade" id="tab-diagnosticos"><ul class="list-group list-group-flush" id="historial-lista-diagnosticos"></ul></div>
+                        <div class="tab-pane fade" id="tab-dietas"><ul class="list-group list-group-flush" id="historial-lista-dietas"></ul></div>
+                        <div class="tab-pane fade" id="tab-actividades"><ul class="list-group list-group-flush" id="historial-lista-actividades"></ul></div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalCrearActividad" tabindex="-1" aria-labelledby="modalActividadLabel" aria-hidden="true">
+<div class="modal fade" id="modalCrearActividad" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content border-0 shadow">
             <form id="formCrearActividad" class="needs-validation" novalidate enctype="multipart/form-data">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="modalActividadLabel">Asignar Actividad Física</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-running me-2"></i>Asignar Actividad</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-
                     <div id="actividad-error-container" class="alert alert-danger" style="display:none;"></div>
-
-                    <h5 class="mb-3">Paciente: <span id="actividadMascotaNombre" class="text-success"></span></h5>
+                    <h6 class="mb-3 text-muted">Paciente: <span id="actividadMascotaNombre" class="text-dark fw-bold"></span></h6>
                     <input type="hidden" id="actividadMascotaId" name="mascotaId">
-                    <input type="hidden" id="actividadVeterinarioId" name="veterinarioId" th:value="${usuario.idUsuario}"/>
-
-                    <div class="mb-3">
-                        <label for="actividadTipo" class="form-label">Tipo de Actividad</label>
-                        <select id="actividadTipo" name="tipoActividad" class="form-select" required>
-                            <option value="" disabled selected>Seleccione tipo...</option>
-                            <option value="Ejercicio físico">Ejercicio físico</option>
-                            <option value="Juegos">Juegos</option>
-                            <option value="Paseo">Paseo</option>
-                            <option value="Rehabilitación">Rehabilitación</option>
-                        </select>
-                        <div class="invalid-feedback">Seleccione un tipo de actividad.</div>
+                    <input type="hidden" id="actividadVeterinarioId" name="veterinarioId" th:value="${veterinarioIdLogueado}"/> <div class="mb-3">
+                    <label class="form-label small fw-bold">Tipo</label>
+                    <select id="actividadTipo" name="tipoActividad" class="form-select" required>
+                        <option value="" disabled selected>Seleccionar...</option>
+                        <option value="Ejercicio físico">Ejercicio físico</option>
+                        <option value="Juegos">Juegos</option>
+                        <option value="Paseo">Paseo</option>
+                        <option value="Rehabilitación">Rehabilitación</option>
+                    </select>
+                </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Inicio</label>
+                            <input type="date" id="actividadFechaInicio" name="fechaInicio" class="form-control" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Fin</label>
+                            <input type="date" id="actividadFechaFin" name="fechaFin" class="form-control" required>
+                        </div>
                     </div>
-
                     <div class="mb-3">
-                        <label for="actividadFechaInicio" class="form-label">Fecha de Inicio</label>
-                        <input type="date" id="actividadFechaInicio" name="fechaInicio" class="form-control" required>
-                        <div class="invalid-feedback">Seleccione una fecha de inicio (hoy o futura).</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="actividadFechaFin" class="form-label">Fecha de Fin</label>
-                        <input type="date" id="actividadFechaFin" name="fechaFin" class="form-control" required>
-                        <div class="invalid-feedback">Seleccione fecha de fin (debe ser posterior al inicio).</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="actividadDescripcion" class="form-label">Descripción</label>
+                        <label class="form-label small fw-bold">Descripción</label>
                         <textarea id="actividadDescripcion" name="descripcion" class="form-control" rows="3" required minlength="10"></textarea>
-                        <div class="invalid-feedback">Ingrese una descripción (mín. 10 caracteres).</div>
                     </div>
-
                     <div class="mb-3">
-                        <label for="actividadFoto" class="form-label">Foto (opcional)</label>
+                        <label class="form-label small fw-bold">Foto (Opcional)</label>
                         <input id="actividadFoto" name="foto" type="file" accept="image/*" class="form-control">
                     </div>
-
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Guardar Actividad</button>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold px-4">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalCrearDieta" tabindex="-1" aria-labelledby="modalDietaLabel" aria-hidden="true">
+<div class="modal fade" id="modalCrearDieta" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content border-0 shadow">
             <form id="formCrearDieta" class="needs-validation" novalidate enctype="multipart/form-data">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalDietaLabel">Asignar Dieta</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <h5 class="modal-title fw-bold"><i class="fas fa-utensils me-2"></i>Asignar Dieta</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-
                     <div id="dieta-error-container" class="alert alert-danger" style="display:none;"></div>
-
-                    <h5 class="mb-3">Paciente: <span id="dietaMascotaNombre" class="text-primary"></span></h5>
+                    <h6 class="mb-3 text-muted">Paciente: <span id="dietaMascotaNombre" class="text-primary fw-bold"></span></h6>
                     <input type="hidden" id="dietaMascotaId" name="mascotaId">
-
-                    <input type="hidden" id="dietaVeterinarioId" name="veterinarioId" th:value="${usuario.idUsuario}"/>
-
-                    <div class="mb-3">
-                        <label for="dietaTipo" class="form-label">Tipo de Dieta</label>
-                        <select id="dietaTipo" name="tipoDieta" class="form-select" required>
-                            <option value="" disabled selected>Seleccione tipo...</option>
-                            <option value="Baja en grasas">Baja en grasas</option>
-                            <option value="Alta en proteínas">Alta en proteínas</option>
-                            <option value="Hipoalergénica">Hipoalergénica</option>
-                            <option value="Control de peso">Control de peso</option>
-                        </select>
-                        <div class="invalid-feedback">Seleccione un tipo.</div>
+                    <input type="hidden" id="dietaVeterinarioId" name="veterinarioId" th:value="${veterinarioIdLogueado}"/> <div class="mb-3">
+                    <label class="form-label small fw-bold">Tipo</label>
+                    <select id="dietaTipo" name="tipoDieta" class="form-select" required>
+                        <option value="" disabled selected>Seleccionar...</option>
+                        <option value="Baja en grasas">Baja en grasas</option>
+                        <option value="Alta en proteínas">Alta en proteínas</option>
+                        <option value="Hipoalergénica">Hipoalergénica</option>
+                        <option value="Control de peso">Control de peso</option>
+                    </select>
+                </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Inicio</label>
+                            <input type="date" id="dietaFechaInicio" name="fechaInicio" class="form-control" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Fin</label>
+                            <input type="date" id="dietaFechaFin" name="fechaFin" class="form-control" required>
+                        </div>
                     </div>
-
                     <div class="mb-3">
-                        <label for="dietaFechaInicio" class="form-label">Fecha de Inicio</label>
-                        <input type="date" id="dietaFechaInicio" name="fechaInicio" class="form-control" required>
-                        <div class="invalid-feedback">Seleccione una fecha de inicio (hoy o futura).</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="dietaFechaFin" class="form-label">Fecha de Fin</label>
-                        <input type="date" id="dietaFechaFin" name="fechaFin" class="form-control" required>
-                        <div class="invalid-feedback">Seleccione fecha de fin (debe ser posterior al inicio).</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="dietaDescripcion" class="form-label">Descripción</label>
+                        <label class="form-label small fw-bold">Descripción</label>
                         <textarea id="dietaDescripcion" name="descripcion" class="form-control" rows="3" required minlength="10"></textarea>
-                        <div class="invalid-feedback">Ingrese una descripción (mín. 10 caracteres).</div>
                     </div>
-
                     <div class="mb-3">
-                        <label for="dietaFoto" class="form-label">Foto (opcional)</label>
+                        <label class="form-label small fw-bold">Foto (Opcional)</label>
                         <input id="dietaFoto" name="foto" type="file" accept="image/*" class="form-control">
                     </div>
-
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Guardar Dieta</button>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
 
-        // --- SCRIPT PARA MODAL 1: HISTORIAL (EL DEL OJO) ---
+        // Obtener ID del veterinario desde el span oculto
+        const vetIdSpan = document.getElementById('logged-in-vet-id');
+        const loggedInVeterinarioId = vetIdSpan ? vetIdSpan.getAttribute('data-vet-id') : null;
+
+        // --- 1. SCRIPT HISTORIAL ---
         const historialModal = document.getElementById('historialModal');
-        const loadingSpinner = document.getElementById('historial-loading');
-        const contentDiv = document.getElementById('historial-content');
-
         if (historialModal) {
-            historialModal.addEventListener('show.bs.modal', async function (event) {
-                loadingSpinner.style.display = 'block';
-                contentDiv.style.display = 'none';
-                limpiarModalHistorial();
+            const loadingSpinner = document.getElementById('historial-loading');
+            const contentDiv = document.getElementById('historial-content');
 
+            historialModal.addEventListener('show.bs.modal', async function (event) {
+                loadingSpinner.style.display = 'block'; contentDiv.style.display = 'none';
                 const button = event.relatedTarget;
                 const mascotaId = button.getAttribute('data-mascota-id');
 
                 try {
                     const response = await fetch(`/api/historial/mascota/${mascotaId}`);
-                    if (!response.ok) throw new Error('Error al cargar el historial.');
+                    if (!response.ok) throw new Error('Error loading history.');
                     const data = await response.json();
-                    poblarModalHistorial(data);
-                    loadingSpinner.style.display = 'none';
-                    contentDiv.style.display = 'block';
-                } catch (error) {
-                    console.error(error);
-                    loadingSpinner.innerHTML = `<p class="text-danger">${error.message}</p>`;
-                }
+
+                    // Poblar datos básicos
+                    document.getElementById('historial-mascota-nombre').textContent = data.mascota.nombre;
+                    document.getElementById('historial-mascota-dueno').textContent = data.mascota.nombreDueno;
+                    document.getElementById('historial-mascota-raza').textContent = data.mascota.raza;
+                    document.getElementById('historial-mascota-fecha').textContent = data.mascota.fechaNacimiento;
+
+                    // Poblar listas
+                    poblarLista('historial-lista-citas', data.citas, c => `(${c.fecha} ${c.hora}) - ${c.motivoCita} [${c.estadoCita}]`);
+                    poblarLista('historial-lista-diagnosticos', data.diagnosticos, d => `(${d.fechaDiagnostico}) - ${d.observaciones}`);
+                    poblarLista('historial-lista-dietas', data.dietas, d => `(${d.tipoDieta}) - ${d.descripcion}`);
+                    poblarLista('historial-lista-actividades', data.actividades, a => `(${a.tipoActividad}) - ${a.descripcion}`);
+
+                    loadingSpinner.style.display = 'none'; contentDiv.style.display = 'block';
+                } catch (e) { console.error(e); }
             });
-
-            function poblarModalHistorial(data) {
-                document.getElementById('historial-mascota-nombre').textContent = data.mascota.nombre;
-                document.getElementById('historial-mascota-dueno').textContent = data.mascota.nombreDueno;
-                document.getElementById('historial-mascota-raza').textContent = data.mascota.raza;
-                document.getElementById('historial-mascota-fecha').textContent = new Date(data.mascota.fechaNacimiento).toLocaleDateString('es-CO');
-
-                poblarLista('historial-lista-citas', data.citas, c => `(${c.fecha} ${c.hora}) - ${c.motivoCita} [${c.estadoCita}]`);
-                poblarLista('historial-lista-diagnosticos', data.diagnosticos, d => `(${d.fechaDiagnostico}) - ${d.observaciones}`);
-                poblarLista('historial-lista-dietas', data.dietas, d => `(${d.tipoDieta}) - ${d.descripcion}`);
-                poblarLista('historial-lista-actividades', data.actividades, a => `(${a.tipoActividad}) - ${a.descripcion}`);
-            }
-
-            function poblarLista(ulId, items, formatter) {
-                const ul = document.getElementById(ulId);
-                if (!items || items.length === 0) {
-                    ul.innerHTML = '<li class="list-group-item">No hay registros.</li>';
-                    return;
-                }
-                items.forEach(item => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item';
-                    li.textContent = formatter(item);
-                    ul.appendChild(li);
-                });
-            }
-
-            function limpiarModalHistorial() {
-                document.getElementById('historial-lista-citas').innerHTML = '';
-                document.getElementById('historial-lista-diagnosticos').innerHTML = '';
-                document.getElementById('historial-lista-dietas').innerHTML = '';
-                document.getElementById('historial-lista-actividades').innerHTML = '';
-            }
         }
 
+        function poblarLista(id, items, fmt) {
+            const ul = document.getElementById(id);
+            ul.innerHTML = (!items || items.length===0) ? '<li class="list-group-item text-muted small fst-italic">Sin registros</li>' : '';
+            if(items) items.forEach(i => {
+                const li = document.createElement('li'); li.className='list-group-item small'; li.textContent=fmt(i); ul.appendChild(li);
+            });
+        }
 
-        // --- SCRIPT PARA MODAL 2: CREAR DIETA (Sin cambios) ---
-        const modalCrearDietaEl = document.getElementById('modalCrearDieta');
-        const formCrearDieta = document.getElementById('formCrearDieta');
-        const errorContainer = document.getElementById('dieta-error-container');
-        const fechaInicioInput = document.getElementById('dietaFechaInicio');
-        const fechaFinInput = document.getElementById('dietaFechaFin');
-        let mascotaIdActual = null;
-        let mascotaNombreActual = '';
+        // --- 2. SCRIPT DIETA ---
+        setupModalForm('modalCrearDieta', 'formCrearDieta', 'dieta-error-container',
+                       'dietaMascotaId', 'dietaMascotaNombre', 'dietaVeterinarioId',
+                       'dietaFechaInicio', 'dietaFechaFin', '/dieta/crear/foto', 'Dieta');
 
-        const todayDieta = new Date();
-        const yearDieta = todayDieta.getFullYear();
-        const monthDieta = (todayDieta.getMonth() + 1).toString().padStart(2, '0');
-        const dayDieta = todayDieta.getDate().toString().padStart(2, '0');
-        const minDateDieta = `${yearDieta}-${monthDieta}-${dayDieta}`;
+        // --- 3. SCRIPT ACTIVIDAD ---
+        setupModalForm('modalCrearActividad', 'formCrearActividad', 'actividad-error-container',
+                       'actividadMascotaId', 'actividadMascotaNombre', 'actividadVeterinarioId',
+                       'actividadFechaInicio', 'actividadFechaFin', '/actividad/crear/foto', 'Actividad');
 
-        // Si tus inputs existen, aplica min
-        if (fechaInicioInput) fechaInicioInput.setAttribute('min', minDateDieta);
-        if (fechaFinInput) fechaFinInput.setAttribute('min', minDateDieta);
+        // Función genérica para configurar los modales de creación
+        function setupModalForm(modalId, formId, errorId, inputMascotaId, spanMascotaNombre, inputVetId, dateStartId, dateEndId, endpoint, typeName) {
+            const modalEl = document.getElementById(modalId);
+            if(!modalEl) return;
 
-        if (modalCrearDietaEl) {
-            modalCrearDietaEl.addEventListener('show.bs.modal', function (event) {
-                const button = event.relatedTarget;
-                mascotaIdActual = button.getAttribute('data-mascota-id');
-                mascotaNombreActual = button.getAttribute('data-mascota-nombre');
+            const form = document.getElementById(formId);
+            const errContainer = document.getElementById(errorId);
+            const fStart = document.getElementById(dateStartId);
+            const fEnd = document.getElementById(dateEndId);
 
-                formCrearDieta.reset();
-                formCrearDieta.classList.remove('was-validated');
-                errorContainer.style.display = 'none';
+            // Set min date
+            const today = new Date().toISOString().split('T')[0];
+            if(fStart) fStart.setAttribute('min', today);
+            if(fEnd) fEnd.setAttribute('min', today);
 
-                document.getElementById('dietaMascotaNombre').textContent = mascotaNombreActual;
-                document.getElementById('dietaMascotaId').value = mascotaIdActual;
+            modalEl.addEventListener('show.bs.modal', function(ev) {
+                const btn = ev.relatedTarget;
+                const mId = btn.getAttribute('data-mascota-id');
+                const mNom = btn.getAttribute('data-mascota-nombre');
+
+                form.reset(); form.classList.remove('was-validated'); errContainer.style.display='none';
+                document.getElementById(inputMascotaId).value = mId;
+                document.getElementById(spanMascotaNombre).textContent = mNom;
+                document.getElementById(inputVetId).value = loggedInVeterinarioId;
             });
 
-            formCrearDieta.addEventListener('submit', async function (event) {
-                event.preventDefault();
-                event.stopPropagation();
+            form.addEventListener('submit', async function(ev) {
+                ev.preventDefault(); ev.stopPropagation();
 
-                let fechaValida = true;
+                // Validar Fechas
+                let validDates = true;
+                if(fStart && fEnd && fEnd.value && fEnd.value <= fStart.value) {
+                    fEnd.setCustomValidity("La fecha fin debe ser mayor."); validDates = false;
+                } else if(fEnd) { fEnd.setCustomValidity(""); }
 
-                if (fechaInicioInput && fechaInicioInput.value < minDateDieta) {
-                    fechaInicioInput.setCustomValidity("La fecha de inicio no puede ser anterior a hoy.");
-                    fechaValida = false;
-                } else if (fechaInicioInput) {
-                    fechaInicioInput.setCustomValidity("");
-                }
+                form.classList.add('was-validated');
+                if(!form.checkValidity() || !validDates) return;
 
-                if (fechaInicioInput && fechaFinInput && fechaFinInput.value) {
-                    if (fechaFinInput.value <= fechaInicioInput.value) {
-                        fechaFinInput.setCustomValidity("La fecha de fin debe ser posterior a la de inicio.");
-                        fechaValida = false;
-                    } else {
-                        fechaFinInput.setCustomValidity("");
-                    }
-                }
-
-                formCrearDieta.classList.add('was-validated');
-
-                if (!formCrearDieta.checkValidity() || !fechaValida) {
-                    return;
-                }
-
-                // Armamos FormData (incluye el archivo si seleccionan)
-                const formData = new FormData(formCrearDieta);
-                // Aseguramos mascotaId correcto (el input hidden ya tiene el valor, pero reforzamos)
-                formData.set('mascotaId', mascotaIdActual);
-                // veterinarioId ya viene por el input hidden th:value="${usuario.idUsuario}"
-
-                errorContainer.style.display = 'none';
+                const formData = new FormData(form);
 
                 try {
-                    const response = await fetch('/dieta/crear/foto', {
-                        method: 'POST',
-                        body: formData
-                    });
+                    const res = await fetch(endpoint, { method: 'POST', body: formData });
+                    const json = await res.json();
 
-                    const responseData = await response.json();
-
-                    if (!response.ok) {
-                        let errorMsg = "Ocurrió un error.";
-                        if (responseData.errores) {
-                            errorMsg = responseData.errores.join('<br>');
-                        } else if (responseData.error) {
-                            errorMsg = responseData.error;
-                        }
-                        mostrarError(errorMsg);
+                    if(!res.ok) {
+                        let msg = json.error || (json.errores ? json.errores.join('<br>') : "Error al guardar");
+                        errContainer.innerHTML = msg; errContainer.style.display = 'block';
                     } else {
-                        // ¡ÉXITO!
                         Swal.fire({
-                            title: '¡Éxito!',
-                            text: "Dieta creada correctamente. ¿Deseas registrar otra dieta para esta mascota?",
-                            icon: 'success',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Sí, registrar otra',
-                            cancelButtonText: 'No, gracias'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                formCrearDieta.reset();
-                                formCrearDieta.classList.remove('was-validated');
-                                document.getElementById('dietaMascotaNombre').textContent = mascotaNombreActual;
-                                document.getElementById('dietaMascotaId').value = mascotaIdActual;
+                            title: '¡Guardado!',
+                            text: typeName + " registrada correctamente. ¿Deseas agregar otra?",
+                            icon: 'success', showCancelButton: true, confirmButtonText: 'Sí', cancelButtonText: 'No'
+                        }).then((r) => {
+                            if(r.isConfirmed) {
+                                const mId = document.getElementById(inputMascotaId).value;
+                                const mNom = document.getElementById(spanMascotaNombre).textContent;
+                                form.reset(); form.classList.remove('was-validated');
+                                document.getElementById(inputMascotaId).value = mId;
+                                document.getElementById(spanMascotaNombre).textContent = mNom;
+                                document.getElementById(inputVetId).value = loggedInVeterinarioId;
                             } else {
-                                bootstrap.Modal.getInstance(modalCrearDietaEl).hide();
-                                // refrescar para ver cambios
+                                bootstrap.Modal.getInstance(modalEl).hide();
                                 location.reload();
                             }
                         });
                     }
-                } catch (error) {
-                    mostrarError('Error de conexión. Inténtelo de nuevo.');
+                } catch(e) {
+                    errContainer.innerHTML = 'Error de conexión.'; errContainer.style.display = 'block';
                 }
             });
 
-            if (fechaInicioInput) fechaInicioInput.addEventListener('change', () => {
-                fechaInicioInput.setCustomValidity("");
-                if (fechaFinInput) fechaFinInput.setCustomValidity("");
-            });
-            if (fechaFinInput) fechaFinInput.addEventListener('change', () => fechaFinInput.setCustomValidity(""));
-
-            function mostrarError(mensaje) {
-                errorContainer.innerHTML = mensaje;
-                errorContainer.style.display = 'block';
-            }
+            // Limpiar validez fechas
+            if(fStart) fStart.addEventListener('change', () => { fStart.setCustomValidity(""); if(fEnd) fEnd.setCustomValidity(""); });
+            if(fEnd) fEnd.addEventListener('change', () => fEnd.setCustomValidity(""));
         }
-
-
-        // --- SCRIPT PARA MODAL ACTIVIDAD FÍSICA (ACTUALIZADO) ---
-        const modalCrearActividadEl = document.getElementById('modalCrearActividad');
-        const formCrearActividad = document.getElementById('formCrearActividad');
-        const errorContainerActividad = document.getElementById('actividad-error-container');
-
-        // Apuntamos a los NUEVOS IDs de fecha
-        const fechaActividadInicioInput = document.getElementById('actividadFechaInicio');
-        const fechaActividadFinInput = document.getElementById('actividadFechaFin');
-
-        let mascotaIdActividad = null;
-        let mascotaNombreActividad = '';
-
-        // Copiamos la lógica de fecha mínima de Dieta
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = (today.getMonth() + 1).toString().padStart(2, '0');
-        const day = today.getDate().toString().padStart(2, '0');
-        const minDate = `${year}-${month}-${day}`;
-
-        if (fechaActividadInicioInput) fechaActividadInicioInput.setAttribute('min', minDate);
-        if (fechaActividadFinInput) fechaActividadFinInput.setAttribute('min', minDate);
-
-        if(modalCrearActividadEl){
-            modalCrearActividadEl.addEventListener('show.bs.modal', function(event){
-                const button = event.relatedTarget;
-                // Verificamos que sea un botón de actividad (por la clase que añadimos)
-                if (!button || !button.classList.contains('btn-abrir-modal-actividad')) {
-                    return;
-                }
-
-                mascotaIdActividad = button.getAttribute('data-mascota-id');
-                mascotaNombreActividad = button.getAttribute('data-mascota-nombre');
-
-                formCrearActividad.reset();
-                formCrearActividad.classList.remove('was-validated');
-                errorContainerActividad.style.display = 'none';
-
-                document.getElementById('actividadMascotaNombre').textContent = mascotaNombreActividad;
-                document.getElementById('actividadMascotaId').value = mascotaIdActividad;
-            });
-
-            formCrearActividad.addEventListener('submit', async function(event){
-                event.preventDefault();
-                event.stopPropagation();
-
-                // --- AÑADIDA: Validación de fechas (igual que en Dieta) ---
-                let fechaValida = true;
-                if (fechaActividadInicioInput && fechaActividadInicioInput.value < minDate) {
-                    fechaActividadInicioInput.setCustomValidity("La fecha de inicio no puede ser anterior a hoy.");
-                    fechaValida = false;
-                } else if (fechaActividadInicioInput) {
-                    fechaActividadInicioInput.setCustomValidity("");
-                }
-
-                if (fechaActividadInicioInput && fechaActividadFinInput && fechaActividadFinInput.value) {
-                    if (fechaActividadFinInput.value <= fechaActividadInicioInput.value) {
-                        fechaActividadFinInput.setCustomValidity("La fecha de fin debe ser posterior a la de inicio.");
-                        fechaValida = false;
-                    } else {
-                        fechaActividadFinInput.setCustomValidity("");
-                    }
-                }
-                // --- FIN Validación de fechas ---
-
-                formCrearActividad.classList.add('was-validated');
-
-                // Comprobamos la validez del formulario Y de las fechas
-                if (!formCrearActividad.checkValidity() || !fechaValida) {
-                    return;
-                }
-
-                const formData = new FormData(formCrearActividad);
-                formData.set('mascotaId', mascotaIdActividad);
-
-                errorContainerActividad.style.display = 'none';
-
-                try{
-                    // El endpoint ya estaba correcto en tu script original
-                    const response = await fetch('/actividad/crear/foto', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    const responseData = await response.json();
-
-                    if(!response.ok){
-                        let errorMsg = "Ocurrió un error.";
-                        if(responseData.errores) errorMsg = responseData.errores.join('<br>');
-                        else if(responseData.error) errorMsg = responseData.error;
-                        mostrarErrorActividad(errorMsg);
-                    } else {
-                        // Esta lógica de SweetAlert (que ya tenías) es perfecta
-                        Swal.fire({
-                            title: '¡Éxito!',
-                            text: "Actividad creada correctamente. ¿Deseas registrar otra actividad para esta mascota?",
-                            icon: 'success',
-                            showCancelButton: true,
-                            confirmButtonColor: '#28a745', // Verde para éxito
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Sí, registrar otra',
-                            cancelButtonText: 'No, gracias'
-                        }).then((result)=>{
-                            if(result.isConfirmed){
-                                // Sí: Resetea el form y mantiene datos de mascota
-                                formCrearActividad.reset();
-                                formCrearActividad.classList.remove('was-validated');
-                                document.getElementById('actividadMascotaNombre').textContent = mascotaNombreActividad;
-                                document.getElementById('actividadMascotaId').value = mascotaIdActividad;
-                            } else {
-                                // No: Cierra modal y recarga página
-                                bootstrap.Modal.getInstance(modalCrearActividadEl).hide();
-                                location.reload();
-                            }
-                        });
-                    }
-                } catch(error){
-                    mostrarErrorActividad('Error de conexión. Inténtelo de nuevo.');
-                }
-            });
-
-            // --- AÑADIDO: Limpiadores de validación de fechas ---
-            if (fechaActividadInicioInput) fechaActividadInicioInput.addEventListener('change', () => {
-                fechaActividadInicioInput.setCustomValidity("");
-                if (fechaActividadFinInput) fechaActividadFinInput.setCustomValidity("");
-            });
-            if (fechaActividadFinInput) fechaActividadFinInput.addEventListener('change', () => fechaActividadFinInput.setCustomValidity(""));
-
-
-            function mostrarErrorActividad(mensaje){
-                errorContainerActividad.innerHTML = mensaje;
-                errorContainerActividad.style.display = 'block';
-            }
-        }
-
     });
 </script>
 
