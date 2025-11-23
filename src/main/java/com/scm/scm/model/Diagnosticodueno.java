@@ -36,6 +36,9 @@ public class Diagnosticodueno {
     @JoinColumn(name="id_veterinario", nullable = false )
     private  Veterinario veterinario;
 
+    @Column(name = "prioridad")
+    private String prioridad; // Nuevo campo
+
 
 
 }

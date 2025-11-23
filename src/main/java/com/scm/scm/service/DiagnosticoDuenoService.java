@@ -12,7 +12,11 @@ public interface DiagnosticoDuenoService {
     DiagnosticoDuenoDTO actualizarDiagnosticoDueno(Long id, DiagnosticoDuenoDTO diagnosticoDuenoDTO);
     void eliminarDiagnosticoDueno(Long id);
     List<DiagnosticoDuenoDTO>ListartodosDiagnosticosDueno();
-    List<DiagnosticoDuenoDTO> listarDiagnosticosPorVeterinario(Long veterinarioId);
-    Page<DiagnosticoDuenoDTO> getAllDiagnosticosPaginados(Pageable pageable);
+    Page<DiagnosticoDuenoDTO> listarDiagnosticosPorVeterinario(Long veterinarioId, String filtro, Pageable pageable);
+
     List<DiagnosticoDuenoDTO> listarDiagnosticosPorMascota(Long mascotaId);
+
+    Page<DiagnosticoDuenoDTO> getAllDiagnosticosPaginados(Pageable pageable);
+
+
 }

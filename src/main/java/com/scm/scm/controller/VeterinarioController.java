@@ -1,6 +1,8 @@
 package com.scm.scm.controller;
 
 import com.scm.scm.dto.CitaDTO;
+import com.scm.scm.model.Diagnosticodueno;
+import com.scm.scm.repository.DiagnosticoDuenoRepositorio;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.TemplateEngine;
@@ -49,15 +51,17 @@ public class VeterinarioController {
     private  final PdfGenerationService pdfService;
     private final MascotaRepositorio mascotaRepositorio;
     private final com.scm.scm.service.MascotaService mascotaService;
+    private final DiagnosticoDuenoRepositorio diagnosticoDuenoRepositorio;
 
 
-    public VeterinarioController(VeterinarioRepositorio veterinarioRepositorio, VeterinarioService veterinarioService, VeterinarioRepositorio veterinarioRepositorio1, com.scm.scm.service.CitaService citaService, PdfGenerationService pdfService, MascotaRepositorio mascotaRepositorio, com.scm.scm.service.MascotaService mascotaService) {
+    public VeterinarioController(VeterinarioRepositorio veterinarioRepositorio, VeterinarioService veterinarioService, VeterinarioRepositorio veterinarioRepositorio1, com.scm.scm.service.CitaService citaService, PdfGenerationService pdfService, MascotaRepositorio mascotaRepositorio, com.scm.scm.service.MascotaService mascotaService, DiagnosticoDuenoRepositorio diagnosticoDuenoRepositorio) {
         this.veterinarioService = veterinarioService;
         this.veterinarioRepositorio = veterinarioRepositorio1;
         this.citaService = citaService;
         this.pdfService = pdfService;
         this.mascotaRepositorio = mascotaRepositorio;
         this.mascotaService = mascotaService;
+        this.diagnosticoDuenoRepositorio = diagnosticoDuenoRepositorio;
     }
     @Autowired
     private TemplateEngine templateEngine;
@@ -117,6 +121,21 @@ public class VeterinarioController {
 
         // Pasamos la lista (.getContent()) para que el th:each del index funcione igual
         model.addAttribute("misPacientes", paginaPacientes.getContent());
+
+        List<Diagnosticodueno> todosLosDiagnosticos = diagnosticoDuenoRepositorio.findByVeterinario_IdVeterinario(vet.getIdVeterinario());
+
+        // Filtramos los que tengan la fecha de HOY
+        String fechaHoyStr = LocalDate.now().toString(); // "2025-11-23"
+
+        long nuevosReportes = todosLosDiagnosticos.stream()
+                .filter(d -> d.getFechaDiagnostico().equals(fechaHoyStr))
+                .count();
+
+        if (nuevosReportes > 0) {
+            model.addAttribute("notificacionReportes", "Tienes " + nuevosReportes + " nuevo(s) reporte(s) de síntomas recibidos hoy.");
+        }
+
+
 
         return "veterinarios/index";
     }

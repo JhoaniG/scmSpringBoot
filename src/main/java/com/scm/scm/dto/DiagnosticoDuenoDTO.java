@@ -31,6 +31,8 @@ public class DiagnosticoDuenoDTO {
 
 
     private String tipoEnfermedad;
+    private String prioridad;
+    private boolean citaAgendada;  // <-- AÑADE ESTE CAMPO NUEVO
 
 
 

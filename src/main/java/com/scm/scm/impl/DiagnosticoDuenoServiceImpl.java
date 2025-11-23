@@ -4,6 +4,7 @@ import com.scm.scm.dto.DiagnosticoDuenoDTO;
 import com.scm.scm.model.Diagnosticodueno;
 import com.scm.scm.model.Mascota;
 import com.scm.scm.model.Veterinario;
+import com.scm.scm.repository.CitaRepositorio;
 import com.scm.scm.repository.DiagnosticoDuenoRepositorio;
 import com.scm.scm.repository.MascotaRepositorio;
 import com.scm.scm.repository.VeterinarioRepositorio;
@@ -26,12 +27,14 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
     private final ModelMapper modelMapper;
     private  final VeterinarioRepositorio veterinarioRepositorio;
     private final MascotaRepositorio mascotaRepositorio;
+    private final CitaRepositorio citaRepositorio;
 
-    public DiagnosticoDuenoServiceImpl(DiagnosticoDuenoRepositorio diagnosticoDuenoRepositorio, ModelMapper modelMapper, VeterinarioRepositorio veterinarioRepositorio, MascotaRepositorio mascotaRepositorio) {
+    public DiagnosticoDuenoServiceImpl(DiagnosticoDuenoRepositorio diagnosticoDuenoRepositorio, ModelMapper modelMapper, VeterinarioRepositorio veterinarioRepositorio, MascotaRepositorio mascotaRepositorio, CitaRepositorio citaRepositorio) {
         this.diagnosticoDuenoRepositorio = diagnosticoDuenoRepositorio;
         this.modelMapper = modelMapper;
         this.veterinarioRepositorio = veterinarioRepositorio;
         this.mascotaRepositorio = mascotaRepositorio;
+        this.citaRepositorio = citaRepositorio;
     }
 
     @Override
@@ -122,19 +125,42 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
         return List.of();
     }
 
-    @Override
-    public List<DiagnosticoDuenoDTO> listarDiagnosticosPorVeterinario(Long veterinarioId) {
-        List<Diagnosticodueno> diagnosticos = diagnosticoDuenoRepositorio.findByVeterinario_IdVeterinario(veterinarioId);
 
-        return diagnosticos.stream().map(d -> {
+
+    @Override
+    public Page<DiagnosticoDuenoDTO> listarDiagnosticosPorVeterinario(Long veterinarioId, String filtro, Pageable pageable) {
+        Page<Diagnosticodueno> paginaResultados;
+
+        // 1. Decidir qué consulta usar
+        if (filtro != null && !filtro.trim().isEmpty()) {
+            paginaResultados = diagnosticoDuenoRepositorio.findByVeterinarioAndFiltro(veterinarioId, filtro, pageable);
+        } else {
+            paginaResultados = diagnosticoDuenoRepositorio.findByVeterinario_IdVeterinario(veterinarioId, pageable);
+        }
+
+        // 2. Mapear la página de Entidades a página de DTOs
+        return paginaResultados.map(d -> {
             DiagnosticoDuenoDTO dto = modelMapper.map(d, DiagnosticoDuenoDTO.class);
 
-            // Setear nombres
+            // A. Nombres
             dto.setNombreM(d.getMascota().getNombre());
-            dto.setNombreDueno(d.getMascota().getUsuario().getNombre());
+            if (d.getMascota().getUsuario() != null) {
+                dto.setNombreDueno(d.getMascota().getUsuario().getNombre() + " " + d.getMascota().getUsuario().getApellido());
+            }
+
+            // B. IDs
+            dto.setMascotaId(d.getMascota().getIdMascota());
+            dto.setIdDiagnosticoDueno(d.getIdDiagnosticoDueno());
+
+            // C. Prioridad (si existe en la entidad)
+            // dto.setPrioridad(d.getPrioridad()); // Descomentar si la entidad tiene el campo
+
+            // D. Verificar si ya tiene cita agendada
+            boolean agendada = citaRepositorio.existsByDiagnosticodueno_IdDiagnosticoDueno(d.getIdDiagnosticoDueno());
+            dto.setCitaAgendada(agendada);
 
             return dto;
-        }).toList();
+        });
     }
     @Override
     public List<DiagnosticoDuenoDTO> listarDiagnosticosPorMascota(Long mascotaId) {
@@ -150,7 +176,11 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
                     if (diag.getMascota() != null && diag.getMascota().getUsuario() != null) {
                         dto.setNombreDueno(diag.getMascota().getUsuario().getNombre());
                         dto.setNombreMascota(diag.getMascota().getNombre());
+                        dto.setPrioridad(diag.getPrioridad());
+                        boolean agendada = citaRepositorio.existsByDiagnosticodueno_IdDiagnosticoDueno(diag.getIdDiagnosticoDueno());
+                        dto.setCitaAgendada(agendada);
                     }
+
                     return dto;
                 })
                 .collect(Collectors.toList());

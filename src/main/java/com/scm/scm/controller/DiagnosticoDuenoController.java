@@ -9,6 +9,10 @@ import com.scm.scm.service.DiagnosticoDuenoService;
 import com.scm.scm.service.MascotaService;
 import com.scm.scm.service.UsuarioService;
 import com.scm.scm.service.VeterinarioService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -110,62 +114,110 @@ public class DiagnosticoDuenoController {
     }
 
     @GetMapping("/diagnosticos/listar")
-    public String listarDiagnosticosVeterinario(Model model, Authentication auth) {
+    public String listarDiagnosticosVeterinario(
+            Model model,
+            Authentication auth,
+            @RequestParam(value = "filtro", required = false) String filtro,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "6") int size) {
+
         Usuario usuario = usuarioRepositorio.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        Veterinario vet = veterinarioRepositorio.findByUsuarioId(usuario.getIdUsuario())
+        Veterinario vet = veterinarioRepositorio.findByUsuario(usuario)
                 .orElseThrow(() -> new RuntimeException("No se encontró un veterinario asociado al usuario"));
 
-        List<DiagnosticoDuenoDTO> lista = diagnosticoDuenoService.listarDiagnosticosPorVeterinario(vet.getIdVeterinario());
+        // Ordenamos por fecha descendente (lo más nuevo primero) si es posible
+        // Si fechaDiagnostico es String, el ordenamiento podría no ser perfecto, pero es mejor que nada.
+        Pageable pageable = PageRequest.of(page, size, Sort.by("idDiagnosticoDueno").descending());
+
+        // Llamada al servicio con paginación
+        Page<DiagnosticoDuenoDTO> diagnosticosPage = diagnosticoDuenoService.listarDiagnosticosPorVeterinario(vet.getIdVeterinario(), filtro, pageable);
+
         model.addAttribute("citaDTO", new CitaDTO());
-        model.addAttribute("listaDiagnosticos", lista);
-        model.addAttribute("usuario", usuario); // <---- esto faltaba
+        model.addAttribute("diagnosticosPage", diagnosticosPage); // <-- Ahora pasamos la PÁGINA
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("filtro", filtro);
+
+        // Pasamos el ID del veterinario para los modales
+        model.addAttribute("veterinarioIdLogueado", vet.getIdVeterinario());
 
         return "diagnosticos/lista";
     }
 
+    // En DiagnosticoDuenoController.java
 
     @GetMapping("/api/veterinarios-por-tipo-enfermedad")
     @ResponseBody
-    public List<UsuarioDTO> getVeterinariosPorEspecialidad(@RequestParam String tipoEnfermedad) { // <-- CAMBIO AQUÍ
+    public List<UsuarioDTO> getVeterinariosPorEspecialidad(@RequestParam String tipoEnfermedad) {
 
         String especialidadRequerida;
 
-        // Mapea el tipo de enfermedad a una especialidad
+        // --- MAPEO MEJORADO DE SÍNTOMAS A ESPECIALIDADES ---
         switch (tipoEnfermedad) {
+            // Digestivo
+            case "Vómitos / Diarrea":
+            case "Pérdida de Apetito":
             case "Problemas Digestivos / Nutricionales":
                 especialidadRequerida = "Nutrición Veterinaria";
                 break;
+
+            // Movilidad / Ortopedia
+            case "Cojera / Dolor Articular":
+            case "Dificultad para Caminar":
             case "Problemas Ortopédicos / Movilidad":
                 especialidadRequerida = "Fisioterapia y Rehabilitación";
                 break;
+
+            // Comportamiento
+            case "Ansiedad / Agresividad":
+            case "Cambios de Conducta":
             case "Problemas de Comportamiento":
                 especialidadRequerida = "Etología (Comportamiento Animal)";
                 break;
+
+            // Nuevas categorías (Asigna la especialidad que tengas en tu BD)
+            // Si no tienes Dermatólogo, usa Medicina General o Nutrición como fallback
+            case "Problemas de Piel / Alergias":
+            case "Caída de Pelo / Rasquiña":
+                especialidadRequerida = "Dermatología"; // ¡Asegúrate de tener Vets con esta esp.!
+                break;
+
+            // Por defecto: Medicina General
+            case "Consulta General / Chequeo":
+            case "Vacunación / Desparasitación":
+            case "Problemas Respiratorios":
+            case "Problemas Oculares":
+            case "Otro / Urgencia":
+            case "Condición General / Otro":
             default:
                 especialidadRequerida = "Medicina General";
         }
 
         List<Veterinario> especialistas = veterinarioRepositorio.findByEspecialidad(especialidadRequerida);
 
-        // Siempre incluye a los médicos generales como opción de respaldo
-        if (!especialidadRequerida.equals("Medicina General")) {
+        // Si no hay especialistas de ese tipo (ej: no tienes Dermatólogos),
+        // busca Médicos Generales como respaldo para que la lista no salga vacía.
+        if (especialistas.isEmpty() && !especialidadRequerida.equals("Medicina General")) {
+            especialistas.addAll(veterinarioRepositorio.findByEspecialidad("Medicina General"));
+        }
+        // Y siempre agregamos a los generales al final como opción extra
+        else if (!especialidadRequerida.equals("Medicina General")) {
             especialistas.addAll(veterinarioRepositorio.findByEspecialidad("Medicina General"));
         }
 
-        // Convierte la lista de Entidades a una lista de UsuarioDTOs
         return especialistas.stream()
                 .map(v -> {
-                    // Mapea a un UsuarioDTO simple para el JSON
                     UsuarioDTO dto = new UsuarioDTO();
-                    dto.setIdUsuario(v.getIdVeterinario()); // Usamos el ID de Veterinario para el value
+                    dto.setIdUsuario(v.getIdVeterinario());
                     dto.setNombre(v.getUsuario().getNombre() + " " + v.getUsuario().getApellido());
                     dto.setEspecialidad(v.getEspecialidad());
-                    return dto; // <-- Retorna UsuarioDTO
+                    return dto;
                 })
                 .distinct()
                 .collect(Collectors.toList());
-    }    }
+    }
+
+}
 
 

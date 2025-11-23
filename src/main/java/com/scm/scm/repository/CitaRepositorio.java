@@ -21,6 +21,8 @@ public interface CitaRepositorio extends JpaRepository<Cita, Long> {
 
     // 2. Para validar que no haya citas duplicadas en esa hora
     boolean existsByVeterinario_IdVeterinarioAndFechaCita(Long veterinarioId, LocalDateTime fechaCita);
+    // --- AÑADE ESTE ---
+    boolean existsByDiagnosticodueno_IdDiagnosticoDueno(Long idDiagnostico);
 
 
 
