@@ -35,17 +35,7 @@
                         <i class="fas fa-paw"></i> Mis Pacientes
                     </a>
                 </li>
-                <li class="nav-item dropdown mt-2">
-                    <button class="btn btn-outline-secondary w-100 dropdown-toggle"
-                            type="button" id="dropdownMascotas"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                        Mascotas
-                    </button>
-                    <ul class="dropdown-menu w-100" aria-labelledby="dropdownMascotas">
-                        <li><a class="dropdown-item" th:href="@{/mascotas/listarvet}">Mis mascotas</a></li>
-                        <li><a class="dropdown-item" th:href="@{/mascotas/crearvet}">Agregar Mascota</a></li>
-                    </ul>
-                </li>
+
                 <li class="nav-item mt-3">
                     <form th:action="@{/logout}" method="post">
                         <button type="submit" class="btn btn-danger w-100">Cerrar sesión</button>

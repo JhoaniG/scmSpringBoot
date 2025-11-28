@@ -12,7 +12,6 @@
     <style>
         body { background-color: #f4f6f9; min-height: 100vh; }
 
-        /* Ajuste para la barra lateral fija */
         .content-wrapper {
             padding-top: 90px;
             padding-bottom: 50px;
@@ -22,7 +21,6 @@
             .content-wrapper { margin-left: 250px; }
         }
 
-        /* Cabecera de página con degradado del dueño */
         .page-header {
             background: white;
             border-radius: 15px;
@@ -30,12 +28,10 @@
             margin-bottom: 2rem;
             box-shadow: 0 4px 15px rgba(111, 66, 193, 0.1);
             text-align: center;
-            border-bottom: 4px solid #6f42c1; /* Morado */
+            border-bottom: 4px solid #6f42c1;
             position: relative;
-            overflow: hidden;
         }
 
-        /* Tarjetas de Mascotas */
         .pet-card {
             border: none;
             border-radius: 20px;
@@ -49,14 +45,12 @@
         }
         .pet-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(111, 66, 193, 0.2); /* Sombra morada al hover */
+            box-shadow: 0 15px 30px rgba(111, 66, 193, 0.2);
         }
 
-        /* Contenedor de Imagen */
         .pet-img-container {
             height: 180px;
             width: 100%;
-            /* Degradado suave morado/azul */
             background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
             display: flex;
             align-items: center;
@@ -77,7 +71,6 @@
 
         .pet-icon-default { font-size: 5rem; color: #a88beb; }
 
-        /* Cuerpo de la tarjeta */
         .card-body {
             padding: 1.5rem;
             text-align: center;
@@ -87,45 +80,16 @@
             justify-content: space-between;
         }
 
-        .pet-name {
-            font-weight: 800; font-size: 1.4rem; color: #333; margin-bottom: 0.5rem;
-        }
+        .pet-name { font-weight: 800; font-size: 1.4rem; color: #333; }
 
-        /* Badges para info */
-        .pet-badges {
-            display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;
-        }
-        .badge-custom {
-            padding: 0.5em 0.8em; border-radius: 30px; font-weight: 600; font-size: 0.8rem;
-        }
+        .badge-custom { padding: 0.5em 0.8em; border-radius: 30px; font-weight: 600; font-size: 0.8rem; }
         .bg-raza { background-color: #e3f2fd; color: #0d6efd; }
         .bg-genero { background-color: #f3e5f5; color: #6f42c1; }
-
-        /* Botones */
-        .btn-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none; color: white; padding: 12px 30px;
-            border-radius: 50px; font-weight: 600;
-            transition: all 0.3s; text-decoration: none;
-            box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3);
-        }
-        .btn-gradient:hover {
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-            transform: translateY(-2px); color: white;
-            box-shadow: 0 6px 15px rgba(118, 75, 162, 0.5);
-        }
-
-        .action-buttons {
-            display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem;
-        }
 
         .btn-circle {
             width: 38px; height: 38px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
         }
-        .btn-circle:hover { transform: scale(1.1); }
-
     </style>
 </head>
 <body>
@@ -149,13 +113,14 @@
             </a>
         </div>
 
-        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3" role="alert">
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3">
             <i class="fas fa-check-circle me-2"></i> <span th:text="${mensajeExito}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+
+        <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3">
             <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${mensajeError}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
         <div th:if="${#lists.isEmpty(mascotas)}" class="alert alert-light text-center shadow-sm rounded-4 py-5">
@@ -167,37 +132,43 @@
             </a>
         </div>
 
-        <div th:unless="${#lists.isEmpty(mascotas)}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 justify-content-center">
+        <div th:unless="${#lists.isEmpty(mascotas)}"
+             class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 justify-content-center">
 
             <div class="col" th:each="m : ${mascotas}">
                 <div class="card pet-card">
 
                     <div class="pet-img-container">
-                        <img th:if="${m.foto != null and !m.foto.isEmpty()}"
+                        <img th:if="${m.foto != null && !m.foto.isEmpty()}"
                              th:src="@{'/uploads/mascotas/' + ${m.foto}}"
                              class="pet-img" th:alt="${m.nombre}">
 
-                        <div th:if="${m.foto == null or m.foto.isEmpty()}" class="pet-img d-flex align-items-center justify-content-center">
+                        <div th:if="${m.foto == null || m.foto.isEmpty()}"
+                             class="pet-img d-flex align-items-center justify-content-center">
                             <i class="fas fa-paw pet-icon-default"></i>
                         </div>
                     </div>
 
                     <div class="card-body">
+
                         <div>
                             <h3 class="pet-name" th:text="${m.nombre}">Nombre</h3>
 
                             <div class="pet-badges">
                                 <span class="badge-custom bg-raza">
-                                    <i class="fas fa-dna me-1"></i> <span th:text="${m.raza}">Raza</span>
+                                    <i class="fas fa-dna me-1"></i>
+                                    <span th:text="${m.raza}"></span>
                                 </span>
                                 <span class="badge-custom bg-genero">
-                                    <i class="fas fa-venus-mars me-1"></i> <span th:text="${m.genero}">Género</span>
+                                    <i class="fas fa-venus-mars me-1"></i>
+                                    <span th:text="${m.genero}"></span>
                                 </span>
                             </div>
 
                             <p class="text-muted small mb-3">
                                 <i class="fas fa-birthday-cake me-1 text-warning"></i>
-                                Nacimiento: <span th:text="${#temporals.format(m.fechaNacimiento, 'dd MMMM yyyy')}"></span>
+                                Nacimiento:
+                                <span th:text="${#temporals.format(m.fechaNacimiento, 'dd MMMM yyyy')}"></span>
                             </p>
                         </div>
 
@@ -206,34 +177,39 @@
                         <div class="action-buttons">
 
                             <a th:href="@{'/mascotas/editar/' + ${m.idMascota}}"
-                               class="btn btn-outline-warning btn-sm btn-circle"
-                               title="Editar Datos" data-bs-toggle="tooltip">
+                               class="btn btn-outline-warning btn-sm btn-circle" title="Editar Datos">
                                 <i class="fas fa-edit"></i>
                             </a>
 
-                            <a th:href="@{/dueno/mascotas/{id}/ficha/pdf(id=${m.idMascota})}"
-                               class="btn btn-outline-info btn-sm btn-circle"
-                               title="Descargar Ficha Médica" target="_blank" data-bs-toggle="tooltip">
+                            <!-- 🔥 CAMBIO: botón ahora abre el MODAL de PREVIEW -->
+                            <button type="button"
+                                    class="btn btn-outline-info btn-sm btn-circle"
+                                    onclick="abrirPreview(this)"
+                                    th:data-url-preview="@{/dueno/mascotas/{idMascota}/ficha/preview(idMascota=${m.idMascota})}"
+                                    th:data-url-download="@{/dueno/mascotas/{idMascota}/ficha/pdf(idMascota=${m.idMascota})}"
+                                    title="Ver o Descargar Ficha Médica">
                                 <i class="fas fa-id-card"></i>
-                            </a>
+                            </button>
 
                             <a th:href="@{'/mascotas/eliminar/' + ${m.idMascota}}"
                                class="btn btn-outline-danger btn-sm btn-circle"
-                               title="Eliminar Mascota"
-                               onclick="return confirm('¿Estás seguro de que deseas eliminar a esta mascota? Esta acción no se puede deshacer.');"
-                               data-bs-toggle="tooltip">
+                               onclick="return confirm('¿Estás seguro de eliminar esta mascota?');"
+                               title="Eliminar Mascota">
                                 <i class="fas fa-trash-alt"></i>
                             </a>
                         </div>
+
                     </div>
                 </div>
             </div>
 
-        </div> <div th:unless="${#lists.isEmpty(mascotas)}" class="text-center mt-5">
-        <a th:href="@{/mascotas/crear}" class="btn btn-gradient shadow px-5">
-            <i class="fas fa-plus-circle fa-lg me-2"></i> Agregar Otra Mascota
-        </a>
-    </div>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(mascotas)}" class="text-center mt-5">
+            <a th:href="@{/mascotas/crear}" class="btn btn-gradient shadow px-5">
+                <i class="fas fa-plus-circle fa-lg me-2"></i> Agregar Otra Mascota
+            </a>
+        </div>
 
     </div>
 </div>
@@ -244,13 +220,84 @@
     </div>
 </footer>
 
+
+<!-- ========================================================= -->
+<!-- ✅ MODAL PARA PREVIEW DEL PDF -->
+<!-- ========================================================= -->
+<div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title"><i class="fas fa-eye me-2"></i>Vista Previa del Documento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body bg-light text-center">
+                <div id="previewLoader" class="py-5">
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+                    <p class="mt-2 text-muted">Generando vista previa...</p>
+                </div>
+
+                <div id="previewContainer"
+                     class="shadow-sm bg-white p-4 d-none text-start"
+                     style="max-width: 21cm; margin: 0 auto; min-height: 29.7cm;">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <a id="btnDescargarReal" href="#" class="btn btn-danger" target="_blank">
+                    <i class="fas fa-file-pdf me-2"></i> Descargar PDF
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!-- ✅ SCRIPT DE PREVIEW -->
+<!-- ========================================================= -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    // Inicializar Tooltips de Bootstrap para los botones
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
+    function abrirPreview(boton) {
+        const urlPreview = boton.getAttribute('data-url-preview');
+        const urlDownload = boton.getAttribute('data-url-download');
+
+        const modal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+        const loader = document.getElementById('previewLoader');
+        const container = document.getElementById('previewContainer');
+        const btnDescargar = document.getElementById('btnDescargarReal');
+
+        loader.classList.remove('d-none');
+        container.classList.add('d-none');
+        container.innerHTML = '';
+        btnDescargar.href = urlDownload;
+
+        modal.show();
+
+        fetch(urlPreview)
+            .then(r => r.text())
+            .then(html => {
+                loader.classList.add('d-none');
+                container.classList.remove('d-none');
+                container.innerHTML = html;
+            })
+            .catch(() => {
+                loader.classList.add('d-none');
+                container.classList.remove('d-none');
+                container.innerHTML =
+                    '<div class="alert alert-danger">Error al generar vista previa.</div>';
+            });
+    }
+</script>
+
+<script>
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(el => new bootstrap.Tooltip(el))
 </script>
 
 </body>

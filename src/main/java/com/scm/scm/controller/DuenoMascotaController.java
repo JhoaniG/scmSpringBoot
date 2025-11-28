@@ -24,6 +24,9 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class DuenoMascotaController {
@@ -159,6 +162,26 @@ public class DuenoMascotaController {
         model.addAttribute("historial", historial);
 
         return "duenoMascota/actividadesPorMascota";
+    }
+
+
+    @Autowired
+    private TemplateEngine templateEngine;
+
+    // 3. AÑADE ESTE MÉTODO NUEVO
+    @GetMapping("/dueno/mascotas/{idMascota}/ficha/preview")
+    @ResponseBody // <-- Importante: Devuelve texto (HTML), no una vista
+    public String previsualizarFicha(@PathVariable Long idMascota) {
+        // Obtenemos los mismos datos que para el PDF
+        Map<String, Object> datos = citaService.obtenerDatosHistorialClinico(idMascota);
+
+        // Creamos el contexto de Thymeleaf
+        Context context = new Context();
+        context.setVariables(datos);
+
+        // Procesamos la plantilla HTML y la devolvemos como String
+        // Asegúrate de que la ruta "reports/historial-clinico-template" sea correcta
+        return templateEngine.process("reports/historial-clinico-template", context);
     }
     // --------------------------------------
 
