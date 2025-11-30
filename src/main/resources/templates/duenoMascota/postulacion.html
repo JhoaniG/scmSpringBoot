@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Postulación Veterinario - SCM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        body { background-color: #f4f6f9; }
+        .content-wrapper { padding-top: 90px; padding-bottom: 50px; }
+        @media (min-width: 992px) { .content-wrapper { margin-left: 250px; } }
+
+        /* Tarjeta Estilo Dueño */
+        .form-card {
+            background: white; border-radius: 20px; border: none;
+            box-shadow: 0 10px 30px rgba(111, 66, 193, 0.1);
+            overflow: hidden; max-width: 800px; margin: 0 auto;
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Morado Dueño */
+            color: white; padding: 3rem 2rem; text-align: center;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none; color: white; padding: 12px 40px; border-radius: 50px; font-weight: 700;
+            transition: all 0.3s;
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(111, 66, 193, 0.4); color: white;}
+
+        .form-control:focus { border-color: #6f42c1; box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.15); }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/menuV :: menuV}"></div>
+<input type="checkbox" id="btn-menu">
+<div th:replace="~{fragments/barralateralD :: barralateralD(${diagnosticoDTO}, ${mascotas}, ${veterinarios}, ${usuario})}"></div>
+<div th:replace="~{fragments/barralateralD :: modalDiagnostico(${diagnosticoDTO}, ${mascotas}, ${veterinarios})}"></div>
+
+<div class="content-wrapper">
+    <div class="container">
+
+        <div class="form-card">
+            <div class="card-header-custom">
+                <i class="fas fa-user-md fa-4x mb-3 opacity-75"></i>
+                <h2 class="fw-bold">Únete a nuestro equipo</h2>
+                <p class="mb-0 opacity-90">Postúlate como Veterinario y ayuda a más mascotas.</p>
+            </div>
+
+            <div class="p-5">
+
+                <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show mb-4">
+                    <i class="fas fa-exclamation-circle me-2"></i><span th:text="${mensajeError}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <form th:action="@{/dueno/postulacion/enviar}" th:object="${solicitudDTO}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Especialidad Médica</label>
+                            <select th:field="*{especialidad}" class="form-select form-select-lg" required>
+                                <option value="" disabled selected>Selecciona...</option>
+                                <option value="Medicina General">Medicina General</option>
+                                <option value="Dermatología">Dermatología</option>
+                                <option value="Cardiología">Cardiología</option>
+                                <option value="Nutrición Veterinaria">Nutrición Veterinaria</option>
+                                <option value="Fisioterapia y Rehabilitación">Fisioterapia y Rehabilitación</option>
+                                <option value="Etología (Comportamiento Animal)">Etología</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Nombre de tu Clínica/Consultorio</label>
+                            <input type="text" th:field="*{veterinaria}" class="form-control form-control-lg" placeholder="Ej: VetCare Center" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-secondary">Perfil y Vocación</label>
+                            <textarea th:field="*{perfilProfesional}" class="form-control" rows="5"
+                                      placeholder="Cuéntanos sobre tu experiencia, tus motivaciones y por qué quieres unirte a SCM..." required minlength="20"></textarea>
+                            <div class="form-text">Mínimo 20 caracteres.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-secondary">Hoja de Vida (PDF)</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light"><i class="fas fa-file-pdf text-danger"></i></span>
+                                <input type="file" th:field="*{archivoHojaVida}" class="form-control" accept="application/pdf" required>
+                            </div>
+                            <div class="form-text">Sube tu CV en formato PDF para validar tus credenciales.</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center mt-5 gap-3">
+                        <a th:href="@{/dueno/index}" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-bold">Cancelar</a>
+                        <button type="submit" class="btn btn-save shadow-lg">
+                            <i class="fas fa-paper-plane me-2"></i> Enviar Solicitud
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+
+</body>
+</html>

@@ -74,6 +74,23 @@
         </div>
     </div>
 
+
+
+    <div class="container mt-4">
+        <div th:if="${notificacionSolicitudes}" class="alert alert-warning alert-dismissible fade show shadow-sm border-start border-5 border-warning" role="alert">
+            <div class="d-flex align-items-center">
+                <div class="bg-white p-2 rounded-circle me-3 text-warning">
+                    <i class="fas fa-user-md fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading fw-bold mb-1">¡Solicitudes Pendientes!</h5>
+                    <span th:text="${notificacionSolicitudes}">Tienes nuevas solicitudes...</span>
+                    <a th:href="@{/admin/usuarios/solicitudes}" class="fw-bold text-decoration-none ms-2 text-dark">Revisar ahora <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
     <div class="container mt-5">
         <h2 class="dashboard-header text-center mb-5">Reportes Generales</h2>
         <div class="row g-4 justify-content-center">

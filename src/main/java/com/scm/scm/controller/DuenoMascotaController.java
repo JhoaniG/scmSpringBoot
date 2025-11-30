@@ -7,6 +7,7 @@ import com.scm.scm.repository.UsuarioRepositorio;
 import com.scm.scm.repository.VeterinarioRepositorio;
 import com.scm.scm.service.*;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -15,18 +16,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class DuenoMascotaController {
@@ -162,6 +162,51 @@ public class DuenoMascotaController {
         model.addAttribute("historial", historial);
 
         return "duenoMascota/actividadesPorMascota";
+    }
+
+    // ... (inyecciones existentes) ...
+    @Autowired private VeterinarioService veterinarioService; // Necesitas inyectar esto
+
+    // --- 1. MOSTRAR FORMULARIO DE POSTULACIÓN ---
+    @GetMapping("/dueno/postulacion")
+    public String mostrarFormularioPostulacion(Model model, Authentication auth) {
+        // Carga datos comunes (barra lateral, usuario, etc.)
+        agregarAtributosGlobales(model, auth);
+
+        // Objeto para el formulario
+        model.addAttribute("solicitudDTO", new SolicitudVeterinarioDTO());
+
+        return "duenoMascota/postulacion";
+    }
+
+    // --- 2. PROCESAR LA POSTULACIÓN ---
+    @PostMapping("/dueno/postulacion/enviar")
+    public String enviarPostulacion(@Valid @ModelAttribute("solicitudDTO") SolicitudVeterinarioDTO solicitudDTO,
+                                    BindingResult result,
+                                    Authentication auth,
+                                    RedirectAttributes redirectAttributes,
+                                    Model model) {
+
+        if (result.hasErrors()) {
+            // Si hay errores, recargamos los datos globales y volvemos al formulario
+            agregarAtributosGlobales(model, auth);
+            return "duenoMascota/postulacion";
+        }
+
+        try {
+            String email = auth.getName();
+            Usuario usuario = usuarioRepositorio.findByEmail(email).orElseThrow();
+
+            // Llamamos al servicio que creaste antes
+            veterinarioService.crearSolicitud(solicitudDTO, usuario.getIdUsuario());
+
+            redirectAttributes.addFlashAttribute("mensajeExito", "¡Tu solicitud ha sido enviada! Un administrador la revisará pronto.");
+            return "redirect:/dueno/index";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensajeError", "Error al enviar solicitud: " + e.getMessage());
+            return "redirect:/dueno/postulacion";
+        }
     }
 
 

@@ -26,12 +26,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // ⚡ Deshabilitar CSRF para APIs o formularios simples (modal)
                 .csrf(csrf -> csrf.disable())
 
-                // Configuración de rutas
+                // 🔥 PERMITIR IFRAME PARA VER PDF
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
+                )
+
                 .authorizeHttpRequests(auth -> auth
-                        // Recursos estáticos y públicos
+
+                        // Recursos públicos
                         .requestMatchers(
                                 "/", "/home",
                                 "/css/**",
@@ -41,35 +45,33 @@ public class SecurityConfig {
                                 "/public/**",
                                 "/forgot-password",
                                 "/eventos/citas-veterinario",
-                                "/api/historial/preview/**" // <-- AÑADE ESTA LÍNEA
+                                "/api/historial/preview/**"
                         ).permitAll()
 
+                        // 🔥 PERMITIR VER PDF DESDE IFRAME
+                        .requestMatchers("/admin/usuarios/solicitudes/pdf/**").permitAll()
 
                         // Registro de usuario
                         .requestMatchers(HttpMethod.GET, "/usuarios/create").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios/create").permitAll()
-                        .requestMatchers("/usuarios/create").permitAll()
 
                         // Login
                         .requestMatchers("/login").permitAll()
 
-                        // Roles protegidos
+                        // Rutas protegidas
                         .requestMatchers("/admin/**").hasRole("Admin")
                         .requestMatchers("/veterinario/**").hasRole("Veterinario")
-                        .requestMatchers("/dueno/**").hasRole("duenoMascota") // mayúscula inicial
+                        .requestMatchers("/dueno/**").hasRole("duenoMascota")
 
-                        // Cualquier otra ruta requiere autenticación
                         .anyRequest().authenticated()
                 )
 
-                // Login personalizado
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler(customSuccessHandler)
                         .permitAll()
                 )
 
-                // Logout
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
@@ -78,6 +80,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 
     // AuthenticationManager para login
     @Bean

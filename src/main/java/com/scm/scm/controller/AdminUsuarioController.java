@@ -1,13 +1,18 @@
 package com.scm.scm.controller;
 
 import com.scm.scm.dto.UsuarioDTO;
+import com.scm.scm.model.SolicitudVeterinario;
+import com.scm.scm.repository.SolicitudVeterinarioRepositorio;
 import com.scm.scm.service.PdfGenerationService;
 import com.scm.scm.service.UsuarioService;
 import com.scm.scm.repository.RolRepositorio;
 import com.scm.scm.exceptions.CustomExeception;
 import com.scm.scm.model.Usuario;
 import com.scm.scm.repository.UsuarioRepositorio;
+import com.scm.scm.service.VeterinarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +26,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +41,7 @@ public class AdminUsuarioController {
     private final RolRepositorio rolRepositorio;
     private final UsuarioRepositorio usuarioRepositorio;
     private final PdfGenerationService  pdfGenerationService;
+    @Autowired private VeterinarioService veterinarioService;
 
     @Autowired
     public AdminUsuarioController(UsuarioService usuarioService, RolRepositorio rolRepositorio, UsuarioRepositorio usuarioRepositorio, PdfGenerationService pdfGenerationService) {
@@ -157,5 +165,72 @@ public class AdminUsuarioController {
                 .headers(headers)
                 .body(pdfBytes);
     }
+    @GetMapping("/solicitudes")
+    public String listarSolicitudes(Model model, Authentication auth) {
+        // Cargar datos usuario admin (para barra lateral)
+        String email = auth.getName();
+        Usuario usuario = usuarioRepositorio.findByEmail(email).orElse(null);
+        model.addAttribute("usuario", usuario);
+
+        List<SolicitudVeterinario> solicitudes = veterinarioService.listarSolicitudesPendientes();
+        model.addAttribute("solicitudes", solicitudes);
+
+        return "admin/usuarios/solicitudes";
+    }
+
+    // --- 2. APROBAR ---
+    @PostMapping("/solicitudes/aprobar/{id}")
+    public String aprobarSolicitud(@PathVariable Long id, RedirectAttributes redirect) {
+        try {
+            veterinarioService.aprobarSolicitud(id);
+            redirect.addFlashAttribute("mensajeExito", "Veterinario aprobado y rol actualizado.");
+        } catch (Exception e) {
+            redirect.addFlashAttribute("mensajeError", "Error al aprobar: " + e.getMessage());
+        }
+        return "redirect:/admin/usuarios/solicitudes";
+    }
+
+    // --- 3. RECHAZAR ---
+    @PostMapping("/solicitudes/rechazar/{id}")
+    public String rechazarSolicitud(@PathVariable Long id, RedirectAttributes redirect) {
+        try {
+            veterinarioService.rechazarSolicitud(id);
+            redirect.addFlashAttribute("mensajeExito", "Solicitud rechazada.");
+        } catch (Exception e) {
+            redirect.addFlashAttribute("mensajeError", "Error: " + e.getMessage());
+        }
+        return "redirect:/admin/usuarios/solicitudes";
+    }
+
+    @Autowired
+    private SolicitudVeterinarioRepositorio solicitudRepo; // Necesitas inyectar esto
+
+    // --- VER PDF EN MODAL ---
+    @GetMapping("/solicitudes/pdf/{id}")
+    public ResponseEntity<Resource> verHojaVidaPdf(@PathVariable Long id) {
+        try {
+            SolicitudVeterinario solicitud = solicitudRepo.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+            String uploadPath = System.getProperty("user.dir") + "/uploads/hojas-vida/";
+            Path path = Paths.get(uploadPath).resolve(solicitud.getHojaVidaPdf());
+
+            Resource resource = new UrlResource(path.toUri());
+
+            if (!resource.exists()) {
+                throw new RuntimeException("El archivo no existe: " + path);
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
 }

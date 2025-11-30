@@ -22,14 +22,16 @@ public class AdminController {
     private final DietaService dietaService;
     private final ActividadFisicaService actividadFisicaService;
     private final com.scm.scm.repository.UsuarioRepositorio usuarioRepositorio;
+    private final com.scm.scm.repository.SolicitudVeterinarioRepositorio solicitudRepo;
 
-    public AdminController(UsuarioService usuarioService, MascotaService mascotaService, VeterinarioService veterinarioService, DietaService dietaService, ActividadFisicaService actividadFisicaService, com.scm.scm.repository.UsuarioRepositorio usuarioRepositorio) {
+    public AdminController(UsuarioService usuarioService, MascotaService mascotaService, VeterinarioService veterinarioService, DietaService dietaService, ActividadFisicaService actividadFisicaService, com.scm.scm.repository.UsuarioRepositorio usuarioRepositorio, com.scm.scm.repository.SolicitudVeterinarioRepositorio solicitudRepo) {
         this.usuarioService = usuarioService;
         this.mascotaService = mascotaService;
         this.veterinarioService = veterinarioService;
         this.dietaService = dietaService;
         this.actividadFisicaService = actividadFisicaService;
         this.usuarioRepositorio = usuarioRepositorio;
+        this.solicitudRepo = solicitudRepo;
     }
 
     @GetMapping("/index")
@@ -49,6 +51,13 @@ public class AdminController {
         model.addAttribute("totalVeterinarios", veterinarioService.getAllVeterinarios().size());
         model.addAttribute("totalDietas", dietaService.obtenerTodasLasDietas().size());
         model.addAttribute("totalActividades", actividadFisicaService.encontrartodasLasActividades().size());
+
+
+        long solicitudesPendientes = solicitudRepo.findByEstado("PENDIENTE").size();
+
+        if (solicitudesPendientes > 0) {
+            model.addAttribute("notificacionSolicitudes", "Tienes " + solicitudesPendientes + " solicitud(es) de veterinario pendientes de revisión.");
+        }
 
         // Puedes agregar más datos si es necesario
         return "admin/index";

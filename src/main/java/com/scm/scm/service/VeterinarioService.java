@@ -1,6 +1,8 @@
 package com.scm.scm.service;
 
+import com.scm.scm.dto.SolicitudVeterinarioDTO;
 import com.scm.scm.dto.VeterinarioDTO;
+import com.scm.scm.model.SolicitudVeterinario;
 import com.scm.scm.model.Usuario;
 import com.scm.scm.model.Veterinario;
 import org.springframework.data.domain.Page;
@@ -18,4 +20,8 @@ public interface VeterinarioService {
     Page<VeterinarioDTO> getAllVeterinariosPaginados(Pageable pageable);
 
     Veterinario buscarPorUsuario(Usuario usuario);
+    void crearSolicitud(SolicitudVeterinarioDTO dto, Long idUsuario);
+    List<SolicitudVeterinario> listarSolicitudesPendientes();
+    void aprobarSolicitud(Long idSolicitud);
+    void rechazarSolicitud(Long idSolicitud);
 }
