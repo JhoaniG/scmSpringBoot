@@ -4,6 +4,7 @@ import com.scm.scm.dto.*;
 import com.scm.scm.model.*;
 import com.scm.scm.repository.*;
 import com.scm.scm.service.CitaService;
+import com.scm.scm.service.EmailService;
 import org.modelmapper.ModelMapper;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -28,13 +29,14 @@ public class CitaServiceImpl implements CitaService {
     private final DietaRepositorio dietaRepositorio;
     private final ActividadFisicaRepositorio actividadFisicaRepositorio;
     private final ModelMapper modelMapper;
+    private final EmailService emailService;
 
     // Constructor único para todas las dependencias
     public CitaServiceImpl(CitaRepositorio citaRepositorio, ModelMapper modelMapper,
                            MascotaRepositorio mascotaRepositorio, VeterinarioRepositorio veterinarioRepositorio,
                            DiagnosticoDuenoRepositorio diagnosticoDuenoRepositorio,
                            DietaRepositorio dietaRepositorio,
-                           ActividadFisicaRepositorio actividadFisicaRepositorio) {
+                           ActividadFisicaRepositorio actividadFisicaRepositorio, EmailService emailService) {
         this.citaRepositorio = citaRepositorio;
         this.modelMapper = modelMapper;
         this.mascotaRepositorio = mascotaRepositorio;
@@ -42,6 +44,7 @@ public class CitaServiceImpl implements CitaService {
         this.diagnosticoDuenoRepositorio = diagnosticoDuenoRepositorio;
         this.dietaRepositorio = dietaRepositorio;
         this.actividadFisicaRepositorio = actividadFisicaRepositorio;
+        this.emailService = emailService;
     }
 
     // --- 2. MÉTODOS PÚBLICOS DEL SERVICIO ---
@@ -104,6 +107,35 @@ public class CitaServiceImpl implements CitaService {
 
         // 5. Guardar
         Cita citaGuardada = citaRepositorio.save(cita);
+        // --- ENVIAR CORREO AL DUEÑO (ACTUALIZADO) ---
+        try {
+            Mascota mascota = citaGuardada.getMascota();
+            Usuario dueno = mascota.getUsuario();
+            Veterinario vet = citaGuardada.getVeterinario(); // <-- Obtenemos al Veterinario
+
+            if (dueno != null && dueno.getEmail() != null && vet != null) {
+                String fechaStr = citaGuardada.getFechaCita().toLocalDate().toString();
+                String horaStr = citaGuardada.getFechaCita().toLocalTime().toString();
+
+                // Obtenemos datos de ubicación
+                // (Asumiendo que 'veterinaria' es el nombre de la clínica y la dirección está en el usuario del vet)
+                String nombreClinica = vet.getVeterinaria();
+                String direccionClinica = vet.getUsuario().getDireccion();
+
+                emailService.enviarCorreoCitaAsignada(
+                        dueno.getEmail(),
+                        dueno.getNombre(),
+                        mascota.getNombre(),
+                        fechaStr,
+                        horaStr,
+                        citaGuardada.getMotivoCita(),
+                        nombreClinica,     // <-- Pasamos Clínica
+                        direccionClinica   // <-- Pasamos Dirección
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("No se pudo enviar el correo de cita: " + e.getMessage());
+        }
         return convertirADTO(citaGuardada);
     }
 

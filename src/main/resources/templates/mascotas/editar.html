@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Mascota - SCM</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
+    <style>
+        body { background-color: #f4f6f9; min-height: 100vh; }
+
+        /* Ajuste para barra lateral */
+        .content-wrapper {
+            padding-top: 90px;
+            padding-bottom: 50px;
+            transition: margin-left 0.3s;
+        }
+        @media (min-width: 992px) { .content-wrapper { margin-left: 250px; } }
+
+        /* Tarjeta del Formulario */
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(111, 66, 193, 0.1);
+            overflow: hidden;
+            max-width: 800px;
+            margin: 0 auto;
+            border: none;
+        }
+
+        /* Cabecera Morada */
+        .card-header-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+        .header-icon { font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.9; }
+        .header-title { font-weight: 800; letter-spacing: 0.5px; margin: 0; }
+
+        .card-body-custom { padding: 3rem; }
+
+        /* Foto Actual */
+        .current-photo-container {
+            text-align: center; margin-bottom: 2rem;
+        }
+        .current-photo {
+            width: 120px; height: 120px; object-fit: cover;
+            border-radius: 50%; border: 4px solid #e9ecef;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .current-photo-placeholder {
+            width: 120px; height: 120px; background-color: #f8f9fa;
+            border-radius: 50%; display: inline-flex; align-items: center;
+            justify-content: center; font-size: 3rem; color: #dee2e6;
+            border: 4px solid #e9ecef;
+        }
+
+        /* Inputs */
+        .form-label { font-weight: 700; color: #555; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .form-control, .form-select {
+            border-radius: 10px; padding: 0.8rem 1rem; border: 1px solid #e0e0e0;
+            background-color: #fdfdfd; transition: all 0.2s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #6f42c1; box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.15);
+        }
+
+        /* Grupo Input */
+        .input-group-text {
+            background-color: #f3e5f5; border: 1px solid #e0e0e0; border-right: none;
+            color: #6f42c1; border-top-left-radius: 10px; border-bottom-left-radius: 10px;
+        }
+        .input-group .form-control, .input-group .form-select {
+            border-top-left-radius: 0; border-bottom-left-radius: 0;
+        }
+
+        /* Botones */
+        .btn-save {
+            background: linear-gradient(135deg, #f0ad4e 0%, #ffc107 100%); /* Amarillo para Editar */
+            border: none; color: white; padding: 12px 35px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            border-radius: 50px; font-weight: 700; transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5); color: white;}
+
+        .btn-back {
+            border: 2px solid #dee2e6; color: #6c757d; font-weight: 600; border-radius: 50px;
+            padding: 10px 25px; text-decoration: none; transition: 0.3s; background: white;
+        }
+        .btn-back:hover { background-color: #e9ecef; color: #333; }
+
+        .select2-container--bootstrap-5 .select2-selection { border-radius: 10px; padding: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/menuV :: menuV}"></div>
+<input type="checkbox" id="btn-menu">
+<div th:replace="~{fragments/barralateralD :: barralateralD(${diagnosticoDTO}, ${mascotas}, ${veterinarios}, ${usuario})}"></div>
+<div th:replace="~{fragments/barralateralD :: modalDiagnostico(${diagnosticoDTO}, ${mascotas}, ${veterinarios})}"></div>
+
+
+<div class="content-wrapper">
+    <div class="container">
+
+        <div class="form-card">
+
+            <div class="card-header-custom">
+                <div class="header-icon"><i class="fas fa-edit"></i></div>
+                <h2 class="header-title">Editar Datos de Mascota</h2>
+                <p class="mb-0 opacity-75">Actualiza la información de tu compañero</p>
+            </div>
+
+            <div class="card-body-custom">
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 mb-4">
+                    <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <form th:action="@{/mascotas/editar/{id}(id=${mascotaDTO.idMascota})}"
+                      th:object="${mascotaDTO}" method="post" enctype="multipart/form-data"
+                      class="needs-validation" novalidate>
+
+                    <input type="hidden" th:field="*{idMascota}">
+                    <input type="hidden" th:field="*{usuarioId}">
+
+                    <div class="current-photo-container">
+                        <div th:if="${mascotaDTO.foto != null and !mascotaDTO.foto.isEmpty()}">
+                            <img th:src="@{'/uploads/mascotas/' + ${mascotaDTO.foto}}" class="current-photo" alt="Foto actual">
+                            <p class="text-muted small mt-2 mb-0">Foto Actual</p>
+                        </div>
+                        <div th:if="${mascotaDTO.foto == null or mascotaDTO.foto.isEmpty()}">
+                            <div class="current-photo-placeholder"><i class="fas fa-paw"></i></div>
+                            <p class="text-muted small mt-2 mb-0">Sin foto</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text"><i class="fas fa-signature"></i></span>
+                                <input type="text" th:field="*{nombre}" id="nombre" class="form-control" required minlength="2" maxlength="50">
+                                <div class="invalid-feedback">Nombre requerido.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <label for="genero" class="form-label">Género</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text"><i class="fas fa-venus-mars"></i></span>
+                                <select th:field="*{genero}" id="genero" class="form-select" required>
+                                    <option value="Macho">Macho</option>
+                                    <option value="Hembra">Hembra</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                            <input type="date" th:field="*{fechaNacimiento}" id="fechaNacimiento" class="form-control" required>
+                            <div class="invalid-feedback">Fecha requerida (no futura).</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="especie" class="form-label">Especie</label>
+                            <select class="form-control-select2" id="especie" th:field="*{especie}" required>
+                                <option value="Perro">Perro</option>
+                                <option value="Gato">Gato</option>
+                                <option value="Pájaro">Pájaro</option>
+                                <option value="Conejo">Conejo</option>
+                                <option value="Hámster">Hámster</option>
+                                <option value="Pez">Pez</option>
+                                <option value="Reptil">Reptil</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <label for="raza" class="form-label">Raza</label>
+                            <select class="form-control-select2" id="raza" th:field="*{raza}" required>
+                                <option th:value="${mascotaDTO.raza}" th:text="${mascotaDTO.raza}" selected></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="archivoFoto" class="form-label">Cambiar Foto (Opcional)</label>
+                        <input type="file" class="form-control" id="archivoFoto" name="archivoFoto" accept="image/*">
+                        <div class="form-text">Deja vacío si no deseas cambiar la foto actual.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-5">
+                        <a th:href="@{/dueno/mascotas}" class="btn-back">
+                            <i class="fas fa-arrow-left me-2"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save me-2"></i> Guardar Cambios
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    // --- Lógica de Razas (Reutilizada para que funcione el Select2) ---
+    const razasPorEspecie = {
+        "Perro": ["Labrador Retriever", "Pastor Alemán", "Golden Retriever", "Bulldog", "Poodle", "Beagle", "Boxer", "Chihuahua", "Pug", "Mestizo"],
+        "Gato": ["Siamés", "Persa", "Maine Coon", "Ragdoll", "Bengalí", "Mestizo"],
+        "Pájaro": ["Canario", "Periquito", "Agapornis", "Loro"],
+        "Conejo": ["Rex", "Belier", "Cabeza de León"],
+        "Hámster": ["Sirio", "Ruso", "Roborovski"],
+        "Pez": ["Goldfish", "Betta", "Guppy"],
+        "Reptil": ["Tortuga", "Gecko", "Iguana"],
+        "Otro": ["No Aplica"]
+    };
+
+    $(document).ready(function() {
+        $('.form-control-select2').select2({ theme: "bootstrap-5", width: '100%' });
+
+        // Lógica para actualizar razas al cambiar especie
+        $('#especie').on('change', function() {
+            const especie = $(this).val();
+            const $raza = $('#raza');
+            const razaActual = $raza.val(); // Guardar valor actual si existe
+
+            $raza.empty();
+
+            if (razasPorEspecie[especie]) {
+                razasPorEspecie[especie].forEach(r => {
+                    // Mantener seleccionada la raza actual si coincide
+                    const selected = (r === razaActual);
+                    $raza.append(new Option(r, r, false, selected));
+                });
+            } else {
+                $raza.append(new Option('No Aplica', 'No Aplica'));
+            }
+            // Si la raza actual no está en la lista nueva, seleccionar la primera
+            if (!$raza.val()) $raza.val($raza.find('option:first').val());
+
+            $raza.trigger('change');
+        });
+    });
+
+    // Validación Bootstrap & Fecha
+    (function () {
+        'use strict'
+
+        // Validar Fecha (No futura)
+        const fechaInput = document.getElementById('fechaNacimiento');
+        if(fechaInput) {
+            const today = new Date().toISOString().split('T')[0];
+            fechaInput.setAttribute('max', today);
+        }
+
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+
+</body>
+</html>

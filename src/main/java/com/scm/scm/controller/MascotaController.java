@@ -167,4 +167,45 @@ public class MascotaController {
             return "redirect:/mascotas/listarvet";
         }
     }
+
+    @GetMapping("/editar/{id}")
+    public String mostrarFormularioEditar(@PathVariable("id") Long id, Model model, Authentication auth) {
+        // Validar sesión
+        if (auth == null || !auth.isAuthenticated()) return "redirect:/login";
+
+        // Obtener la mascota por ID
+        MascotaDTO mascotaDTO = mascotaService.obtenerMascotaPorId(id);
+
+        // Validar que la mascota pertenezca al usuario logueado
+        String email = auth.getName();
+        Usuario usuario = usuarioRepositorio.findByEmail(email).orElseThrow();
+
+        if (!mascotaDTO.getUsuarioId().equals(usuario.getIdUsuario())) {
+            // Si intenta editar una mascota ajena, redirigir con error o al inicio
+            return "redirect:/dueno/index?error=NoPermitido";
+        }
+
+        model.addAttribute("mascotaDTO", mascotaDTO);
+        return "mascotas/editar"; // Nombre de la nueva vista
+    }
+
+    // --- 2. PROCESAR LA EDICIÓN ---
+    @PostMapping("/editar/{id}")
+    public String actualizarMascota(@PathVariable("id") Long id,
+                                    @ModelAttribute MascotaDTO mascotaDTO,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            // El ID viene del PathVariable, asegurémonos de setearlo en el DTO
+            // (Aunque el servicio lo maneje, es buena práctica)
+
+            mascotaService.actualizarMascota(id, mascotaDTO);
+
+            redirectAttributes.addFlashAttribute("mensajeExito", "Datos de la mascota actualizados correctamente.");
+            return "redirect:/dueno/index"; // O a /mascotas/listar
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al actualizar: " + e.getMessage());
+            return "redirect:/mascotas/editar/" + id;
+        }
+    }
 }

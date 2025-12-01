@@ -10,6 +10,7 @@ import com.scm.scm.repository.RolRepositorio;
 import com.scm.scm.repository.SolicitudVeterinarioRepositorio;
 import com.scm.scm.repository.UsuarioRepositorio;
 import com.scm.scm.repository.VeterinarioRepositorio;
+import com.scm.scm.service.EmailService;
 import com.scm.scm.service.VeterinarioService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -195,6 +196,11 @@ public class VeterinarioServiceImpl implements VeterinarioService {
         return solicitudRepo.findByEstado("PENDIENTE");
     }
 
+    @Autowired
+    private EmailService emailService; // <-- INYECTA EL SERVICIO DE EMAIL
+
+    // ... (Constructor y otros métodos) ...
+
     @Override
     @Transactional
     public void aprobarSolicitud(Long idSolicitud) {
@@ -209,7 +215,6 @@ public class VeterinarioServiceImpl implements VeterinarioService {
 
         // 2. Cambiar el Rol del Usuario a VETERINARIO (ID 3)
         Usuario usuario = solicitud.getUsuario();
-        // Asumiendo que buscas el rol por nombre o ID
         Rol rolVet = rolRepo.findById(3L).orElseThrow();
         usuario.setRol(rolVet);
         usuarioRepo.save(usuario);
@@ -217,6 +222,16 @@ public class VeterinarioServiceImpl implements VeterinarioService {
         // 3. Actualizar solicitud
         solicitud.setEstado("APROBADA");
         solicitudRepo.save(solicitud);
+
+        // --- 4. ENVIAR CORREO DE NOTIFICACIÓN (NUEVO) ---
+        // Lo hacemos al final para asegurar que todo lo anterior se guardó bien
+        if (solicitud.getUsuario().getEmail() != null) {
+            emailService.enviarCorreoAprobacion(
+                    solicitud.getUsuario().getEmail(),
+                    solicitud.getUsuario().getNombre()
+            );
+        // -----------------------------------------------
+    }
     }
 
     @Override

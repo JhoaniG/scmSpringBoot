@@ -148,6 +148,7 @@ public class MascotaServiceImpl implements MascotaService {
         mascotaExistente.setGenero(mascotaDTO.getGenero());
         mascotaExistente.setFechaNacimiento(mascotaDTO.getFechaNacimiento());
         mascotaExistente.setRaza(mascotaDTO.getRaza());
+        mascotaExistente.setEspecie(mascotaDTO.getEspecie());
 
         if (mascotaDTO.getArchivoFoto() != null && !mascotaDTO.getArchivoFoto().isEmpty()) {
             eliminarFoto(mascotaExistente.getFoto());
