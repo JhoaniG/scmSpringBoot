@@ -18,13 +18,14 @@
         }
         .page-card {
             width: 300px;
-            border: 1px solid #ddd;
+            border: 1px solid #555; /* Borde sutil para modo oscuro */
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            background: white;
+            background: #343a40; /* Fondo oscuro para resaltar texto blanco */
+            color: #ffffff; /* Texto blanco solicitado */
         }
         .page-card img {
             width: 100%;
@@ -37,17 +38,23 @@
             display: flex;
             flex-direction: column;
         }
+        /* Ajuste para que los subtítulos (Veterinario, Mascota) se vean bien sobre fondo oscuro */
+        .page-card-body .text-muted {
+            color: #adb5bd !important;
+        }
+
         .mt-auto { margin-top: auto; }
         #actividad-calendar-instance { min-height: 400px; max-height: 60vh; }
 
         /* --- ESTILOS PARA LAS TERMINADAS --- */
         .card-finished {
-            border: 2px solid #ccc;
-            background-color: #f8f9fa;
-            opacity: 0.9;
+            border: 2px solid #666;
+            background-color: #495057; /* Gris un poco más claro para diferenciar historial */
+            opacity: 0.95;
+            color: #e0e0e0;
         }
         .card-finished .page-card-body {
-            color: #6c757d;
+            color: #e0e0e0;
         }
         .card-finished img {
             filter: grayscale(80%);
@@ -62,6 +69,26 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: bold;
+        }
+
+        /* Botón Volver Azul */
+        .btn-back-strong {
+            background-color: #0d6efd; /* Azul brillante */
+            color: #fff !important;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 12px 25px;
+            border-radius: 10px;
+            display: inline-block;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .btn-back-strong:hover {
+            background-color: #084298; /* Azul más oscuro */
+            transform: translateY(-3px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.25);
         }
     </style>
 </head>
@@ -78,8 +105,8 @@
     <p class="lead">Gestiona y consulta el historial de ejercicios</p>
 </div>
 
-<div class="container mt-3 text-center">
-    <a th:href="@{/dueno/mascotas}" class="btn btn-secondary">
+<div class="container mt-4 text-center">
+    <a th:href="@{/dueno/mascotas}" class="btn-back-strong">
         ← Volver a Mis Mascotas
     </a>
 </div>

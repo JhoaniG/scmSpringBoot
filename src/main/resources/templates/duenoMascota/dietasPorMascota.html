@@ -18,13 +18,14 @@
         }
         .page-card {
             width: 300px;
-            border: 1px solid #ddd;
+            border: 1px solid #555; /* Borde más sutil para fondo oscuro */
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            background: white;
+            background: #343a40; /* Fondo oscuro para que resalte el texto blanco */
+            color: #ffffff; /* Texto blanco solicitado */
         }
         .page-card img {
             width: 100%;
@@ -37,6 +38,11 @@
             display: flex;
             flex-direction: column;
         }
+        /* Ajuste para los textos pequeños dentro de la tarjeta oscura */
+        .page-card-body .text-muted {
+            color: #adb5bd !important; /* Gris claro para subtítulos */
+        }
+
         .mt-auto { margin-top: auto; }
 
         #dieta-calendar-instance {
@@ -46,12 +52,13 @@
 
         /* --- ESTILOS PARA LAS TERMINADAS --- */
         .card-finished {
-            border: 2px solid #ccc;
-            background-color: #f8f9fa;
-            opacity: 0.9;
+            border: 2px solid #666;
+            background-color: #495057; /* Un gris un poco más claro para diferenciar */
+            opacity: 0.95;
+            color: #e0e0e0; /* Texto casi blanco */
         }
         .card-finished .page-card-body {
-            color: #6c757d;
+            color: #e0e0e0; /* Asegurar texto claro en historial */
         }
         .card-finished img {
             filter: grayscale(80%);
@@ -66,6 +73,26 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: bold;
+        }
+
+        /* Tu estilo para el botón azul */
+        .btn-back-strong {
+            background-color: #0d6efd; /* Azul brillante */
+            color: #fff !important;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 12px 25px;
+            border-radius: 10px;
+            display: inline-block;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .btn-back-strong:hover {
+            background-color: #084298; /* Azul más oscuro */
+            transform: translateY(-3px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.25);
         }
     </style>
 </head>
@@ -82,7 +109,7 @@
 </div>
 
 <div class="container mt-3 text-center">
-    <a th:href="@{/dueno/mascotas}" class="btn btn-secondary">
+    <a th:href="@{/dueno/mascotas}" class="btn-back-strong">
         ← Volver a Mis Mascotas
     </a>
 </div>

@@ -77,6 +77,28 @@
             background-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3);
         }
         .pagination .page-item.disabled .page-link { background-color: transparent; color: #adb5bd; }
+
+        .btn-historial-visual {
+        background: linear-gradient(90deg, #4a6cf7, #8a2be2);
+        border: none;
+        color: #fff !important;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        transition: 0.25s ease;
+    }
+
+    .btn-historial-visual:hover {
+        background: linear-gradient(90deg, #3d5ae0, #7620be);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 12px rgba(0,0,0,0.28);
+        color: #fff !important;
+    }
     </style>
 </head>
 <body>
@@ -144,20 +166,29 @@
                         </td>
 
                         <td class="text-center pe-4">
+
+                            <!-- VER HISTORIAL (Ojo) -->
                             <a th:href="@{/veterinario/mascotas/{id}(id=${paciente.idMascota})}"
-                               class="btn btn-outline-info btn-icon" title="Ver Detalles y Crear Cita">
+                               class="btn-historial-visual"
+                               title="Ver Detalles y Crear Cita">
                                 <i class="fas fa-eye"></i>
+                                Ver Historial
                             </a>
 
-                            <button type="button" class="btn btn-outline-danger btn-icon btn-abrir-preview"
+                            <!-- DESCARGAR HISTORIAL (PDF) -->
+                            <button type="button"
+                                    class="btn-historial-visual btn-abrir-preview mt-1"
                                     data-bs-toggle="modal"
                                     data-bs-target="#previewPdfModal"
                                     th:data-mascota-id="${paciente.idMascota}"
                                     th:data-download-url="@{/veterinario/mascotas/{id}/historial/pdf(id=${paciente.idMascota})}"
                                     title="Descargar Historial PDF">
                                 <i class="fas fa-file-pdf"></i>
+                                Descargar Historial
                             </button>
+
                         </td>
+
                     </tr>
 
                     <tr th:if="${pacientesPage.empty}">

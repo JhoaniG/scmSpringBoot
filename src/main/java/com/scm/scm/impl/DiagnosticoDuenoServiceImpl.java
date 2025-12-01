@@ -21,11 +21,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-
 public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
-    private  final DiagnosticoDuenoRepositorio diagnosticoDuenoRepositorio;
+    private final DiagnosticoDuenoRepositorio diagnosticoDuenoRepositorio;
     private final ModelMapper modelMapper;
-    private  final VeterinarioRepositorio veterinarioRepositorio;
+    private final VeterinarioRepositorio veterinarioRepositorio;
     private final MascotaRepositorio mascotaRepositorio;
     private final CitaRepositorio citaRepositorio;
 
@@ -38,38 +37,64 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
     }
 
     @Override
-
     public DiagnosticoDuenoDTO crearDiagnosticoDueno(DiagnosticoDuenoDTO diagnosticoDuenoDTO) {
 
-        Diagnosticodueno diagnosticodueno=modelMapper.map(diagnosticoDuenoDTO, Diagnosticodueno.class);
-
-
+        Diagnosticodueno diagnosticodueno = modelMapper.map(diagnosticoDuenoDTO, Diagnosticodueno.class);
 
         if (diagnosticoDuenoDTO.getVeterinarioId() != null) {
-            // CORRECTO: Busca por el ID de Veterinario
             Veterinario veterinario = veterinarioRepositorio.findById(diagnosticoDuenoDTO.getVeterinarioId())
                     .orElseThrow(() -> new RuntimeException("No existe un veterinario con el ID: " + diagnosticoDuenoDTO.getVeterinarioId()));
             diagnosticodueno.setVeterinario(veterinario);
         }
 
-        if (diagnosticoDuenoDTO.getMascotaId() != null){
-
-            Mascota mascota=mascotaRepositorio.findById(diagnosticoDuenoDTO.getMascotaId()).orElseThrow(() -> new RuntimeException("No existe una mascota con el ID: " + diagnosticoDuenoDTO.getMascotaId()));
-
+        if (diagnosticoDuenoDTO.getMascotaId() != null) {
+            Mascota mascota = mascotaRepositorio.findById(diagnosticoDuenoDTO.getMascotaId())
+                    .orElseThrow(() -> new RuntimeException("No existe una mascota con el ID: " + diagnosticoDuenoDTO.getMascotaId()));
             diagnosticodueno.setMascota(mascota);
-
         }
 
-
-
-
-
+        // =====================================================================
+        // LOGICA AGREGADA: Determinar Prioridad Automáticamente según el Síntoma
+        // =====================================================================
+        String prioridadCalculada = calcularPrioridad(diagnosticoDuenoDTO.getTipoEnfermedad());
+        diagnosticodueno.setPrioridad(prioridadCalculada);
+        // =====================================================================
 
         diagnosticodueno.setFechaDiagnostico(LocalDate.now().toString());
-        diagnosticodueno=diagnosticoDuenoRepositorio.save(diagnosticodueno);
+        diagnosticodueno = diagnosticoDuenoRepositorio.save(diagnosticodueno);
 
         return modelMapper.map(diagnosticodueno, DiagnosticoDuenoDTO.class);
+    }
 
+    // Método auxiliar para decidir la importancia del síntoma
+    private String calcularPrioridad(String tipoEnfermedad) {
+        if (tipoEnfermedad == null) return "Baja";
+
+        switch (tipoEnfermedad) {
+            // CASOS DE ALTA PRIORIDAD (Urgencias, dolor, respiratorio)
+            case "Otro / Urgencia":
+            case "Problemas Respiratorios":
+            case "Problemas Oculares":
+            case "Vómitos / Diarrea":
+            case "Dificultad para Caminar":
+            case "Cojera / Dolor Articular":
+                return "Alta";
+
+            // CASOS DE MEDIA PRIORIDAD
+            case "Pérdida de Apetito":
+            case "Problemas Digestivos / Nutricionales":
+            case "Problemas de Piel / Alergias":
+            case "Ansiedad / Agresividad":
+            case "Cambios de Conducta":
+            case "Caída de Pelo / Rasquiña":
+                return "Media";
+
+            // CASOS DE BAJA PRIORIDAD (Rutina)
+            case "Consulta General / Chequeo":
+            case "Vacunación / Desparasitación":
+            default:
+                return "Baja";
+        }
     }
 
     @Override
@@ -77,8 +102,7 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
         if (diagnosticoDuenoRepositorio.existsById(id)) {
             Diagnosticodueno diagnosticodueno = diagnosticoDuenoRepositorio.findById(id).orElseThrow(() -> new RuntimeException("No existe un diagnostico con el ID: " + id));
             return modelMapper.map(diagnosticodueno, DiagnosticoDuenoDTO.class);
-        }
-        else {
+        } else {
             throw new RuntimeException("No existe un diagnostico con el ID: " + id);
         }
     }
@@ -94,15 +118,14 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
                 Veterinario veterinario = veterinarioRepositorio.findById(diagnosticoDuenoDTO.getVeterinarioId())
                         .orElseThrow(() -> new RuntimeException("No existe un veterinario con el ID: " + diagnosticoDuenoDTO.getVeterinarioId()));
                 diagnosticodueno.setVeterinario(veterinario);
-
             }
-            if (diagnosticoDuenoDTO.getMascotaId()!= null) {
+            if (diagnosticoDuenoDTO.getMascotaId() != null) {
                 Mascota mascota = mascotaRepositorio.findById(diagnosticoDuenoDTO.getMascotaId())
                         .orElseThrow(() -> new RuntimeException("No existe una mascota con el ID: " + diagnosticoDuenoDTO.getMascotaId()));
                 diagnosticodueno.setMascota(mascota);
             }
             return modelMapper.map(diagnosticoDuenoRepositorio.save(diagnosticodueno), DiagnosticoDuenoDTO.class);
-        }else {
+        } else {
             throw new RuntimeException("No existe un diagnostico con el ID: " + id);
         }
     }
@@ -114,31 +137,27 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
             throw new RuntimeException("Diagnóstico no encontrado con ID: " + id);
         }
         try {
-            // Un diagnóstico puede estar enlazado a una cita, lo que impediría borrarlo.
             diagnosticoDuenoRepositorio.deleteById(id);
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("No se puede eliminar este diagnóstico porque está asociado a una cita.");
         }
     }
+
     @Override
     public List<DiagnosticoDuenoDTO> ListartodosDiagnosticosDueno() {
         return List.of();
     }
 
-
-
     @Override
     public Page<DiagnosticoDuenoDTO> listarDiagnosticosPorVeterinario(Long veterinarioId, String filtro, Pageable pageable) {
         Page<Diagnosticodueno> paginaResultados;
 
-        // 1. Decidir qué consulta usar
         if (filtro != null && !filtro.trim().isEmpty()) {
             paginaResultados = diagnosticoDuenoRepositorio.findByVeterinarioAndFiltro(veterinarioId, filtro, pageable);
         } else {
             paginaResultados = diagnosticoDuenoRepositorio.findByVeterinario_IdVeterinario(veterinarioId, pageable);
         }
 
-        // 2. Mapear la página de Entidades a página de DTOs
         return paginaResultados.map(d -> {
             DiagnosticoDuenoDTO dto = modelMapper.map(d, DiagnosticoDuenoDTO.class);
 
@@ -152,8 +171,8 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
             dto.setMascotaId(d.getMascota().getIdMascota());
             dto.setIdDiagnosticoDueno(d.getIdDiagnosticoDueno());
 
-            // C. Prioridad (si existe en la entidad)
-            // dto.setPrioridad(d.getPrioridad()); // Descomentar si la entidad tiene el campo
+            // C. Prioridad (CORREGIDO: Descomentado para que se muestre en la vista)
+            dto.setPrioridad(d.getPrioridad());
 
             // D. Verificar si ya tiene cita agendada
             boolean agendada = citaRepositorio.existsByDiagnosticodueno_IdDiagnosticoDueno(d.getIdDiagnosticoDueno());
@@ -162,9 +181,9 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
             return dto;
         });
     }
+
     @Override
     public List<DiagnosticoDuenoDTO> listarDiagnosticosPorMascota(Long mascotaId) {
-        // Usamos la misma lógica que ya tienes en CitaServiceImpl
         List<Diagnosticodueno> diagnosticos = diagnosticoDuenoRepositorio.findByMascota_IdMascota(mascotaId);
 
         return diagnosticos.stream()
@@ -176,6 +195,7 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
                     if (diag.getMascota() != null && diag.getMascota().getUsuario() != null) {
                         dto.setNombreDueno(diag.getMascota().getUsuario().getNombre());
                         dto.setNombreMascota(diag.getMascota().getNombre());
+                        // CORREGIDO: Asegurar que aquí también se pase la prioridad
                         dto.setPrioridad(diag.getPrioridad());
                         boolean agendada = citaRepositorio.existsByDiagnosticodueno_IdDiagnosticoDueno(diag.getIdDiagnosticoDueno());
                         dto.setCitaAgendada(agendada);
@@ -185,6 +205,7 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
                 })
                 .collect(Collectors.toList());
     }
+
     private DiagnosticoDuenoDTO convertirADTO(Diagnosticodueno diagnostico) {
         DiagnosticoDuenoDTO dto = modelMapper.map(diagnostico, DiagnosticoDuenoDTO.class);
         if (diagnostico.getMascota() != null) {
@@ -196,11 +217,13 @@ public class DiagnosticoDuenoServiceImpl implements DiagnosticoDuenoService {
         if (diagnostico.getVeterinario() != null && diagnostico.getVeterinario().getUsuario() != null) {
             dto.setNombreVeterinario(diagnostico.getVeterinario().getUsuario().getNombre());
         }
+        // Asegurar prioridad aquí también si se usa
+        dto.setPrioridad(diagnostico.getPrioridad());
         return dto;
     }
+
     @Override
     public Page<DiagnosticoDuenoDTO> getAllDiagnosticosPaginados(Pageable pageable) {
         return diagnosticoDuenoRepositorio.findAll(pageable).map(this::convertirADTO);
     }
-
 }

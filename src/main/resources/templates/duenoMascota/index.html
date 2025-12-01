@@ -14,12 +14,14 @@
         body { background-color: #f4f6f9; min-height: 100vh; }
         .content-wrapper { padding-top: 80px; padding-bottom: 50px; }
 
+        /* Cabecera */
         .welcome-card {
             background: linear-gradient(135deg, #6f42c1 0%, #a88beb 100%);
             color: white; border-radius: 15px; padding: 2rem; text-align: center;
             margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(111, 66, 193, 0.2);
         }
 
+        /* Acciones Rápidas */
         .quick-actions-container {
             display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 3rem;
         }
@@ -36,6 +38,7 @@
         .action-icon { font-size: 1.8rem; margin-bottom: 0.5rem; color: #6f42c1; }
         .action-text { font-weight: 600; font-size: 0.9rem; text-align: center; }
 
+        /* Tarjetas de Mascotas */
         .pet-card {
             border: none; border-radius: 15px; overflow: visible;
             background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -93,6 +96,11 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
+        <div th:if="${mensajeAlertaNovedades}" class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-bell me-2"></i> <strong th:text="${mensajeAlertaNovedades}"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <div th:if="${#lists.isEmpty(misMascotas)}" class="alert alert-warning text-center shadow-sm mb-4">
             <i class="fas fa-exclamation-triangle me-2"></i>
             <strong>¡Atención!</strong> Necesitas registrar una mascota para poder reportar síntomas o ver citas.
@@ -147,6 +155,8 @@
 
             <div class="col" th:each="m : ${misMascotas}">
                 <div class="pet-card">
+                    <span th:if="${m.tieneNuevasDietas or m.tieneNuevasActividades}" class="notification-dot"></span>
+
                     <div class="pet-img-wrapper">
                         <img th:if="${m.foto != null}" th:src="@{'/uploads/mascotas/' + ${m.foto}}" class="pet-img" alt="Mascota">
                         <i th:if="${m.foto == null}" class="fas fa-paw pet-icon-default"></i>
@@ -158,42 +168,59 @@
                             <span th:text="${m.raza}">Raza</span> • <span th:text="${m.genero}">Género</span>
                         </div>
 
+                        <div class="mb-3 d-flex gap-2" th:if="${m.tieneNuevasDietas or m.tieneNuevasActividades}">
+                            <a th:if="${m.tieneNuevasDietas}"
+                               th:href="@{/duenoMascota/dietas(idMascota=${m.idMascota})}"
+                               class="btn btn-success btn-sm flex-fill position-relative fw-bold" style="font-size: 0.8rem;">
+                                <i class="fas fa-utensils me-1"></i> Nueva Dieta
+                                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                            </a>
+
+                            <a th:if="${m.tieneNuevasActividades}"
+                               th:href="@{/duenoMascota/actividades(idMascota=${m.idMascota})}"
+                               class="btn btn-warning text-dark btn-sm flex-fill position-relative fw-bold" style="font-size: 0.8rem;">
+                                <i class="fas fa-running me-1"></i> Nueva Actividad
+                                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                            </a>
+                        </div>
                         <div class="pet-actions">
 
                             <a th:href="@{/dueno/mascotas/{id}/seleccionar-veterinario(id=${m.idMascota})}"
-                               class="btn btn-outline-primary btn-sm w-100" title="Historial Clínico">
+                               class="btn btn-outline-primary btn-sm w-100" title="Ver Historial Clínico">
                                 <i class="fas fa-history"></i> Historial
                             </a>
 
                             <div class="btn-group">
-                                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle"
-                                        data-bs-toggle="dropdown">
+                                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-cog"></i>
                                 </button>
-
-                                <!-- 👉 AQUI VAN LAS CORRECCIONES IMPORTANTES -->
                                 <ul class="dropdown-menu dropdown-menu-end shadow">
-
                                     <li><h6 class="dropdown-header">Gestionar</h6></li>
-
                                     <li>
-                                        <a class="dropdown-item"
-                                           th:href="@{'/mascotas/editar/' + ${m.idMascota}}">
+                                        <a class="dropdown-item" th:href="@{'/mascotas/editar/' + ${m.idMascota}}">
                                             <i class="fas fa-edit text-warning me-2"></i> Editar Datos
                                         </a>
                                     </li>
-
                                     <li>
                                         <button type="button" class="dropdown-item"
                                                 onclick="abrirPreview(this)"
-                                                th:data-url-preview="@{/dueno/mascotas/{idMascota}/ficha/preview(idMascota=${m.idMascota})}"
-                                                th:data-url-download="@{/dueno/mascotas/{idMascota}/ficha/pdf(idMascota=${m.idMascota})}">
+                                                th:data-url-preview="@{/dueno/mascotas/{id}/ficha/preview(id=${m.idMascota})}"
+                                                th:data-url-download="@{/dueno/mascotas/{id}/ficha/pdf(id=${m.idMascota})}">
                                             <i class="fas fa-file-pdf text-danger me-2"></i> Ver y Descargar Ficha
                                         </button>
                                     </li>
-
                                     <li><hr class="dropdown-divider"></li>
-
+                                    <li>
+                                        <a class="dropdown-item" th:href="@{/duenoMascota/dietas(idMascota=${m.idMascota})}">
+                                            <i class="fas fa-utensils text-muted me-2"></i> Ver todas las dietas
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" th:href="@{/duenoMascota/actividades(idMascota=${m.idMascota})}">
+                                            <i class="fas fa-running text-muted me-2"></i> Ver todas las actividades
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item text-danger"
                                            th:href="@{'/mascotas/eliminar/' + ${m.idMascota}}"
@@ -201,23 +228,18 @@
                                             <i class="fas fa-trash-alt me-2"></i> Eliminar
                                         </a>
                                     </li>
-
                                 </ul>
                             </div>
-
                         </div>
-
                     </div>
                 </div>
             </div>
 
         </div>
-
     </div>
 </div>
 
 
-<!-- MODAL PARA PREVIEW DEL PDF -->
 <div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable"> <div class="modal-content">
 
@@ -250,6 +272,22 @@
     </div></div>
 </div>
 
+<div class="modal fade" id="modalSeleccionarVet" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Seleccionar Profesional</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Selecciona un veterinario para ver el historial compartido:</p>
+                <div id="lista-veterinarios" class="list-group">
+                    <div class="text-center p-3"><div class="spinner-border text-primary"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -290,6 +328,7 @@
 </script>
 
 <script th:inline="javascript">
+    /*<![CDATA[*/
     var listaVacia = /*[[${#lists.isEmpty(misMascotas)}]]*/ false;
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -321,6 +360,7 @@
             }
         });
     }
+    /*]]>*/
 </script>
 
 </body>

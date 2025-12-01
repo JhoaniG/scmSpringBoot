@@ -3,51 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCM - Cuidamos a tu mascota</title>
 
-    <!-- CSS -->
-    <link th:href="@{/css/stilos.css}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/stilos.css}" rel="stylesheet">
 
-    <title>Seguimiento y control de mascotas</title>
+    <style>
+        /* --- Estilos Personalizados para Home --- */
+
+        /* Carrusel */
+        .carousel-item img {
+            height: 500px; /* Altura fija para el banner */
+            object-fit: cover;
+            filter: brightness(0.9); /* Un poco más oscuro para que resalte el texto si pones uno */
+        }
+
+        /* Tarjetas de Profesionales (Veterinarios) */
+        .vet-card {
+            border: none;
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            height: 100%;
+        }
+        .vet-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .vet-img-container {
+            height: 260px;
+            overflow: hidden;
+            position: relative;
+        }
+        .vet-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* CLAVE: La foto llena el espacio sin deformarse */
+            transition: transform 0.5s ease;
+        }
+        .vet-card:hover .vet-img {
+            transform: scale(1.1); /* Efecto zoom suave */
+        }
+
+        .vet-body {
+            padding: 1.5rem;
+            text-align: center;
+            background: white;
+            position: relative;
+        }
+
+        .vet-badge {
+            background-color: #0dcaf0; /* Cyan */
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 10px rgba(13, 202, 240, 0.3);
+        }
+
+        /* Botón del Home */
+        .btn-contact {
+            background: linear-gradient(45deg, #0d6efd, #0099ff);
+            border: none;
+            border-radius: 50px;
+            padding: 10px 25px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-contact:hover {
+            background: linear-gradient(45deg, #0099ff, #0d6efd);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+            color: white;
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- MENU -->
-<header class="header">
-    <div class="container-m d-flex justify-content-between align-items-center">
-        <div class="logo">
-            <h1>SCM</h1>
-        </div>
-        <nav class="menu d-flex align-items-center">
-            <a href="#seccion1" class="me-3">Profesionales</a>
-            <a href="#seccion2" class="me-3">Mascotas</a>
-            <a href="#seccion3" class="me-3">Contáctanos</a>
-
-            <!-- Botones de sesión -->
-            <button th:if="${session.usuarioLogueado == null}" type="button" class="btn btn-blanco me-2"
-                    data-bs-toggle="modal" data-bs-target="#modalRegistro">Crear Cuenta</button>
-
-            <a th:if="${session.usuarioLogueado == null}" th:href="@{/login}" class="btn btn-blanco me-2">Iniciar Sesión</a>
-
-            <!-- Usuario logueado -->
-            <span th:if="${session.usuarioLogueado != null}" th:text="'Hola, ' + ${session.usuarioLogueado.nombre}" class="me-3"></span>
-
-            <form th:if="${session.usuarioLogueado != null}" th:action="@{/logout}" method="post" style="display:inline;">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                <button type="submit" class="btn btn-danger">Cerrar Sesión</button>
-            </form>
-        </nav>
+<header class="header sticky-top bg-white shadow-sm"> <div class="container-m d-flex justify-content-between align-items-center py-3 px-4">
+    <div class="logo">
+        <h1 class="text-primary fw-bold m-0"><i class="fas fa-paw"></i> SCM</h1>
     </div>
+    <nav class="menu d-flex align-items-center">
+        <a href="#seccion1" class="me-4 text-decoration-none text-dark fw-bold">Profesionales</a>
+        <a href="#seccion2" class="me-4 text-decoration-none text-dark fw-bold">Mascotas</a>
+        <a href="#seccion3" class="me-4 text-decoration-none text-dark fw-bold">Contáctanos</a>
+
+        <div th:if="${session.usuarioLogueado == null}">
+            <button type="button" class="btn btn-outline-primary me-2 rounded-pill px-4"
+                    data-bs-toggle="modal" data-bs-target="#modalRegistro">Crear Cuenta</button>
+            <a th:href="@{/login}" class="btn btn-primary rounded-pill px-4">Iniciar Sesión</a>
+        </div>
+
+        <div th:if="${session.usuarioLogueado != null}" class="d-flex align-items-center">
+            <span class="me-3 fw-bold text-dark" th:text="'Hola, ' + ${session.usuarioLogueado.nombre}"></span>
+            <form th:action="@{/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3">Salir</button>
+            </form>
+        </div>
+    </nav>
+</div>
 </header>
 
-<!-- CAROUSEL -->
 <div class="capa">
-    <div id="carouselExampleSlidesOnly" class="carousel slide" data-bs-ride="carousel">
+    <div id="carouselExampleSlidesOnly" class="carousel slide carousel-fade" data-bs-ride="carousel">
         <div class="carousel-inner">
             <div class="carousel-item active">
                 <img th:src="@{/Imagenes/img1.jpg}" class="d-block w-100" alt="Imagen 1">
+                <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-3">
+                    <h3>Cuidado Profesional</h3>
+                    <p>Los mejores especialistas para tu mejor amigo.</p>
+                </div>
             </div>
             <div class="carousel-item">
                 <img th:src="@{/Imagenes/img2.jpg}" class="d-block w-100" alt="Imagen 2">
@@ -56,288 +133,243 @@
                 <img th:src="@{/Imagenes/img3.jpg}" class="d-block w-100" alt="Imagen 3">
             </div>
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
     </div>
 </div>
+
 <div class="container mt-4">
-    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <strong th:text="${success}"></strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <strong th:text="${success}"></strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-
-    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <strong th:text="${error}"></strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <strong th:text="${error}"></strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 </div>
 
-<div class="container-fluid py-5">
-
-<!-- ACERCA DE NOSOTROS -->
-<div class="container-fluid py-5">
+<div class="container-fluid py-5 bg-light">
     <div class="container">
-        <div class="section-title text-center">
-            <h4 class="text-primary text-uppercase">Acerca de Nosotros</h4>
-            <h1 class="display-4">Cuidamos a tu mascota con amor</h1>
+        <div class="section-title text-center mb-5">
+            <h4 class="text-primary text-uppercase fw-bold ls-2">Acerca de Nosotros</h4>
+            <h1 class="display-5 fw-bold">Cuidamos a tu mascota con amor</h1>
         </div>
         <div class="row align-items-center">
-            <div class="col-lg-5 py-4">
-                <h2 class="mb-4">Nuestra Historia</h2>
-                <p>Fundados con el objetivo de mejorar el acceso a servicios de salud para tus mascotas...</p>
-                <p>Estamos comprometidos con la salud y bienestar de cada mascota...</p>
-            </div>
-            <div class="col-lg-2 py-4 text-center">
-                <img th:src="@{/Imagenes/perrotres.avif}" alt="Imagen de nuestra historia" class="img-fluid rounded" style="max-height: 300px; object-fit: cover;">
-            </div>
-            <div class="col-lg-5 py-4">
-                <h2 class="mb-4">Nuestra Visión</h2>
-                <p>Queremos ser el puente de confianza entre los dueños de mascotas y los mejores veterinarios del país...</p>
-                <ul class="list-unstyled">
-                    <li><i class="fas fa-check-circle"></i> Acceso rápido a veterinarios de confianza</li>
-                    <li><i class="fas fa-check-circle"></i> Atención personalizada y de calidad</li>
-                    <li><i class="fas fa-check-circle"></i> Salud y bienestar garantizados</li>
+            <div class="col-lg-5">
+                <h3 class="mb-4 fw-bold">Nuestra Historia</h3>
+                <p class="text-muted">Fundados con el objetivo de mejorar el acceso a servicios de salud de alta calidad...</p>
+                <p class="text-muted">Comprometidos con el bienestar de cada paciente que entra por nuestras puertas.</p>
+
+                <h3 class="mb-4 fw-bold mt-5">Nuestra Visión</h3>
+                <ul class="list-unstyled text-muted">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Acceso rápido a especialistas</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Atención 24/7</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Tecnología de punta</li>
                 </ul>
-                <a href="#" class="btn btn-info font-weight-bold py-2 px-4 mt-2">Saber más</a>
+                <a href="#" class="btn btn-info text-white rounded-pill px-4 mt-3 fw-bold shadow-sm">Saber más</a>
+            </div>
+            <div class="col-lg-2 text-center py-4">
+                <img th:src="@{/Imagenes/perrotres.avif}" class="img-fluid rounded-circle shadow-lg" style="width: 200px; height: 200px; object-fit: cover;">
+            </div>
+            <div class="col-lg-5">
+                <img th:src="@{/Imagenes/mascota1.jpg}" class="img-fluid rounded-3 shadow" alt="Mascota feliz">
             </div>
         </div>
     </div>
 </div>
 
-<!-- PROFESIONALES -->
-<div id="seccion1" class="container mt-5">
-    <h2 class="display-1 m-5 text-center d-none d-md-block">¡Nuestros Profesionales!</h2>
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card border-0">
-                <img th:src="@{/Imagenes/veterinarian1.jpg}" class="card-img-top" alt="Dr. Lucas Medina">
-                <div class="card-body">
-                    <h5 class="card-title">Dr. Lucas Medina</h5>
-                    <p class="card-text">Especialista en cirugía veterinaria y atención de emergencias...</p>
-                    <a href="#" class="btn btn-primary">Conócele</a>
+<div id="seccion1" class="container mt-5 mb-5">
+    <div class="text-center mb-5">
+        <h4 class="text-primary text-uppercase fw-bold">El Equipo</h4>
+        <h1 class="display-5 fw-bold">¡Nuestros Profesionales!</h1>
+    </div>
+
+    <div th:if="${#lists.isEmpty(profesionales)}" class="text-center text-muted py-5">
+        <i class="fas fa-user-md fa-3x mb-3 opacity-25"></i>
+        <p>Próximamente conocerás a nuestro equipo de expertos.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center" th:unless="${#lists.isEmpty(profesionales)}">
+
+        <div class="col-md-6 col-lg-4" th:each="vet : ${profesionales}">
+            <div class="vet-card">
+
+                <div class="vet-img-container">
+                    <img th:if="${vet.fotoUsuario != null}"
+                         th:src="@{'/uploads/' + ${vet.fotoUsuario}}"
+                         class="vet-img"
+                         th:alt="${vet.nombreUsuario}">
+
+                    <div th:if="${vet.fotoUsuario == null}" class="w-100 h-100 bg-light d-flex align-items-center justify-content-center text-muted">
+                        <i class="fas fa-user-md fa-5x"></i>
+                    </div>
+                </div>
+
+                <div class="vet-body">
+                    <span class="vet-badge" th:text="${vet.especialidad}">Especialidad</span>
+
+                    <h4 class="fw-bold mt-3 mb-1" th:text="'Dr. ' + ${vet.nombreUsuario} + ' ' + ${vet.apellidoUsuario}">Nombre</h4>
+
+                    <p class="text-muted mb-4">
+                        <i class="fas fa-clinic-medical me-1 text-primary"></i>
+                        <span th:text="${vet.veterinaria}">Clínica</span>
+                    </p>
+
+                    <button type="button" class="btn btn-contact w-100"
+                            data-bs-toggle="modal" data-bs-target="#modalRegistro">
+                        Agendar Cita
+                    </button>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0">
-                <img th:src="@{/Imagenes/veterinarian2.jpg}" class="card-img-top" alt="Dra. Valeria Cruz">
-                <div class="card-body">
-                    <h5 class="card-title">Dra. Valeria Cruz</h5>
-                    <p class="card-text">Especialista en cirugía veterinaria y atención de emergencias...</p>
-                    <a href="#" class="btn btn-primary">Conócele</a>
-                </div>
-            </div>
+
+    </div>
+</div>
+
+<div id="seccion2" class="container mt-5 mb-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Pacientes Felices</h1>
+    </div>
+
+    <div class="row g-4 align-items-center mb-5">
+        <div class="col-md-6">
+            <img th:src="@{/Imagenes/mascota2.jpg}" class="img-fluid rounded-3 shadow" alt="Max y Pipo">
         </div>
-        <div class="col-md-4">
-            <div class="card border-0">
-                <img th:src="@{/Imagenes/veterinarian3.jpg}" class="card-img-top" alt="Dr. Tomás Ruiz">
-                <div class="card-body">
-                    <h5 class="card-title">Dr. Tomás Ruiz</h5>
-                    <p class="card-text">Con 6 años de experiencia en dermatología y tratamiento de alergias...</p>
-                    <a href="#" class="btn btn-primary">Conócele</a>
-                </div>
-            </div>
+        <div class="col-md-6">
+            <h2 class="fw-bold text-dark">¡Conoce a Max y Pipo!</h2>
+            <p class="lead text-muted">Gracias a SCM, Max recuperó su energía y Pipo tiene sus vacunas al día. Sus dueños pueden dormir tranquilos.</p>
+            <a href="#" class="btn btn-outline-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalRegistro">Regístrate ahora</a>
         </div>
     </div>
 </div>
 
-<!-- MASCOTAS -->
-<div id="seccion2" class="container mt-5">
-    <div class="card mb-3 border-0">
-        <div class="row g-0 align-items-center">
-            <div class="col-md-5">
-                <img th:src="@{/Imagenes/mascota2.jpg}" class="img-fluid rounded" alt="Max y Pipo">
-            </div>
-            <div class="col-md-7">
-                <div class="card-body">
-                    <h2 class="card-title">¡Conoce a Max y Pipo!</h2>
-                    <p class="card-text">Max, un perrito curioso, y Pipo, un pollito inquieto...</p>
-                    <a href="#" class="btn btn-info">Registra tu mascota</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="card mb-3 border-0">
-        <div class="row g-0 align-items-center">
-            <div class="col-md-7">
-                <div class="card-body">
-                    <h2 class="card-title">¡Conoce a Milo!</h2>
-                    <p class="card-text">Milo, un perrito pequeño de pelaje blanco y manchas negras...</p>
-                    <a href="#" class="btn btn-info">Registra tu mascota</a>
-                </div>
-            </div>
-            <div class="col-md-5">
-                <img th:src="@{/Imagenes/mascota1.jpg}" class="img-fluid rounded" alt="Milo">
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- CONTACTO -->
-<div id="seccion3" class="container mt-5">
+<div id="seccion3" class="container mt-5 mb-5 bg-white p-5 rounded-3 shadow-sm">
     <div class="row align-items-center">
         <div class="col-md-6">
-            <h2 class="text-center mb-4">¡Contáctanos!</h2>
+            <h2 class="mb-4 fw-bold">¡Contáctanos!</h2>
+            <p class="text-muted mb-4">¿Tienes dudas? Escríbenos y te responderemos a la brevedad.</p>
+
             <form th:action="@{/enviar}" method="post">
                 <div class="mb-3">
-                    <label for="nombre" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" id="ROSCON" name="nombre" required>
+                    <label for="nombre" class="form-label fw-bold">Nombre</label>
+                    <input type="text" class="form-control form-control-lg" id="ROSCON" name="nombre" required placeholder="Tu nombre">
                 </div>
                 <div class="mb-3">
-                    <label for="email" class="form-label">Correo Electrónico</label>
-                    <input type="email" class="form-control" id="rosco" name="email" required>
+                    <label for="email" class="form-label fw-bold">Correo Electrónico</label>
+                    <input type="email" class="form-control form-control-lg" id="rosco" name="email" required placeholder="nombre@ejemplo.com">
                 </div>
                 <div class="mb-3">
-                    <label for="mensaje" class="form-label">Mensaje</label>
-                    <textarea class="form-control" id="mensaje" name="mensaje" rows="4" required></textarea>
+                    <label for="mensaje" class="form-label fw-bold">Mensaje</label>
+                    <textarea class="form-control form-control-lg" id="mensaje" name="mensaje" rows="3" required placeholder="¿En qué podemos ayudarte?"></textarea>
                 </div>
-                <button type="submit" class="btn btn-info w-100">Enviar</button>
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill">Enviar Mensaje</button>
             </form>
         </div>
-        <div class="col-md-6 d-none d-md-block">
-            <img th:src="@{/Imagenes/perro.jpg}" alt="Contáctanos" class="img-fluid rounded shadow">
+        <div class="col-md-6 d-none d-md-block text-center">
+            <img th:src="@{/Imagenes/perro.jpg}" alt="Contacto" class="img-fluid rounded-circle shadow" style="max-width: 80%;">
         </div>
     </div>
 </div>
 
-<!-- FOOTER -->
-<footer class="footer mt-5">
-    <div class="container py-4">
-        <div class="row text-center text-md-start">
-            <div class="col-md-4 mb-3">
-                <h5 class="footer-title">John Alvarado</h5>
+<footer class="footer bg-dark text-white py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h5 class="text-uppercase mb-3 text-info">SCM</h5>
+                <p class="small opacity-75">El mejor sistema para el control y seguimiento médico de tus mascotas. Conectamos dueños y veterinarios.</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <h5 class="text-uppercase mb-3 text-info">Enlaces</h5>
                 <ul class="list-unstyled">
-                    <li><i class="fas fa-envelope"></i> <a href="mailto:jhonyse2345@gmail.com" class="footer-link">jhonyse2345@gmail.com</a></li>
-                    <li><i class="fas fa-phone"></i> 321-613-2975</li>
+                    <li><a href="#" class="text-white text-decoration-none opacity-75 hover-white">Inicio</a></li>
+                    <li><a href="#seccion1" class="text-white text-decoration-none opacity-75 hover-white">Profesionales</a></li>
+                    <li><a href="#seccion3" class="text-white text-decoration-none opacity-75 hover-white">Contacto</a></li>
                 </ul>
             </div>
-            <div class="col-md-4 mb-3">
-                <h5 class="footer-title">Leonardo Atencio</h5>
-                <ul class="list-unstyled">
-                    <li><i class="fas fa-envelope"></i> <a href="mailto:leonardoatenciob30@gmail.com" class="footer-link">leonardoatenciob30@gmail.com</a></li>
-                    <li><i class="fas fa-phone"></i> 321-960-9864</li>
-                </ul>
-            </div>
-            <div class="col-md-4 mb-3">
-                <h5 class="footer-title">Jhoani Gallo</h5>
-                <ul class="list-unstyled">
-                    <li><i class="fas fa-envelope"></i> <a href="mailto:jhoanigallo@gmail.com" class="footer-link">jhoanigallo@gmail.com</a></li>
-                    <li><i class="fas fa-phone"></i> 312-311-0320</li>
-                </ul>
+            <div class="col-md-4 mb-4">
+                <h5 class="text-uppercase mb-3 text-info">Equipo</h5>
+                <p class="small mb-1"><i class="fas fa-code me-2"></i>John Alvarado</p>
+                <p class="small mb-1"><i class="fas fa-code me-2"></i>Leonardo Atencio</p>
+                <p class="small mb-1"><i class="fas fa-code me-2"></i>Jhoani Gallo</p>
             </div>
         </div>
-        <hr class="footer-divider">
-        <div class="text-center mt-3">
-            <p class="footer-copy">&copy; 2024. Todos los derechos reservados.</p>
+        <hr class="my-4 opacity-25">
+        <div class="text-center small opacity-50">
+            &copy; 2025 SCM. Todos los derechos reservados.
         </div>
     </div>
 </footer>
 
-<!-- MODAL DE REGISTRO -->
-<div class="modal fade" id="modalRegistro" tabindex="-1" aria-labelledby="modalRegistroLabel" aria-hidden="true">
+<div class="modal fade" id="modalRegistro" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3 shadow">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="modalRegistroLabel">Registro de Usuario SCM</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-2"></i>Crear Cuenta</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <!-- Añadimos enctype para subir archivos -->
+
             <form th:action="@{/usuarios/create}" th:object="${usuarioDTO}" method="post"
                   class="needs-validation" novalidate enctype="multipart/form-data">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre</label>
-                        <input type="text" th:field="*{nombre}" class="form-control" id="nombre" required>
+
+                <div class="modal-body p-4">
+
+                    <input type="hidden" name="rolId" value="2"> <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="nombre" class="form-label fw-bold small">Nombre</label>
+                        <input type="text" th:field="*{nombre}" class="form-control" id="nombre" required placeholder="Tu nombre">
                     </div>
-                    <div class="mb-3">
-                        <label for="apellido" class="form-label">Apellido</label>
-                        <input type="text" th:field="*{apellido}" class="form-control" id="apellido" required>
+                    <div class="col-md-6">
+                        <label for="apellido" class="form-label fw-bold small">Apellido</label>
+                        <input type="text" th:field="*{apellido}" class="form-control" id="apellido" required placeholder="Tu apellido">
                     </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Correo Electrónico</label>
-                        <input type="email" th:field="*{email}" class="form-control" id="email" required>
+
+                    <div class="col-12">
+                        <label for="email" class="form-label fw-bold small">Correo Electrónico</label>
+                        <input type="email" th:field="*{email}" class="form-control" id="email" required placeholder="nombre@correo.com">
                     </div>
-                    <div class="mb-3">
-                        <label for="contrasena" class="form-label">Contraseña</label>
-                        <input type="password" th:field="*{contrasena}" class="form-control" id="contrasena" required minlength="8">
+
+                    <div class="col-12">
+                        <label for="contrasena" class="form-label fw-bold small">Contraseña</label>
+                        <input type="password" th:field="*{contrasena}" class="form-control" id="contrasena" required minlength="8" placeholder="Mínimo 8 caracteres">
                     </div>
-                    <div class="mb-3">
-                        <label for="telefono" class="form-label">Teléfono</label>
-                        <input type="tel" th:field="*{telefono}" class="form-control" id="telefono" required pattern="[0-9]{7,15}">
+
+                    <div class="col-md-6">
+                        <label for="telefono" class="form-label fw-bold small">Teléfono</label>
+                        <input type="tel" th:field="*{telefono}" class="form-control" id="telefono" required pattern="[0-9]{7,15}" placeholder="Solo números">
                     </div>
-                    <div class="mb-3">
-                        <label for="direccion" class="form-label">Dirección</label>
-                        <input type="text" th:field="*{direccion}" class="form-control" id="direccion" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+                    <div class="col-md-6">
+                        <label for="fechaNacimiento" class="form-label fw-bold small">Fecha Nacimiento</label>
                         <input type="date" th:field="*{fechaNacimiento}" class="form-control" id="fechaNacimiento" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="rol" class="form-label">Rol</label>
-                        <select th:field="*{rolId}" class="form-select" id="rol" onchange="mostrarEspecialidad()" required>
-                            <option value="">Selecciona un rol</option>
-                            <option value="2">Dueño de mascota</option>
-                            <option value="3">Veterinario</option>
 
-                        </select>
+                    <div class="col-12">
+                        <label for="direccion" class="form-label fw-bold small">Dirección</label>
+                        <input type="text" th:field="*{direccion}" class="form-control" id="direccion" required placeholder="Calle, Barrio...">
                     </div>
-                    <div class="mb-3" id="campoEspecialidad" style="display:none;">
-                        <label for="especialidadInput" class="form-label">Especialidad</label>
 
-                        <select th:field="*{especialidad}" class="form-select" id="especialidadInput">
-                            <option value="" disabled selected>Seleccione una especialidad...</option>
-                            <option value="Medicina General">Medicina General</option>
-                            <option value="Nutrición Veterinaria">Nutrición Veterinaria</option>
-                            <option value="Fisioterapia y Rehabilitación">Fisioterapia y Rehabilitación</option>
-                            <option value="Etología (Comportamiento Animal)">Etología (Comportamiento Animal)</option>
-                            <option value="Dermatología"> Dermatologia</option>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="campoClinica" style="display:none;">
-                        <label for="clinicaInput" class="form-label">Clínica</label>
-                        <input type="text" th:field="*{veterinaria}" class="form-control" id="clinicaInput">
-                    </div>
-                    <div class="mb-3">
-                        <label for="archivoFoto" class="form-label">Foto de perfil</label>
+                    <div class="col-12">
+                        <label for="archivoFoto" class="form-label fw-bold small">Foto de Perfil (Opcional)</label>
                         <input type="file" th:field="*{archivoFoto}" class="form-control" id="archivoFoto" accept="image/*">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-info">Registrar</button>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold rounded-pill">Registrarme</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    function mostrarEspecialidad() {
-        const rolSelect = document.getElementById("rol");
-        const campoEspecialidad = document.getElementById("campoEspecialidad");
-        const campoClinica = document.getElementById("campoClinica");
-        if (rolSelect.value === "3") {
-            campoEspecialidad.style.display = "block";
-            campoClinica.style.display = "block";
-        } else {
-            campoEspecialidad.style.display = "none";
-            campoClinica.style.display = "none";
-        }
-    }
-
     // Validación de Bootstrap
-    (() => {
+    (function () {
         'use strict'
-        const forms = document.querySelectorAll('.needs-validation')
-        Array.from(forms).forEach(form => {
-            form.addEventListener('submit', event => {
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
                 if (!form.checkValidity()) {
                     event.preventDefault()
                     event.stopPropagation()
@@ -348,7 +380,5 @@
     })()
 </script>
 
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
