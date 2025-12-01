@@ -25,4 +25,6 @@ public interface CitaService {
 
     // 2. Obtener historial FILTRADO por Veterinario
     Map<String, Object> obtenerHistorialPorVeterinario(Long mascotaId, Long veterinarioId);
+    // ...
+    long contarCitasPorMascota(Long idMascota);
 }

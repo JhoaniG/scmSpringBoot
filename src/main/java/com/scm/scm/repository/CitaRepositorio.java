@@ -23,6 +23,8 @@ public interface CitaRepositorio extends JpaRepository<Cita, Long> {
     boolean existsByVeterinario_IdVeterinarioAndFechaCita(Long veterinarioId, LocalDateTime fechaCita);
     // --- AÑADE ESTE ---
     boolean existsByDiagnosticodueno_IdDiagnosticoDueno(Long idDiagnostico);
+    // Cuenta total de citas de una mascota
+    long countByMascota_IdMascota(Long idMascota);
 
 
 

@@ -375,4 +375,9 @@ public class CitaServiceImpl implements CitaService {
 
         return datos;
     }
+    // ...
+    @Override
+    public long contarCitasPorMascota(Long idMascota) {
+        return citaRepositorio.countByMascota_IdMascota(idMascota);
+    }
 }

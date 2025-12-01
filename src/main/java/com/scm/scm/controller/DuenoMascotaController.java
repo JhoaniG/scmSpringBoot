@@ -8,6 +8,9 @@ import com.scm.scm.repository.VeterinarioRepositorio;
 import com.scm.scm.service.*;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -287,5 +290,44 @@ public class DuenoMascotaController {
         model.addAttribute("mascota", mascota);
 
         return "duenoMascota/historialMascota";
+    }
+
+
+    @Getter @Setter @AllArgsConstructor
+    public static class MascotaEstadistica {
+        private MascotaDTO mascota;
+        private long totalCitas;
+    }
+
+    // --- 2. MÉTODO DEL PERFIL ---
+    @GetMapping("/dueno/perfil")
+    public String verPerfilCompleto(Model model, Authentication auth) {
+        // Carga datos base (barra lateral, usuario logueado)
+        agregarAtributosGlobales(model, auth);
+
+        // Obtener usuario actual
+        String email = auth.getName();
+        Usuario usuario = usuarioRepositorio.findByEmail(email).orElseThrow();
+
+        // Obtener mascotas del dueño
+        List<MascotaDTO> misMascotas = mascotaService.obtenerMascotasPorDuenoId(usuario.getIdUsuario());
+
+        // Calcular estadísticas por mascota
+        List<MascotaEstadistica> estadisticas = misMascotas.stream().map(m -> {
+            // Llamamos al servicio que creamos en el Paso 2
+            long citas = citaService.contarCitasPorMascota(m.getIdMascota());
+            return new MascotaEstadistica(m, citas);
+        }).toList();
+
+        // Calcular totales generales
+        long totalMascotas = misMascotas.size();
+        long totalCitasGlobal = estadisticas.stream().mapToLong(MascotaEstadistica::getTotalCitas).sum();
+
+        // Enviar a la vista
+        model.addAttribute("estadisticasMascotas", estadisticas);
+        model.addAttribute("totalMascotas", totalMascotas);
+        model.addAttribute("totalCitasGlobal", totalCitasGlobal);
+
+        return "duenoMascota/perfil";
     }
 }
