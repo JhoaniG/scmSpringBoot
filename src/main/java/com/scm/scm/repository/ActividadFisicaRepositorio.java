@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ActividadFisicaRepositorio extends JpaRepository<ActividadFisica, Long> {
     List<ActividadFisica> findByMascota_IdMascota(Long idMascota);
+    long countByVeterinario_IdVeterinario(Long idVeterinario);
 }

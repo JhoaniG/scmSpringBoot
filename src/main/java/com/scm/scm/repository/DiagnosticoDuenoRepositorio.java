@@ -29,4 +29,12 @@ public interface DiagnosticoDuenoRepositorio extends JpaRepository<Diagnosticodu
     Page<Diagnosticodueno> findByVeterinarioAndFiltro(
             @Param("veterinarioId") Long veterinarioId,
             @Param("filtro") String filtro,
-            Pageable pageable);}
+            Pageable pageable);
+
+
+    long countByVeterinario_IdVeterinario(Long idVeterinario);
+
+
+
+
+}

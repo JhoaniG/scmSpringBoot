@@ -25,6 +25,7 @@ public interface CitaRepositorio extends JpaRepository<Cita, Long> {
     boolean existsByDiagnosticodueno_IdDiagnosticoDueno(Long idDiagnostico);
     // Cuenta total de citas de una mascota
     long countByMascota_IdMascota(Long idMascota);
+    long countByVeterinario_IdVeterinario(Long idVeterinario);
 
 
 

@@ -1,21 +1,16 @@
 package com.scm.scm.controller;
 
-import com.scm.scm.dto.CitaDTO;
+import com.scm.scm.dto.*;
 import com.scm.scm.model.Diagnosticodueno;
-import com.scm.scm.repository.DiagnosticoDuenoRepositorio;
+import com.scm.scm.repository.*;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.TemplateEngine;
 import java.util.Map;
-import com.scm.scm.dto.MascotaDTO;
-import com.scm.scm.dto.UsuarioDTO;
-import com.scm.scm.dto.VeterinarioDTO;
+
 import com.scm.scm.model.Mascota;
 import com.scm.scm.model.Usuario;
 import com.scm.scm.model.Veterinario;
-import com.scm.scm.repository.MascotaRepositorio;
-import com.scm.scm.repository.UsuarioRepositorio;
-import com.scm.scm.repository.VeterinarioRepositorio;
 import com.scm.scm.service.PdfGenerationService;
 import com.scm.scm.service.VeterinarioService;
 import jakarta.servlet.http.HttpSession;
@@ -65,6 +60,22 @@ public class VeterinarioController {
     }
     @Autowired
     private TemplateEngine templateEngine;
+    @ModelAttribute
+    public void agregarAtributosGlobales(Model model, Authentication auth) {
+        if (auth != null && auth.isAuthenticated()) {
+            String email = auth.getName();
+            Usuario usuario = usuarioRepositorio.findByEmail(email).orElse(null);
+            model.addAttribute("usuario", usuario);
+            model.addAttribute("logueado", true);
+
+            // Datos para la barra lateral
+            model.addAttribute("diagnosticoDTO", new DiagnosticoDuenoDTO());
+            model.addAttribute("mascotas", mascotaService.getAllMascotas());
+            model.addAttribute("veterinarios", veterinarioRepositorio.findAll());
+        } else {
+            model.addAttribute("logueado", false);
+        }
+    }
 
     @GetMapping("/api/veterinarios/listar")
     public ResponseEntity<List<VeterinarioDTO>> listarVeterinairos() {
@@ -283,5 +294,47 @@ public class VeterinarioController {
         // 3. Procesamos la plantilla HTML del PDF y la devolvemos como un String
         //    (Asegúrate que la ruta 'reports/historial-clinico-template' sea correcta)
         return templateEngine.process("reports/historial-clinico-template", context);
+    }
+
+    @Autowired private DietaRepositorio dietaRepositorio;
+    @Autowired private ActividadFisicaRepositorio actividadFisicaRepositorio;
+
+    @Autowired private CitaRepositorio citaRepositorio;
+
+    // --- PERFIL VETERINARIO ---
+    @GetMapping("/perfil")
+    public String verPerfilProfesional(Model model, Authentication auth) {
+        // Datos globales (Barra lateral, usuario)
+
+        String email = auth.getName();
+        Usuario usuario = usuarioRepositorio.findByEmail(email).orElseThrow();
+        Veterinario vet = veterinarioRepositorio.findByUsuario(usuario).orElseThrow();
+
+        // --- ESTADÍSTICAS ---
+        // 1. Pacientes (Usamos Pageable.unpaged() para contar todos si tu método devuelve Page, o .size() si devuelve List)
+        // Asumiendo que findPacientesByVeterinarioId devuelve Page:
+        long totalPacientes = mascotaRepositorio.findPacientesByVeterinarioId(vet.getIdVeterinario(), Pageable.unpaged()).getTotalElements();
+
+        // 2. Citas Totales
+        long totalCitas = citaRepositorio.countByVeterinario_IdVeterinario(vet.getIdVeterinario());
+
+        // 3. Dietas Asignadas
+        long totalDietas = dietaRepositorio.countByVeterinario_IdVeterinario(vet.getIdVeterinario());
+
+        // 4. Actividades Asignadas
+        long totalActividades = actividadFisicaRepositorio.countByVeterinario_IdVeterinario(vet.getIdVeterinario());
+
+        // 5. Diagnósticos Atendidos
+        long totalDiagnosticos = diagnosticoDuenoRepositorio.countByVeterinario_IdVeterinario(vet.getIdVeterinario());
+
+        // Enviar al modelo
+        model.addAttribute("totalPacientes", totalPacientes);
+        model.addAttribute("totalCitas", totalCitas);
+        model.addAttribute("totalDietas", totalDietas);
+        model.addAttribute("totalActividades", totalActividades);
+        model.addAttribute("totalDiagnosticos", totalDiagnosticos);
+        model.addAttribute("veterinario", vet); // Datos específicos del vet (especialidad, etc.)
+
+        return "veterinarios/perfil";
     }
 }

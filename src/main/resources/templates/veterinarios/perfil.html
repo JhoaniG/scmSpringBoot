@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil Profesional - SCM</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/stilos.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        body { background-color: #f4f6f9; min-height: 100vh; }
+        .content-wrapper { padding-top: 90px; padding-bottom: 50px; transition: margin-left 0.3s; }
+        @media (min-width: 992px) { .content-wrapper { margin-left: 250px; } }
+
+        /* --- HEADER DEL PERFIL --- */
+        .profile-header {
+            background: white; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 2rem; border: none;
+        }
+        .profile-cover {
+            height: 160px;
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%); /* Azul Veterinario */
+        }
+        .profile-body {
+            padding: 0 2rem 2rem 2rem; position: relative; text-align: center;
+        }
+        .profile-avatar {
+            width: 150px; height: 150px; object-fit: cover;
+            border-radius: 50%; border: 5px solid white;
+            margin-top: -75px; box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2); background: white;
+        }
+        .badge-specialty {
+            background-color: #e3f2fd; color: #0d6efd; padding: 8px 16px;
+            border-radius: 30px; font-weight: 600; font-size: 0.9rem;
+            display: inline-block; margin-top: 10px;
+        }
+
+        /* --- TARJETAS DE ESTADÍSTICAS (KPIs) --- */
+        .kpi-card {
+            background: white; border: none; border-radius: 15px; padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.3s;
+            display: flex; align-items: center; height: 100%;
+            border-left: 5px solid transparent;
+        }
+        .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+
+        .kpi-icon {
+            width: 60px; height: 60px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; margin-right: 1.5rem; flex-shrink: 0;
+        }
+        .kpi-data h3 { font-weight: 800; margin: 0; font-size: 2rem; color: #333; }
+        .kpi-data p { margin: 0; color: #777; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; }
+
+        /* Colores KPI */
+        .kpi-patients { border-color: #0d6efd; } .kpi-patients .kpi-icon { background-color: #e3f2fd; color: #0d6efd; }
+        .kpi-citas { border-color: #6f42c1; } .kpi-citas .kpi-icon { background-color: #f3e5f5; color: #6f42c1; }
+        .kpi-dietas { border-color: #198754; } .kpi-dietas .kpi-icon { background-color: #e8f5e9; color: #198754; }
+        .kpi-activities { border-color: #ffc107; } .kpi-activities .kpi-icon { background-color: #fff8e1; color: #ffc107; }
+
+        /* --- SECCIÓN DETALLES --- */
+        .details-card {
+            background: white; border-radius: 15px; border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 2rem; height: 100%;
+        }
+        .details-title {
+            font-weight: 700; color: #333; border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 1rem; margin-bottom: 1.5rem;
+        }
+        .info-item { margin-bottom: 1.2rem; display: flex; align-items: center; }
+        .info-label { width: 40px; text-align: center; margin-right: 15px; color: #adb5bd; font-size: 1.2rem; }
+        .info-text { font-weight: 500; color: #555; }
+        .info-subtext { display: block; font-size: 0.8rem; color: #999; }
+    </style>
+</head>
+<body>
+
+<div th:replace="fragments/menuV :: menuV"></div>
+<input type="checkbox" id="btn-menu">
+<div th:replace="fragments/barralateralV :: barralateralV"></div>
+
+<div class="content-wrapper">
+    <div class="container">
+
+        <div class="profile-header">
+            <div class="profile-cover"></div>
+            <div class="profile-body">
+                <img th:if="${usuario.foto != null}" th:src="@{'/uploads/' + ${usuario.foto}}" class="profile-avatar">
+                <div th:if="${usuario.foto == null}" class="profile-avatar d-flex align-items-center justify-content-center bg-light text-muted">
+                    <i class="fas fa-user-md fa-4x"></i>
+                </div>
+
+                <h2 class="fw-bold mt-3 mb-1 text-dark" th:text="'Dr. ' + ${usuario.nombre} + ' ' + ${usuario.apellido}">Nombre</h2>
+                <span class="badge-specialty"><i class="fas fa-stethoscope me-1"></i> <span th:text="${veterinario.especialidad}">Especialidad</span></span>
+
+                <div class="mt-4">
+                    <a th:href="@{/usuario/editar}" class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fas fa-user-edit me-2"></i> Editar Mis Datos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="kpi-card kpi-patients">
+                    <div class="kpi-icon"><i class="fas fa-paw"></i></div>
+                    <div class="kpi-data">
+                        <h3 th:text="${totalPacientes}">0</h3>
+                        <p>Pacientes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="kpi-card kpi-citas">
+                    <div class="kpi-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="kpi-data">
+                        <h3 th:text="${totalCitas}">0</h3>
+                        <p>Citas Totales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="kpi-card kpi-dietas">
+                    <div class="kpi-icon"><i class="fas fa-utensils"></i></div>
+                    <div class="kpi-data">
+                        <h3 th:text="${totalDietas}">0</h3>
+                        <p>Dietas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="kpi-card kpi-activities">
+                    <div class="kpi-icon"><i class="fas fa-running"></i></div>
+                    <div class="kpi-data">
+                        <h3 th:text="${totalActividades}">0</h3>
+                        <p>Actividades</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="details-card">
+                    <h5 class="details-title">Información Profesional</h5>
+
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-clinic-medical text-primary"></i></div>
+                        <div>
+                            <span class="info-subtext">Clínica / Consultorio</span>
+                            <span class="info-text fs-5" th:text="${veterinario.veterinaria}">Nombre Clínica</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-notes-medical text-info"></i></div>
+                        <div>
+                            <span class="info-subtext">Reportes Atendidos</span>
+                            <span class="info-text fs-5" th:text="${totalDiagnosticos}">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="details-card">
+                    <h5 class="details-title">Información de Contacto</h5>
+
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-envelope text-secondary"></i></div>
+                        <div>
+                            <span class="info-subtext">Correo Electrónico</span>
+                            <span class="info-text" th:text="${usuario.email}">email</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-phone text-success"></i></div>
+                        <div>
+                            <span class="info-subtext">Teléfono</span>
+                            <span class="info-text" th:text="${usuario.telefono}">Teléfono</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-map-marker-alt text-danger"></i></div>
+                        <div>
+                            <span class="info-subtext">Dirección</span>
+                            <span class="info-text" th:text="${usuario.direccion}">Dirección</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5 mb-4">
+            <a th:href="@{/veterinario/index}" class="btn btn-link text-secondary text-decoration-none fw-bold">
+                <i class="fas fa-arrow-left me-1"></i> Volver al Inicio
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
