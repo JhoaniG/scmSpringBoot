@@ -111,7 +111,7 @@ public class ActividadFisicaController {
         actividadDTO.setVeterinarioId(veterinario.getIdVeterinario()); // Pre-llenamos
         model.addAttribute("actividadFisicaDTO", actividadDTO);
 
-        return "veterinarios/crearActividadFisica";
+        return "veterinarios/CrearActividadFisica";
     }
 
     @PostMapping("/crear")
@@ -140,7 +140,7 @@ public class ActividadFisicaController {
             Veterinario veterinario = veterinarioRepositorio.findByUsuario_IdUsuario(usuarioLogueado.getIdUsuario()).orElseThrow();
             model.addAttribute("idVeterinario", veterinario.getIdVeterinario());
 
-            return "veterinarios/crearActividadFisica"; // Devuelve la VISTA
+            return "veterinarios/CrearActividadFisica"; // Devuelve la VISTA
         }
 
         try {
