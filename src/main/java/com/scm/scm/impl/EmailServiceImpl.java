@@ -11,22 +11,21 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.Properties;
 
 @Service
 public class EmailServiceImpl implements EmailService {
 
-    // Esta variable lee tu clave de Railway (MAIL_PASSWORD)
     @Value("${brevo.api.key}")
     private String brevoApiKey;
 
-    // Tu correo verificado en Brevo
     private final String remitenteEmail = "seguimientoycotroldemascotassc@gmail.com";
-    private final String remitenteNombre = "SCM Admin";
+    private final String remitenteNombre = "Sistema SCM";
+
+    // URL de tu aplicación en Railway (para los botones)
+    private final String baseUrl = "https://heroic-magic-production.up.railway.app";
 
     private TransactionalEmailsApi initApi() {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        // Configura la clave API
         ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
         apiKey.setApiKey(brevoApiKey);
         return new TransactionalEmailsApi();
@@ -55,7 +54,6 @@ public class EmailServiceImpl implements EmailService {
             System.out.println("Brevo API: Correo simple enviado a " + para);
         } catch (Exception e) {
             System.err.println("Error Brevo API Simple: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -75,15 +73,57 @@ public class EmailServiceImpl implements EmailService {
 
             sendSmtpEmail.setSender(sender);
             sendSmtpEmail.setTo(Collections.singletonList(to));
-            sendSmtpEmail.setSubject("¡Bienvenido al Equipo SCM! 🐾");
+            sendSmtpEmail.setSubject("✅ ¡Bienvenido al Equipo SCM!");
 
-            // HTML MANUAL
-            String htmlContent = "<html><body>" +
-                    "<h1>Hola " + nombreUsuario + "</h1>" +
-                    "<p>Tu cuenta ha sido <strong>APROBADA</strong>.</p>" +
-                    "<p>Ya puedes acceder al sistema.</p>" +
-                    "<a href='https://heroic-magic-production.up.railway.app/login'>Ir al Login</a>" +
-                    "</body></html>";
+            // --- PLANTILLA HTML DE APROBACIÓN ---
+            String htmlContent = """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 0; }
+                        .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+                        .header { background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%); padding: 30px; text-align: center; color: white; }
+                        .header h1 { margin: 0; font-size: 28px; letter-spacing: 1px; }
+                        .content { padding: 40px 30px; color: #334155; line-height: 1.6; }
+                        .welcome-text { font-size: 18px; margin-bottom: 20px; }
+                        .highlight { color: #4f46e5; font-weight: bold; }
+                        .status-box { background-color: #ecfdf5; border-left: 5px solid #10b981; padding: 15px; margin: 25px 0; color: #065f46; font-weight: 500; }
+                        .btn-container { text-align: center; margin-top: 35px; }
+                        .btn { background-color: #4f46e5; color: #ffffff !important; text-decoration: none; padding: 14px 32px; border-radius: 50px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2); transition: background 0.3s; }
+                        .footer { background-color: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>SCM</h1>
+                            <span style="opacity: 0.9; font-size: 14px;">Control de Mascotas</span>
+                        </div>
+                        <div class="content">
+                            <p class="welcome-text">Hola, <span class="highlight">%s</span> 👋</p>
+                            
+                            <p>Nos complace informarte que tu solicitud para unirte como <strong>Veterinario</strong> ha sido revisada.</p>
+                            
+                            <div class="status-box">
+                                ✅ Tu cuenta ha sido APROBADA exitosamente.
+                            </div>
+                            
+                            <p>A partir de este momento, tienes acceso completo al panel de gestión profesional. Puedes comenzar a administrar citas y pacientes.</p>
+                            
+                            <div class="btn-container">
+                                <a href="%s/login" class="btn">Ingresar al Sistema</a>
+                            </div>
+                        </div>
+                        <div class="footer">
+                            &copy; 2025 SCM - Sistema de Control de Mascotas.<br>
+                            Este es un mensaje automático, por favor no responder.
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """.formatted(nombreUsuario, baseUrl);
 
             sendSmtpEmail.setHtmlContent(htmlContent);
 
@@ -114,14 +154,72 @@ public class EmailServiceImpl implements EmailService {
 
             sendSmtpEmail.setSender(sender);
             sendSmtpEmail.setTo(Collections.singletonList(to));
-            sendSmtpEmail.setSubject("📅 Nueva Cita: " + nombreMascota);
+            sendSmtpEmail.setSubject("📅 Nueva Cita Agendada: " + nombreMascota);
 
-            String htmlContent = "<html><body>" +
-                    "<h1>Cita Confirmada</h1>" +
-                    "<p>Mascota: <strong>" + nombreMascota + "</strong></p>" +
-                    "<p>Fecha: " + fecha + " a las " + hora + "</p>" +
-                    "<p>Lugar: " + clinica + " - " + direccion + "</p>" +
-                    "</body></html>";
+            // --- PLANTILLA HTML DE CITA ---
+            String htmlContent = """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 0; }
+                        .card { max-width: 600px; margin: 30px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+                        .header { background-color: #4f46e5; padding: 25px; text-align: center; color: white; }
+                        .header h2 { margin: 0; font-size: 24px; }
+                        .body { padding: 30px; color: #333; }
+                        .greeting { font-size: 18px; color: #1e293b; margin-bottom: 20px; }
+                        .pet-badge { background-color: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-weight: bold; }
+                        .info-grid { background-color: #f8fafc; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-top: 15px; }
+                        .row { display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 12px; }
+                        .row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+                        .label { color: #64748b; font-size: 14px; font-weight: 600; }
+                        .value { color: #0f172a; font-weight: 500; text-align: right; }
+                        .location-box { background-color: #fff7ed; border-left: 4px solid #f97316; padding: 15px; margin-top: 25px; border-radius: 4px; }
+                        .footer { text-align: center; font-size: 12px; color: #94a3b8; padding: 20px; background-color: #f1f5f9; }
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <div class="header">
+                            <h2>Cita Confirmada</h2>
+                        </div>
+                        <div class="body">
+                            <p class="greeting">Hola <strong>%s</strong>,</p>
+                            <p>Se ha programado una nueva visita médica para <span class="pet-badge">%s</span>.</p>
+                            
+                            <div class="info-grid">
+                                <div class="row">
+                                    <span class="label">📅 Fecha</span>
+                                    <span class="value">%s</span>
+                                </div>
+                                <div class="row">
+                                    <span class="label">⏰ Hora</span>
+                                    <span class="value">%s</span>
+                                </div>
+                                <div class="row">
+                                    <span class="label">📋 Motivo</span>
+                                    <span class="value">%s</span>
+                                </div>
+                            </div>
+
+                            <div class="location-box">
+                                <div style="color: #c2410c; font-weight: bold; margin-bottom: 5px;">📍 Ubicación</div>
+                                <div><strong>%s</strong></div>
+                                <div style="font-size: 14px; color: #555;">%s</div>
+                            </div>
+                            
+                            <p style="text-align: center; margin-top: 25px; font-size: 14px; color: #64748b;">
+                                Recomendamos llegar 10 minutos antes de la hora programada.
+                            </p>
+                        </div>
+                        <div class="footer">
+                            &copy; 2025 SCM. Cuidando lo que más quieres.
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """.formatted(nombreDueno, nombreMascota, fecha, hora, motivo, clinica, direccion);
 
             sendSmtpEmail.setHtmlContent(htmlContent);
 
