@@ -80,7 +80,6 @@
         }
         .btn-back:hover { background-color: #e9ecef; color: #333; }
 
-        /* Select2 Tweaks */
         .select2-container--bootstrap-5 .select2-selection { border-radius: 10px; padding: 0.5rem; }
     </style>
 </head>
@@ -111,64 +110,81 @@
                 <form th:action="@{/mascotas/crear}" th:object="${mascotaDTO}" method="post"
                       enctype="multipart/form-data" class="needs-validation" novalidate>
 
+                    <!-- Nombre -->
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <label for="nombre" class="form-label">Nombre de la Mascota</label>
+                            <label for="nombre" class="form-label">Nombre de la Mascota *</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0 rounded-start-3"><i class="fas fa-signature text-primary"></i></span>
+                                <span class="input-group-text bg-white border-end-0 rounded-start-3">
+                                    <i class="fas fa-signature text-primary"></i></span>
                                 <input type="text" th:field="*{nombre}" id="nombre" class="form-control border-start-0"
                                        placeholder="Ej: Max" required minlength="2" maxlength="50"
                                        pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+">
-                                <div class="invalid-feedback">Solo letras y espacios (2-50 caracteres).</div>
+                                <div class="invalid-feedback">Obligatorio. Solo letras (2-50 caracteres).</div>
                             </div>
                         </div>
+
+                        <!-- Género -->
                         <div class="col-md-6 mt-3 mt-md-0">
-                            <label for="genero" class="form-label">Género</label>
+                            <label for="genero" class="form-label">Género *</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0 rounded-start-3"><i class="fas fa-venus-mars text-danger"></i></span>
+                                <span class="input-group-text bg-white border-end-0 rounded-start-3">
+                                    <i class="fas fa-venus-mars text-danger"></i></span>
                                 <select th:field="*{genero}" id="genero" class="form-select border-start-0" required>
                                     <option value="" disabled selected>Selecciona</option>
                                     <option value="Macho">Macho</option>
                                     <option value="Hembra">Hembra</option>
                                 </select>
-                                <div class="invalid-feedback">Selecciona el género.</div>
+                                <div class="invalid-feedback">Selecciona una opción.</div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Adopción -->
                     <div class="mb-4 p-3 bg-light rounded-3 border">
-                        <label class="form-label mb-3 d-block">¿Conoces la fecha de nacimiento?</label>
+                        <label class="form-label mb-3 d-block">¿Conoces la fecha de nacimiento? *</label>
 
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-check radio-card bg-white">
-                                    <input class="form-check-input me-2" type="radio" th:field="*{esAdoptado}" id="adoptadoNo" value="false" checked>
+                                    <input class="form-check-input me-2" type="radio" th:field="*{esAdoptado}"
+                                           id="adoptadoNo" value="false" checked required>
                                     <label class="form-check-label w-100" for="adoptadoNo">Sí, la conozco</label>
                                 </div>
                             </div>
+
                             <div class="col-md-6">
                                 <div class="form-check radio-card bg-white">
-                                    <input class="form-check-input me-2" type="radio" th:field="*{esAdoptado}" id="adoptadoSi" value="true">
-                                    <label class="form-check-label w-100" for="adoptadoSi">No, es adoptado (edad aprox)</label>
+                                    <input class="form-check-input me-2" type="radio" th:field="*{esAdoptado}"
+                                           id="adoptadoSi" value="true" required>
+                                    <label class="form-check-label w-100" for="adoptadoSi">
+                                        No, es adoptado (edad aprox)
+                                    </label>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Fecha de nacimiento -->
                         <div class="mt-3" id="campoFechaNacimiento">
-                            <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
-                            <input type="date" th:field="*{fechaNacimiento}" id="fechaNacimiento" class="form-control"/>
+                            <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento *</label>
+                            <input type="date" th:field="*{fechaNacimiento}" id="fechaNacimiento"
+                                   class="form-control" required>
+                            <div class="invalid-feedback">Selecciona una fecha válida.</div>
                         </div>
 
+                        <!-- Edad estimada -->
                         <div class="mt-3" id="campoEdadEstimada" style="display: none;">
-                            <label for="edadEstimadaAnios" class="form-label">Edad Estimada (Años)</label>
-                            <input type="number" th:field="*{edadEstimadaAnios}" id="edadEstimadaAnios" class="form-control" placeholder="Ej: 5" min="0" max="30"/>
-                            <div class="form-text">Calcularemos una fecha aproximada.</div>
+                            <label for="edadEstimadaAnios" class="form-label">Edad Estimada (Años) *</label>
+                            <input type="number" th:field="*{edadEstimadaAnios}" id="edadEstimadaAnios"
+                                   class="form-control" placeholder="Ej: 5" min="0" max="30">
+                            <div class="invalid-feedback">Ingresa una edad válida (0-30).</div>
                         </div>
                     </div>
 
+                    <!-- Especie y raza -->
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <label for="especie" class="form-label">Especie</label>
+                            <label for="especie" class="form-label">Especie *</label>
                             <select class="form-control-select2" id="especie" th:field="*{especie}" required>
                                 <option value="" disabled selected>Selecciona especie...</option>
                                 <option value="Perro">Perro</option>
@@ -180,21 +196,27 @@
                                 <option value="Reptil">Reptil</option>
                                 <option value="Otro">Otro</option>
                             </select>
+                            <div class="invalid-feedback">Obligatorio.</div>
                         </div>
+
                         <div class="col-md-6 mt-3 mt-md-0">
-                            <label for="raza" class="form-label">Raza</label>
+                            <label for="raza" class="form-label">Raza *</label>
                             <select class="form-control-select2" id="raza" th:field="*{raza}" required>
                                 <option value="" disabled selected>Selecciona especie primero...</option>
                             </select>
+                            <div class="invalid-feedback">Obligatorio.</div>
                         </div>
                     </div>
 
+                    <!-- Foto -->
                     <div class="mb-4">
-                        <label for="archivoFoto" class="form-label">Foto de Perfil</label>
-                        <input type="file" th:field="*{archivoFoto}" id="archivoFoto" class="form-control" accept="image/*" required>
+                        <label for="archivoFoto" class="form-label">Foto de Perfil *</label>
+                        <input type="file" th:field="*{archivoFoto}" id="archivoFoto"
+                               class="form-control" accept="image/*" required>
                         <div class="invalid-feedback">Selecciona una foto.</div>
                     </div>
 
+                    <!-- Botones -->
                     <div class="d-flex justify-content-between align-items-center mt-5">
                         <a th:href="@{/dueno/index}" class="btn-back">
                             <i class="fas fa-arrow-left me-2"></i> Cancelar
@@ -207,6 +229,7 @@
                 </form>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -215,7 +238,6 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-    // --- 1. Lógica de Razas (Igual que antes) ---
     const razasPorEspecie = {
         "Perro": ["Labrador Retriever", "Pastor Alemán", "Golden Retriever", "Bulldog", "Poodle (Caniche)", "Beagle", "Boxer", "Dachshund (Salchicha)", "Shih Tzu", "Schnauzer", "Yorkshire Terrier", "Chihuahua", "Pug", "Criollo (Mestizo)"],
         "Gato": ["Siamés", "Persa", "Maine Coon", "Ragdoll", "Bengalí", "Abisinio", "Birmano", "Esfinge (Sphynx)", "Criollo (Mestizo)"],
@@ -228,10 +250,8 @@
     };
 
     $(document).ready(function() {
-        // Inicializar Select2
         $('.form-control-select2').select2({ theme: "bootstrap-5", width: '100%' });
 
-        // Cambio de Especie
         $('#especie').on('change', function() {
             const especie = $(this).val();
             const $raza = $('#raza');
@@ -246,7 +266,6 @@
             $raza.val('No lo sé / Mestizo').trigger('change');
         });
 
-        // Cambio de Radio (Adopción)
         $('input[type=radio][name=esAdoptado]').change(function() {
             if (this.value === 'true') {
                 $('#campoEdadEstimada').slideDown();
@@ -260,16 +279,14 @@
                 $('#fechaNacimiento').prop('required', true);
             }
         });
-        // Disparar al inicio
+
         $('input[type=radio][name=esAdoptado]:checked').trigger('change');
     });
 
-    // --- 2. Validación de Fecha ---
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.querySelector('.needs-validation');
         const fechaInput = document.getElementById('fechaNacimiento');
 
-        // Fecha Máxima (Hoy)
         const today = new Date().toISOString().split('T')[0];
         fechaInput.setAttribute('max', today);
 
@@ -278,9 +295,8 @@
             const currentDate = new Date();
             currentDate.setHours(0, 0, 0, 0);
 
-            // Validar que no sea futura (solo si está visible y tiene valor)
             if ($('#campoFechaNacimiento').is(':visible') && fechaInput.value && selectedDate >= currentDate) {
-                fechaInput.setCustomValidity("La fecha de nacimiento debe ser anterior a hoy.");
+                fechaInput.setCustomValidity("La fecha debe ser anterior a hoy.");
             } else {
                 fechaInput.setCustomValidity("");
             }
@@ -289,6 +305,7 @@
                 event.preventDefault();
                 event.stopPropagation();
             }
+
             form.classList.add('was-validated');
         });
 

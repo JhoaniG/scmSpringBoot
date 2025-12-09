@@ -1,8 +1,4 @@
-<!-- src/main/resources/templates/fragments/barralateralV.html -->
 
-<!-- ===========================
-     BARRA LATERAL
-=========================== -->
 <div th:fragment="barralateralD(diagnosticoDTO, mascotas, veterinarios, usuario)" class="container-menu p-3">
     <div class="cont-menu">
         <label for="btn-menu" class="d-block mb-2">✖️</label>
@@ -26,13 +22,12 @@
                 </span>
             </h5>
 
+            <a th:href="@{/dueno/perfil}" class="btn btn-primary btn-sm mt-2 rounded-pill px-4">
+                <i class="fas fa-id-card me-1"></i> Ver Mi Perfil
+            </a>
+        </div>
 
-                <a th:href="@{/dueno/perfil}" class="btn btn-primary btn-sm mt-2 rounded-pill px-4">
-                    <i class="fas fa-id-card me-1"></i> Ver Mi Perfil
-                </a>
-            </div>
-
-        <!-- Menú de navegación -->
+        <!-- Menú lateral -->
         <ul class="nav flex-column">
             <li class="nav-item mb-1">
                 <a class="nav-link btn btn-outline-primary w-100"
@@ -49,7 +44,6 @@
             <li class="nav-item mb-1">
                 <a class="nav-link btn btn-outline-primary w-100" th:href="@{/dueno/mascotas}">Consultar Dieta</a>
             </li>
-
             <li class="nav-item mb-1">
                 <a class="nav-link btn btn-outline-primary w-100" th:href="@{/dueno/postulacion}">Postularse a veterinario</a>
             </li>
@@ -85,41 +79,58 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
 
-                <div class="modal-header text-white" style="background: linear-gradient(135deg, #6f42c1 0%, #a88beb 100%); padding: 1.5rem;">
+                <!-- Encabezado del Modal -->
+                <div class="modal-header text-white"
+                     style="background: linear-gradient(135deg, #6f42c1 0%, #a88beb 100%); padding: 1.5rem;">
                     <h5 class="modal-title fw-bold" id="diagnosticoModalLabel">
                         <i class="fas fa-notes-medical me-2"></i>Reportar Síntomas
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
-                <form th:object="${diagnosticoDTO}" th:action="@{/diagnosticos/crear}" method="post" class="needs-validation" novalidate>
+                <!-- FORMULARIO -->
+                <form th:object="${diagnosticoDTO}" th:action="@{/diagnosticos/crear}"
+                      method="post" class="needs-validation" novalidate>
+
                     <div class="modal-body p-4 bg-light">
+
                         <input type="hidden" th:field="*{idDiagnosticoDueno}" />
 
                         <div class="row g-3 mb-3">
+                            <!-- Mascota -->
                             <div class="col-md-6">
                                 <label for="mascotaId" class="form-label fw-bold text-secondary small">
                                     <i class="fas fa-paw me-1"></i> PACIENTE
                                 </label>
-                                <select th:field="*{mascotaId}" id="mascotaId" class="form-select form-select-lg shadow-sm border-0" required>
+                                <select th:field="*{mascotaId}" id="mascotaId"
+                                        class="form-select form-select-lg shadow-sm border-0"
+                                        required>
                                     <option value="" disabled selected>Selecciona tu mascota...</option>
-                                    <option th:each="m : ${mascotas}" th:value="${m.idMascota}" th:text="${m.nombre}"></option>
+                                    <option th:each="m : ${mascotas}"
+                                            th:value="${m.idMascota}"
+                                            th:text="${m.nombre}"></option>
                                 </select>
                                 <div class="invalid-feedback">Seleccione una mascota.</div>
                             </div>
+
+                            <!-- Fecha -->
                             <div class="col-md-6">
                                 <label for="fechaDiagnostico" class="form-label fw-bold text-secondary small">
                                     <i class="far fa-calendar-alt me-1"></i> FECHA
                                 </label>
-                                <input type="date" th:field="*{fechaDiagnostico}" id="fechaDiagnostico" class="form-control form-control-lg shadow-sm border-0 bg-white" readonly>
+                                <input type="date" th:field="*{fechaDiagnostico}" id="fechaDiagnostico"
+                                       class="form-control form-control-lg shadow-sm border-0 bg-white" readonly>
                             </div>
                         </div>
 
+                        <!-- Tipo de enfermedad -->
                         <div class="mb-3">
                             <label for="tipoEnfermedadSelect" class="form-label fw-bold text-secondary small">
                                 <i class="fas fa-heartbeat me-1"></i> SÍNTOMA PRINCIPAL
                             </label>
-                            <select th:field="*{tipoEnfermedad}" id="tipoEnfermedadSelect" class="form-select form-select-lg shadow-sm border-0" required>
+                            <select th:field="*{tipoEnfermedad}" id="tipoEnfermedadSelect"
+                                    class="form-select form-select-lg shadow-sm border-0" required>
+
                                 <option value="" disabled selected>¿Qué le pasa a tu mascota?</option>
 
                                 <optgroup label="General">
@@ -148,40 +159,57 @@
                                 </optgroup>
 
                                 <optgroup label="Otros">
-                                    <option value="Problemas Respiratorios">Problemas Respiratorios (Tos/Gripe)</option>
-                                    <option value="Problemas Oculares">Problemas en los Ojos</option>
+                                    <option value="Problemas Respiratorios">Problemas Respiratorios</option>
+                                    <option value="Problemas Oculares">Problemas Oculares</option>
                                     <option value="Otro / Urgencia">Otro / No estoy seguro</option>
                                 </optgroup>
                             </select>
-                            <div class="invalid-feedback">Seleccione el tipo de problema.</div>
+                            <div class="invalid-feedback">Seleccione el tipo de enfermedad.</div>
                         </div>
 
+                        <!-- Veterinario -->
                         <div class="mb-3">
                             <label for="veterinarioSelect" class="form-label fw-bold text-secondary small">
                                 <i class="fas fa-user-md me-1"></i> ESPECIALISTA RECOMENDADO
                             </label>
+
                             <div class="input-group shadow-sm">
-                                <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
-                                <select th:field="*{veterinarioId}" id="veterinarioSelect" class="form-select form-select-lg border-0" required disabled>
+                                <span class="input-group-text bg-white border-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+
+                                <select th:field="*{veterinarioId}" id="veterinarioSelect"
+                                        class="form-select form-select-lg border-0"
+                                        required disabled>
                                     <option value="" disabled selected>Elige un síntoma arriba primero...</option>
                                 </select>
+                                <div class="invalid-feedback">Seleccione un especialista.</div>
                             </div>
-                            <div class="form-text text-muted ms-1">El sistema buscará al mejor especialista para el síntoma seleccionado.</div>
                         </div>
 
+                        <!-- Observaciones -->
                         <div class="mb-3">
                             <label for="observaciones" class="form-label fw-bold text-secondary small">
                                 <i class="fas fa-align-left me-1"></i> DETALLES ADICIONALES
                             </label>
-                            <textarea th:field="*{observaciones}" id="observaciones" class="form-control shadow-sm border-0" rows="3"
-                                      required minlength="10" maxlength="500" placeholder="Describe brevemente qué síntomas has notado..."></textarea>
-                            <div class="invalid-feedback">Por favor, danos más detalles (mín. 10 caracteres).</div>
+
+                            <textarea th:field="*{observaciones}" id="observaciones"
+                                      class="form-control shadow-sm border-0"
+                                      rows="3" minlength="10" maxlength="500"
+                                      required placeholder="Describe brevemente qué síntomas has notado..."></textarea>
+
+                            <div class="invalid-feedback">Debe escribir al menos 10 caracteres.</div>
                         </div>
+
                     </div>
 
+                    <!-- Footer -->
                     <div class="modal-footer border-top-0 bg-light pb-4 pe-4">
-                        <button type="button" class="btn btn-link text-secondary text-decoration-none fw-bold" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn text-white fw-bold px-4 rounded-pill shadow-sm"
+                        <button type="button" class="btn btn-link text-secondary fw-bold"
+                                data-bs-dismiss="modal">Cancelar</button>
+
+                        <button type="submit"
+                                class="btn text-white fw-bold px-4 rounded-pill shadow-sm"
                                 style="background: linear-gradient(135deg, #6f42c1 0%, #a88beb 100%); border: none;">
                             <i class="fas fa-paper-plane me-2"></i> Enviar Reporte
                         </button>
@@ -191,53 +219,78 @@
         </div>
     </div>
 
+    <!-- ===========================
+         SCRIPTS
+    ============================ -->
     <script th:inline="javascript">
-        document.addEventListener('DOMContentLoaded', function() {
-          const tipoEnfermedadSelect = document.getElementById('tipoEnfermedadSelect');
-          const veterinarioSelect = document.getElementById('veterinarioSelect');
 
-          // Función para cargar veterinarios
-          async function cargarVeterinarios(tipoEnfermedad) {
-            veterinarioSelect.innerHTML = '<option value="" disabled selected>Buscando especialistas...</option>';
-            veterinarioSelect.disabled = true;
+        /* -----------------------------
+           VALIDACIÓN BOOTSTRAP 5
+        ----------------------------- */
+        document.addEventListener("DOMContentLoaded", function () {
+            const forms = document.querySelectorAll(".needs-validation");
 
-            try {
-              const response = await fetch(`/api/veterinarios-por-tipo-enfermedad?tipoEnfermedad=${encodeURIComponent(tipoEnfermedad)}`);
-              if (!response.ok) throw new Error('Error al cargar veterinarios');
-              const veterinarios = await response.json();
-
-              veterinarioSelect.innerHTML = '<option value="" disabled selected>Seleccione un especialista disponible</option>';
-              veterinarios.forEach(v => {
-                const option = document.createElement('option');
-                option.value = v.idUsuario;
-                option.textContent = `${v.nombre} (${v.especialidad})`;
-                veterinarioSelect.appendChild(option);
-              });
-              veterinarioSelect.disabled = false;
-            } catch (error) {
-              console.error(error);
-              veterinarioSelect.innerHTML = '<option value="" disabled selected>Error de conexión</option>';
-            }
-          }
-
-          tipoEnfermedadSelect.addEventListener('change', function() {
-            const tipo = this.value;
-            if (tipo) cargarVeterinarios(tipo);
-            else {
-                 veterinarioSelect.innerHTML = '<option value="" disabled selected>Elige un síntoma arriba primero...</option>';
-                 veterinarioSelect.disabled = true;
-            }
-          });
-
-          // Reset al cerrar
-          const modal = document.getElementById('diagnosticoModal');
-          modal.addEventListener('hidden.bs.modal', function () {
-              tipoEnfermedadSelect.value = "";
-              veterinarioSelect.innerHTML = '<option value="" disabled selected>Elige un síntoma arriba primero...</option>';
-              veterinarioSelect.disabled = true;
-              modal.querySelector('form').classList.remove('was-validated');
-              modal.querySelector('form').reset();
-          });
+            forms.forEach((form) => {
+                form.addEventListener("submit", function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add("was-validated");
+                });
+            });
         });
+
+        /* -----------------------------
+           CARGAR VETERINARIOS DINÁMICOS
+        ----------------------------- */
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const tipoEnfermedadSelect = document.getElementById('tipoEnfermedadSelect');
+            const veterinarioSelect = document.getElementById('veterinarioSelect');
+            const modal = document.getElementById('diagnosticoModal');
+
+            async function cargarVeterinarios(tipo) {
+                veterinarioSelect.innerHTML = '<option selected>Buscando especialistas...</option>';
+                veterinarioSelect.disabled = true;
+
+                try {
+                    const res = await fetch(`/api/veterinarios-por-tipo-enfermedad?tipoEnfermedad=${encodeURIComponent(tipo)}`);
+                    const data = await res.json();
+
+                    veterinarioSelect.innerHTML = '<option value="" disabled selected>Seleccione un especialista disponible</option>';
+                    data.forEach(v => {
+                        const op = document.createElement('option');
+                        op.value = v.idUsuario;
+                        op.textContent = `${v.nombre} (${v.especialidad})`;
+                        veterinarioSelect.appendChild(op);
+                    });
+
+                    veterinarioSelect.disabled = false;
+
+                } catch (e) {
+                    veterinarioSelect.innerHTML = '<option>Error al cargar</option>';
+                }
+            }
+
+            tipoEnfermedadSelect.addEventListener('change', function() {
+                if (this.value) {
+                    cargarVeterinarios(this.value);
+                } else {
+                    veterinarioSelect.innerHTML =
+                        '<option value="" disabled selected>Elige un síntoma arriba primero...</option>';
+                    veterinarioSelect.disabled = true;
+                }
+            });
+
+            modal.addEventListener('hidden.bs.modal', function () {
+                modal.querySelector('form').reset();
+                modal.querySelector('form').classList.remove('was-validated');
+                veterinarioSelect.innerHTML =
+                    '<option value="" disabled selected>Elige un síntoma arriba primero...</option>';
+                veterinarioSelect.disabled = true;
+            });
+        });
+
     </script>
 </div>
