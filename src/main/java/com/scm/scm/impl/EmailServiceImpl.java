@@ -1,10 +1,8 @@
 package com.scm.scm.impl;
 
 import com.scm.scm.service.EmailService;
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -17,9 +15,9 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private JavaMailSender emailSender;
 
-    // Lee el correo desde application.properties
-    @Value("${spring.mail.username}")
-    private String remitente;
+    // IMPORTANTE: En Resend modo prueba, el remitente NO puede ser tu gmail ni la variable username.
+    // Tiene que ser obligatoriamente este correo:
+    private final String remitente = "onboarding@resend.dev";
 
     // --- Tu método original (texto plano) ---
     @Async
@@ -27,7 +25,7 @@ public class EmailServiceImpl implements EmailService {
     public void enviarMensajeSimple(String para, String asunto, String texto) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(remitente);
+            message.setFrom(remitente); // Usará onboarding@resend.dev
             message.setTo(para);
             message.setSubject(asunto);
             message.setText(texto);
@@ -45,11 +43,11 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage message = emailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(remitente);
+            helper.setFrom(remitente); // Usará onboarding@resend.dev
             helper.setTo(destinatario);
             helper.setSubject("¡Bienvenido al Equipo SCM! 🐾");
 
-            // 1. Definimos la plantilla HTML con un marcador claro {NOMBRE_USUARIO}
+            // 1. Definimos la plantilla HTML
             String htmlTemplate = """
                 <!DOCTYPE html>
                 <html>
@@ -91,7 +89,7 @@ public class EmailServiceImpl implements EmailService {
                             </div>
                             
                             <div style="text-align: center;">
-                                <a href="http://localhost:8080/login" class="btn">Ir a mi Panel</a>
+                                <a href="https://heroic-magic-production.up.railway.app/login" class="btn">Ir a mi Panel</a>
                             </div>
                             
                             <p style="margin-top: 30px;">Gracias por querer cuidar a las mascotas con nosotros.</p>
@@ -107,7 +105,7 @@ public class EmailServiceImpl implements EmailService {
                 </html>
                 """;
 
-            // 2. Reemplazamos el marcador con el nombre real
+            // 2. Reemplazamos el marcador
             String htmlMsg = htmlTemplate.replace("{NOMBRE_USUARIO}", nombreUsuario);
 
             helper.setText(htmlMsg, true);
@@ -119,16 +117,17 @@ public class EmailServiceImpl implements EmailService {
             e.printStackTrace();
         }
     }
+
     @Async
     @Override
     public void enviarCorreoCitaAsignada(String destinatario, String nombreDueno, String nombreMascota,
                                          String fecha, String hora, String motivo,
-                                         String clinica, String direccion) { // <-- Recibimos los nuevos datos
+                                         String clinica, String direccion) {
         try {
             MimeMessage message = emailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(remitente);
+            helper.setFrom(remitente); // Usará onboarding@resend.dev
             helper.setTo(destinatario);
             helper.setSubject("📅 Nueva Cita Médica: " + nombreMascota);
 
@@ -183,11 +182,11 @@ public class EmailServiceImpl implements EmailService {
                     </div>
                 </body>
                 </html>
-                """.formatted(nombreDueno, nombreMascota, fecha, hora, motivo, clinica, direccion); // <-- Pasamos los datos
+                """.formatted(nombreDueno, nombreMascota, fecha, hora, motivo, clinica, direccion);
 
             helper.setText(htmlMsg, true);
             emailSender.send(message);
-            System.out.println("Correo de cita (con ubicación) enviado a: " + destinatario);
+            System.out.println("Correo de cita enviado a: " + destinatario);
 
         } catch (Exception e) {
             System.err.println("Error enviando correo: " + e.getMessage());
