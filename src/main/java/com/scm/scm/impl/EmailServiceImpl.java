@@ -1,36 +1,61 @@
 package com.scm.scm.impl;
 
 import com.scm.scm.service.EmailService;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import sendinblue.ApiClient;
+import sendinblue.Configuration;
+import sendinblue.auth.ApiKeyAuth;
+import sibApi.TransactionalEmailsApi;
+import sibModel.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.Properties;
 
 @Service
 public class EmailServiceImpl implements EmailService {
 
-    @Autowired
-    private JavaMailSender emailSender;
+    // Esta variable lee tu clave de Railway (MAIL_PASSWORD)
+    @Value("${brevo.api.key}")
+    private String brevoApiKey;
 
-    // Aquí ponemos TU CORREO EXACTO, el que validaste en Brevo
-    private final String remitente = "seguimientoycotroldemascotassc@gmail.com";
+    // Tu correo verificado en Brevo
+    private final String remitenteEmail = "seguimientoycotroldemascotassc@gmail.com";
+    private final String remitenteNombre = "SCM Admin";
+
+    private TransactionalEmailsApi initApi() {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        // Configura la clave API
+        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+        apiKey.setApiKey(brevoApiKey);
+        return new TransactionalEmailsApi();
+    }
 
     @Async
     @Override
     public void enviarMensajeSimple(String para, String asunto, String texto) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(remitente);
-            message.setTo(para);
-            message.setSubject(asunto);
-            message.setText(texto);
-            emailSender.send(message);
-            System.out.println("Correo simple enviado a: " + para);
+            TransactionalEmailsApi apiInstance = initApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(remitenteEmail);
+            sender.setName(remitenteNombre);
+
+            SendSmtpEmailTo to = new SendSmtpEmailTo();
+            to.setEmail(para);
+
+            sendSmtpEmail.setSender(sender);
+            sendSmtpEmail.setTo(Collections.singletonList(to));
+            sendSmtpEmail.setSubject(asunto);
+            sendSmtpEmail.setTextContent(texto);
+
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+            System.out.println("Brevo API: Correo simple enviado a " + para);
         } catch (Exception e) {
-            System.err.println("Error enviando correo simple: " + e.getMessage());
+            System.err.println("Error Brevo API Simple: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -38,40 +63,35 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void enviarCorreoAprobacion(String destinatario, String nombreUsuario) {
         try {
-            MimeMessage message = emailSender.createMimeMessage();
-            // Importante: codificación UTF-8 para tildes y ñ
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            TransactionalEmailsApi apiInstance = initApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
 
-            helper.setFrom(remitente);
-            helper.setTo(destinatario);
-            helper.setSubject("¡Bienvenido al Equipo SCM! 🐾");
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(remitenteEmail);
+            sender.setName(remitenteNombre);
 
-            String htmlTemplate = """
-                <!DOCTYPE html>
-                <html>
-                <body>
-                    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                        <h1 style="color: #0d6efd; text-align: center;">Bienvenido a SCM</h1>
-                        <p>Hola <strong>{NOMBRE_USUARIO}</strong>,</p>
-                        <p>Tu cuenta de Veterinario ha sido <strong>APROBADA</strong>.</p>
-                        <p>Ya puedes ingresar al sistema con tu correo y contraseña.</p>
-                        <div style="text-align: center; margin-top: 20px;">
-                            <a href="https://heroic-magic-production.up.railway.app/login" style="background-color: #0d6efd; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Ir al Login</a>
-                        </div>
-                        <p style="color: #888; font-size: 12px; text-align: center; margin-top: 30px;">Equipo SCM</p>
-                    </div>
-                </body>
-                </html>
-                """;
+            SendSmtpEmailTo to = new SendSmtpEmailTo();
+            to.setEmail(destinatario);
 
-            String htmlMsg = htmlTemplate.replace("{NOMBRE_USUARIO}", nombreUsuario);
-            helper.setText(htmlMsg, true);
+            sendSmtpEmail.setSender(sender);
+            sendSmtpEmail.setTo(Collections.singletonList(to));
+            sendSmtpEmail.setSubject("¡Bienvenido al Equipo SCM! 🐾");
 
-            emailSender.send(message);
-            System.out.println("Correo Aprobación enviado a: " + destinatario);
+            // HTML MANUAL
+            String htmlContent = "<html><body>" +
+                    "<h1>Hola " + nombreUsuario + "</h1>" +
+                    "<p>Tu cuenta ha sido <strong>APROBADA</strong>.</p>" +
+                    "<p>Ya puedes acceder al sistema.</p>" +
+                    "<a href='https://heroic-magic-production.up.railway.app/login'>Ir al Login</a>" +
+                    "</body></html>";
+
+            sendSmtpEmail.setHtmlContent(htmlContent);
+
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+            System.out.println("Brevo API: Correo Aprobación enviado a " + destinatario);
 
         } catch (Exception e) {
-            System.err.println("Error enviando correo HTML: " + e.getMessage());
+            System.err.println("Error Brevo API HTML: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -82,40 +102,35 @@ public class EmailServiceImpl implements EmailService {
                                          String fecha, String hora, String motivo,
                                          String clinica, String direccion) {
         try {
-            MimeMessage message = emailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            TransactionalEmailsApi apiInstance = initApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
 
-            helper.setFrom(remitente);
-            helper.setTo(destinatario);
-            helper.setSubject("📅 Nueva Cita Médica: " + nombreMascota);
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(remitenteEmail);
+            sender.setName(remitenteNombre);
 
-            String htmlMsg = """
-                <!DOCTYPE html>
-                <html>
-                <body>
-                    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                        <h2 style="color: #0d6efd; text-align: center;">Cita Confirmada</h2>
-                        <p>Hola <strong>%s</strong>,</p>
-                        <p>Cita agendada para: <strong>%s</strong></p>
-                        <ul>
-                            <li><strong>Fecha:</strong> %s</li>
-                            <li><strong>Hora:</strong> %s</li>
-                            <li><strong>Motivo:</strong> %s</li>
-                            <li><strong>Clínica:</strong> %s</li>
-                            <li><strong>Dirección:</strong> %s</li>
-                        </ul>
-                        <p style="text-align: center; font-size: 12px; color: #888;">Por favor llega 10 minutos antes.</p>
-                    </div>
-                </body>
-                </html>
-                """.formatted(nombreDueno, nombreMascota, fecha, hora, motivo, clinica, direccion);
+            SendSmtpEmailTo to = new SendSmtpEmailTo();
+            to.setEmail(destinatario);
 
-            helper.setText(htmlMsg, true);
-            emailSender.send(message);
-            System.out.println("Correo Cita enviado a: " + destinatario);
+            sendSmtpEmail.setSender(sender);
+            sendSmtpEmail.setTo(Collections.singletonList(to));
+            sendSmtpEmail.setSubject("📅 Nueva Cita: " + nombreMascota);
+
+            String htmlContent = "<html><body>" +
+                    "<h1>Cita Confirmada</h1>" +
+                    "<p>Mascota: <strong>" + nombreMascota + "</strong></p>" +
+                    "<p>Fecha: " + fecha + " a las " + hora + "</p>" +
+                    "<p>Lugar: " + clinica + " - " + direccion + "</p>" +
+                    "</body></html>";
+
+            sendSmtpEmail.setHtmlContent(htmlContent);
+
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+            System.out.println("Brevo API: Correo Cita enviado a " + destinatario);
 
         } catch (Exception e) {
-            System.err.println("Error enviando correo cita: " + e.getMessage());
+            System.err.println("Error Brevo API Cita: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
