@@ -1,53 +1,49 @@
 package com.scm.scm.impl;
 
 import com.scm.scm.service.EmailService;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import com.resend.Resend;
+import com.resend.services.emails.model.CreateEmailOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EmailServiceImpl implements EmailService {
 
-    @Autowired
-    private JavaMailSender emailSender;
+    // Leemos la API Key desde las variables
+    @Value("${resend.api.key}")
+    private String resendApiKey;
 
-    // IMPORTANTE: En Resend modo prueba, el remitente NO puede ser tu gmail ni la variable username.
-    // Tiene que ser obligatoriamente este correo:
     private final String remitente = "onboarding@resend.dev";
 
-    // --- Tu método original (texto plano) ---
     @Async
     @Override
     public void enviarMensajeSimple(String para, String asunto, String texto) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(remitente); // Usará onboarding@resend.dev
-            message.setTo(para);
-            message.setSubject(asunto);
-            message.setText(texto);
-            emailSender.send(message);
+            Resend resend = new Resend(resendApiKey);
+
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from(remitente)
+                    .to(para)
+                    .subject(asunto)
+                    .text(texto) // Usamos .text para correos simples
+                    .build();
+
+            resend.emails().send(params);
+            System.out.println("Correo simple enviado vía API a: " + para);
         } catch (Exception e) {
-            System.err.println("Error enviando correo simple: " + e.getMessage());
+            System.err.println("Error API Resend Simple: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    // --- NUEVO MÉTODO HTML (DISEÑO SCM) ---
     @Async
     @Override
     public void enviarCorreoAprobacion(String destinatario, String nombreUsuario) {
         try {
-            MimeMessage message = emailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            Resend resend = new Resend(resendApiKey);
 
-            helper.setFrom(remitente); // Usará onboarding@resend.dev
-            helper.setTo(destinatario);
-            helper.setSubject("¡Bienvenido al Equipo SCM! 🐾");
-
-            // 1. Definimos la plantilla HTML
+            // Tu HTML original intacto
             String htmlTemplate = """
                 <!DOCTYPE html>
                 <html>
@@ -76,26 +72,19 @@ public class EmailServiceImpl implements EmailService {
                             <h1>SCM</h1>
                             <p>Sistema de Control de Mascotas</p>
                         </div>
-                        
                         <div class="content">
                             <p>Hola, <span class="h-user">{NOMBRE_USUARIO}</span> 👋</p>
-                            
                             <p>¡Nos alegra informarte que tu solicitud para unirte como <strong>Veterinario</strong> ha sido <strong>APROBADA</strong>!</p>
-                            
                             <p>A partir de este momento, tu cuenta tiene acceso completo al panel profesional.</p>
-                            
                             <div style="background-color: #e3f2fd; border-left: 5px solid #0d6efd; padding: 15px; margin: 20px 0; border-radius: 5px;">
                                 <strong>Acceso:</strong> Usa el mismo correo y contraseña con los que te registraste.
                             </div>
-                            
                             <div style="text-align: center;">
                                 <a href="https://heroic-magic-production.up.railway.app/login" class="btn">Ir a mi Panel</a>
                             </div>
-                            
                             <p style="margin-top: 30px;">Gracias por querer cuidar a las mascotas con nosotros.</p>
                             <p>Atentamente,<br><strong>El equipo de Administración SCM</strong></p>
                         </div>
-                        
                         <div class="footer">
                             &copy; 2025 SCM. Todos los derechos reservados.<br>
                             Este es un mensaje automático, por favor no responder.
@@ -105,15 +94,20 @@ public class EmailServiceImpl implements EmailService {
                 </html>
                 """;
 
-            // 2. Reemplazamos el marcador
             String htmlMsg = htmlTemplate.replace("{NOMBRE_USUARIO}", nombreUsuario);
 
-            helper.setText(htmlMsg, true);
-            emailSender.send(message);
-            System.out.println("Correo HTML enviado a: " + destinatario);
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from(remitente)
+                    .to(destinatario)
+                    .subject("¡Bienvenido al Equipo SCM! 🐾")
+                    .html(htmlMsg) // Aquí pasamos el HTML
+                    .build();
+
+            resend.emails().send(params);
+            System.out.println("Correo Aprobación enviado vía API a: " + destinatario);
 
         } catch (Exception e) {
-            System.err.println("Error enviando correo HTML: " + e.getMessage());
+            System.err.println("Error API Resend Aprobación: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -124,14 +118,8 @@ public class EmailServiceImpl implements EmailService {
                                          String fecha, String hora, String motivo,
                                          String clinica, String direccion) {
         try {
-            MimeMessage message = emailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            Resend resend = new Resend(resendApiKey);
 
-            helper.setFrom(remitente); // Usará onboarding@resend.dev
-            helper.setTo(destinatario);
-            helper.setSubject("📅 Nueva Cita Médica: " + nombreMascota);
-
-            // HTML Actualizado
             String htmlMsg = """
                 <!DOCTYPE html>
                 <html>
@@ -156,40 +144,39 @@ public class EmailServiceImpl implements EmailService {
                             <h2>Cita Programada</h2>
                             <span class="subtitle">Sistema de Control de Mascotas (SCM)</span>
                         </div>
-                        
                         <p>Hola <strong>%s</strong>,</p>
                         <p>Te confirmamos que se ha agendado una nueva cita para tu mascota <strong>%s</strong>.</p>
-                        
                         <div class="info-box">
                             <div class="row"><span class="label">📅 Fecha:</span> %s</div>
                             <div class="row"><span class="label">⏰ Hora:</span> %s</div>
                             <div class="row"><span class="label">📋 Motivo:</span> %s</div>
                         </div>
-
                         <div class="location-box">
                             <div class="row"><span class="label">🏥 Clínica / Lugar:</span> <strong>%s</strong></div>
                             <div class="row"><span class="label">📍 Dirección:</span> %s</div>
                         </div>
-                        
-                        <p style="text-align: center; margin-top: 20px;">
-                            Por favor, llega 10 minutos antes.
-                        </p>
-                        
+                        <p style="text-align: center; margin-top: 20px;">Por favor, llega 10 minutos antes.</p>
                         <div class="footer">
-                            &copy; 2025 SCM. Todos los derechos reservados.<br>
-                            Este es un correo automático.
+                            &copy; 2025 SCM. Todos los derechos reservados.<br>Este es un correo automático.
                         </div>
                     </div>
                 </body>
                 </html>
                 """.formatted(nombreDueno, nombreMascota, fecha, hora, motivo, clinica, direccion);
 
-            helper.setText(htmlMsg, true);
-            emailSender.send(message);
-            System.out.println("Correo de cita enviado a: " + destinatario);
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from(remitente)
+                    .to(destinatario)
+                    .subject("📅 Nueva Cita Médica: " + nombreMascota)
+                    .html(htmlMsg)
+                    .build();
+
+            resend.emails().send(params);
+            System.out.println("Correo Cita enviado vía API a: " + destinatario);
 
         } catch (Exception e) {
-            System.err.println("Error enviando correo: " + e.getMessage());
+            System.err.println("Error API Resend Cita: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
