@@ -71,22 +71,31 @@ public class DuenoMascotaController {
 
         DiagnosticoDuenoDTO dto = new DiagnosticoDuenoDTO();
         dto.setFechaDiagnostico(LocalDate.now().toString());
-        model.addAttribute("diagnosticoDTO", dto); // Solo una vez es suficiente
+        model.addAttribute("diagnosticoDTO", dto);
 
         if (auth != null && auth.isAuthenticated()) {
             String email = auth.getName();
             Usuario usuario = usuarioRepositorio.findByEmail(email).orElse(null);
-            model.addAttribute("usuario", usuario);
-            model.addAttribute("logueado", true);
+
+            if (usuario != null) {
+                model.addAttribute("usuario", usuario);
+                model.addAttribute("logueado", true);
+
+                // ==============================================================
+                // SOLUCIÓN RÁPIDA: Cargar solo las mascotas de este usuario
+                // ==============================================================
+                // Usamos el método que ya tienes en tu servicio (lo vi en tu método listarMascotas)
+                List<MascotaDTO> misMascotas = mascotaService.obtenerMascotasPorDuenoId(usuario.getIdUsuario());
+                model.addAttribute("mascotas", misMascotas);
+            }
         } else {
             model.addAttribute("logueado", false);
+            model.addAttribute("mascotas", List.of()); // Lista vacía si no hay login
         }
 
-        // Cargar lista global de veterinarios
+        // Cargar lista global de veterinarios (para el select del modal)
         List<Veterinario> veterinarios = veterinarioRepositorio.findAll();
         model.addAttribute("veterinarios", veterinarios);
-
-        model.addAttribute("mascotas", List.of());
     }
 
     @GetMapping("/dueno/index")
